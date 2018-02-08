@@ -3,7 +3,7 @@ import { Component } from "react";
 
 import Article from "./Article";
 
-import { graphql } from "react-apollo";
+import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 @graphql(
@@ -44,7 +44,7 @@ class Other extends Component<any, any> {
         }));
       }
     }
-    if(nextProps.allArticles.loading !== this.state.loading) {
+    if (nextProps.allArticles.loading !== this.state.loading) {
       this.setState((prevState: any) => ({
         ...prevState,
         loading: nextProps.allArticles.loading
