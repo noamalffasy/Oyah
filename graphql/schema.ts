@@ -306,10 +306,6 @@ const Mutation = new GraphQLObjectType({
         },
         resolve: resolvers.signinUser
       },
-      signoutUser: {
-        type: Status,
-        resolve: resolvers.signoutUser
-      },
       updateUser: {
         type: SigninPayload,
         args: {

@@ -209,17 +209,6 @@ export default {
         }
       });
   },
-  signoutUser: async (_: any, {}, ctx: any) => {
-    return await isLoggedIn(ctx)
-      .then(async res => {
-        ctx.cookies.set("reactQLJWT", "");
-
-        return { status: true };
-      })
-      .catch(err => {
-        throw err;
-      });
-  },
   createUser: async (_: any, { authProvider, nametag, name }: any, ctx: any) => {
     const bcrypt = require("bcrypt");
     const jwt = require("jsonwebtoken");
@@ -421,9 +410,6 @@ export default {
           const article = _article.get({ plain: true });
           return await Comment.findAll({ where: { articleID: id } }).then(
             async (comments: any) => {
-              console.log(
-                Object.keys({ ...article, comments }).map(key => key)
-              );
               return { ...article, comments };
             }
           );
@@ -529,7 +515,11 @@ export default {
         throw err;
       });
   },
-  createArticle: async (_: any, { id, title, content, authorID }: any, ctx: any) => {
+  createArticle: async (
+    _: any,
+    { id, title, content, authorID }: any,
+    ctx: any
+  ) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const newArticle = {
