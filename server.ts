@@ -98,6 +98,11 @@ app.prepare().then(() => {
     ctx.respond = false;
   });
 
+  router.get("/signout", async ctx => {
+    ctx.cookies.set("reactQLJWT", "");
+    ctx.redirect("/");
+  });
+
   router.get("*", async ctx => {
     await handle(ctx.req, ctx.res);
     ctx.respond = false;

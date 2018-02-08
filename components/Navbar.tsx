@@ -536,23 +536,7 @@ class Account extends Component<any, any> {
                 </a>
               </Link>
               <Link href="/signout">
-                <a
-                  onClick={e => {
-                    e.preventDefault();
-
-                    findDOMNode(this.Account).focus();
-                    this.props
-                      .signoutUser()
-                      .then((res: any) => {
-                        this.props.logout();
-                      })
-                      .catch((err: any) => {
-                        console.error(err);
-                      });
-                  }}
-                >
-                  Sign out
-                </a>
+                <a>Sign out</a>
               </Link>
             </div>
             <img
