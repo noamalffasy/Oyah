@@ -12,9 +12,9 @@ import gql from "graphql-tag";
 
 interface Props {
   signInModal: any;
-  signinUser: any;
-  login: any;
   closeSignInModal: any;
+  login: any;
+  signinUser?: any;
   createUser?: any;
 }
 

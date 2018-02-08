@@ -14,6 +14,11 @@ interface Props {
   allArticles?: any;
 }
 
+interface State {
+  articles: any[];
+  loading: boolean;
+}
+
 @graphql(
   gql`
     {
@@ -27,7 +32,7 @@ interface Props {
     name: "allArticles"
   }
 )
-class Highlights extends Component<Props, any> {
+class Highlights extends Component<Props, State> {
   async getInitialProps() {
     return {
       allArticles: {
