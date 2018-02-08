@@ -105,10 +105,10 @@ class LoginPopup extends Component<Props, State> {
               }
             }
           })
-          .then(res => {
+          .then((res: any) => {
             if (res.errors) {
               let errors: any[] = [];
-              res.errors.forEach(error => {
+              res.errors.forEach((error: Error) => {
                 errors.push(error.message);
                 console.error(error);
               });
@@ -173,10 +173,10 @@ class LoginPopup extends Component<Props, State> {
                 }
               }
             })
-            .then(res => {
+            .then((res: any) => {
               if (res.errors) {
-                let errors = [];
-                res.errors.forEach(error => {
+                let errors: any[] = [];
+                res.errors.forEach((error: Error) => {
                   errors.push(error.message);
                   console.error(error);
                 });
@@ -202,7 +202,7 @@ class LoginPopup extends Component<Props, State> {
                 }));
               }
             })
-            .catch(err => {
+            .catch((err: Error) => {
               console.error(err);
             });
         } else {
@@ -228,7 +228,7 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  closeDialog(e) {
+  closeDialog(e: any) {
     if (!this.popup.contains(e.target)) {
       this.props.closeSignInModal();
     }

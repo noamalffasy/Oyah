@@ -60,7 +60,7 @@ class Articles extends Component<Props, State> {
             <meta name="description" content="Articles of Oyah" />
           </Head>
           {this.state.articles &&
-            this.state.articles.map((elem, i) => {
+            this.state.articles.map((elem: any, i) => {
               return (
                 <Article
                   title={elem.title}

@@ -153,7 +153,7 @@ export default {
   },
 
   // Mutation
-  getUser: async (_: any, { id }) => {
+  getUser: async (_: any, { id }: any) => {
     const path = require("path");
     const fs = require("fs");
 
@@ -170,7 +170,7 @@ export default {
 
     return user;
   },
-  signinUser: async (_: any, { email }, ctx: any) => {
+  signinUser: async (_: any, { email }: any, ctx: any) => {
     const bcrypt = require("bcrypt");
     const path = require("path");
     const fs = require("fs");
@@ -220,7 +220,7 @@ export default {
         throw err;
       });
   },
-  createUser: async (_: any, { authProvider, nametag, name }, ctx: any) => {
+  createUser: async (_: any, { authProvider, nametag, name }: any, ctx: any) => {
     const bcrypt = require("bcrypt");
     const jwt = require("jsonwebtoken");
     const saltRounds = 10;
@@ -397,7 +397,7 @@ export default {
     //   throw new Error("User is not logged in (or authenticated).");
     // }
   },
-  searchArticle: async (_: any, { searchTerm }) => {
+  searchArticle: async (_: any, { searchTerm }: any) => {
     return await Article.findAll({
       where: {
         title: sequelize.where(
@@ -435,7 +435,7 @@ export default {
       }
     );
   },
-  likeArticle: async (_: any, { articleID, liked }, ctx: any) => {
+  likeArticle: async (_: any, { articleID, liked }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user;
@@ -473,7 +473,7 @@ export default {
         throw err;
       });
   },
-  sendComment: async (_: any, { id, articleID, message }, ctx: any) => {
+  sendComment: async (_: any, { id, articleID, message }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user;
@@ -487,7 +487,7 @@ export default {
         throw err;
       });
   },
-  updateComment: async (_: any, { id, articleID, message }, ctx: any) => {
+  updateComment: async (_: any, { id, articleID, message }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user.dataValues;
@@ -505,7 +505,7 @@ export default {
         throw err;
       });
   },
-  deleteComment: async (_: any, { id, articleID }, ctx: any) => {
+  deleteComment: async (_: any, { id, articleID }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user.dataValues;
@@ -529,7 +529,7 @@ export default {
         throw err;
       });
   },
-  createArticle: async (_: any, { id, title, content, authorID }, ctx: any) => {
+  createArticle: async (_: any, { id, title, content, authorID }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const newArticle = {
@@ -550,7 +550,7 @@ export default {
         throw err;
       });
   },
-  updateArticle: async (_: any, { id, title, content }, ctx: any) => {
+  updateArticle: async (_: any, { id, title, content }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user.dataValues;
@@ -577,7 +577,7 @@ export default {
         throw err;
       });
   },
-  deleteArticle: async (_: any, { id }, ctx: any) => {
+  deleteArticle: async (_: any, { id }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user.dataValues;
@@ -690,7 +690,7 @@ export default {
         throw err;
       });
   },
-  sendMail: async (_: any, { name, email, subject, message }) => {
+  sendMail: async (_: any, { name, email, subject, message }: any) => {
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
