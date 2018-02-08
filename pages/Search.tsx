@@ -109,87 +109,17 @@ class Search extends Component<Props, State> {
             `}</style>
             <style jsx global>{`
               .Search .Article {
-                display: flex;
                 /* flex: 1 1; */
-                position: relative;
                 /* margin: 0 0.5rem; */
                 /* margin: 0.5rem; */
                 /* margin: 0 0.5rem 0.5rem 0; */
                 margin: 0 auto 0.7rem;
                 /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
                 /* width: calc(1/2*100% - 1/2*2.5rem); */
-                border-radius: 8px;
-                transition: all 0.3s;
-              }
-
-              .Search .Article:not(.rect-shape):hover {
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-                transform: scale(1.04);
-              }
-
-              .Search .Article .image {
-                width: 100%;
-                height: 100%;
-                min-height: 20rem;
-                border-radius: 8px;
-                user-select: none;
-                cursor: pointer;
-                transition: all 0.3s;
-              }
-
-              .Search .Article .text {
-                display: block;
-                width: 100%;
-                height: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                /* background: -webkit-linear-gradient(
-                rgba(0, 0, 0, 0.3) 0,
-                rgba(0, 0, 0, 0.9) 100%
-              ); */
-                background: -webkit-linear-gradient(
-                  top,
-                  rgba(0, 0, 0, 0.3) 0,
-                  rgba(0, 0, 0, 0.3) 60%,
-                  #000 100%
-                );
-                text-align: center;
-                z-index: 1;
-                color: #fff;
-                border-radius: 8px;
-                user-select: text;
-                cursor: pointer;
-                transition: all 0.3s;
-              }
-
-              .Search .Article .text h2 {
-                position: absolute;
-                text-align: center;
-                left: 0;
-                right: 0;
-                bottom: 0;
-
-                margin: 0.5rem auto;
-
-                font-size: 7vmin;
-                max-height: 17vmin;
-                max-width: 90%;
-                white-space: nowrap;
-
-                text-overflow: ellipsis;
-                overflow: hidden;
-
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-                backface-visibility: hidden;
               }
               @media (min-width: 768px) {
                 .Search .Article {
                   width: calc(1/2*100% - 1/2*2.5rem);
-                }
-                .Search .Article .text h2 {
-                  font-size: 4vmin;
                 }
               }
               @media (min-width: 992px) {
@@ -197,10 +127,6 @@ class Search extends Component<Props, State> {
                   width: calc(1/3*100% - (1 - 1/3)*1rem);
                   height: 15rem;
                   overflow: hidden;
-                }
-                .Search .Article .image {
-                  height: 100%;
-                  min-height: 100%;
                 }
               }
             `}</style>
