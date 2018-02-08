@@ -1,0 +1,25 @@
+{
+  currentUser {
+    ok
+    jwt
+    errors {
+      field
+      message
+    }
+    user {
+      id
+      nametag
+      name
+      email
+      password
+      likes
+      small_image
+      image
+      bio
+      mains
+      reddit
+      twitter
+      editor
+    }
+  }
+}
