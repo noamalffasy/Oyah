@@ -15,6 +15,19 @@ import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 
+interface Props {
+  user?: any;
+  login?: any;
+  updateUser?: any;
+  updateUserPassword?: any;
+  uploadFile?: any;
+}
+
+interface State {
+  articles: any[];
+  userImg?: any;
+}
+
 @graphql(
   gql`
     mutation updateUser(
@@ -101,8 +114,8 @@ import withData from "../lib/withData";
     name: "uploadFile"
   }
 )
-class Settings extends Component<any, any> {
-  constructor(props: any) {
+class Settings extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
 
     this.state = { articles: [] };
