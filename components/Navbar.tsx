@@ -317,16 +317,9 @@ class Navbar extends Component<Props, any> {
       user {
         id
         nametag
-        name
         email
-        password
-        likes
         small_image
         image
-        bio
-        mains
-        reddit
-        twitter
         editor
       }
     }
@@ -374,19 +367,14 @@ class Account extends Component<any, any> {
       const data = nextProps.data.currentUser;
       if (data.error) {
         if (
-          data.error[0].message === "User is not logged in (or authenticated)."
+          data.error[0].message !== "User is not logged in (or authenticated)."
         ) {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            loggedIn: false
-          }));
-        } else {
           console.error(data.error);
         }
       } else {
         this.props.login({
           ...data.user,
-          mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+          // mains: data.user.mains !== null ? data.user.mains.split(", ") : null
         });
 
         this.setState((prevState: any) => ({

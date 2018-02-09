@@ -2,7 +2,10 @@ import * as React from "react";
 import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+
+import * as userActionCreators from "../actions/user";
 
 import App from "../components/App";
 
@@ -16,8 +19,10 @@ import gql from "graphql-tag";
 import withData from "../lib/withData";
 
 interface Props {
+  data?: any;
   user?: any;
   login?: any;
+  dispatch?: any;
   updateUser?: any;
   updateUserPassword?: any;
   uploadFile?: any;
@@ -28,6 +33,26 @@ interface State {
   userImg?: any;
 }
 
+@graphql(gql`
+  {
+    currentUser {
+      ok
+      jwt
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        name
+        bio
+        mains
+        reddit
+        twitter
+      }
+    }
+  }
+`)
 @graphql(
   gql`
     mutation updateUser(
@@ -124,6 +149,40 @@ class Settings extends Component<Props, State> {
     this.getFile = this.getFile.bind(this);
     this.update = this.update.bind(this);
   }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const { user } = nextProps;
+    if (
+      nextProps.data &&
+      !nextProps.data.loading &&
+      nextProps.data.currentUser &&
+      nextProps.data.currentUser.user !== null &&
+      (!this.props.data.currentUser ||
+        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+    ) {
+      const data = nextProps.data.currentUser;
+      if (data.error) {
+        if (
+          data.error[0].message === "User is not logged in (or authenticated)."
+        ) {
+          this.setState((prevState: any) => ({
+            ...prevState,
+            loggedIn: false
+          }));
+        } else {
+          console.error(data.error);
+        }
+      } else {
+        this.login({
+          ...user,
+          ...data.user,
+          mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+        });
+      }
+    }
+  }
+
+  login = bindActionCreators(userActionCreators.login, this.props.dispatch)
 
   openImageDialog() {
     const imageDialog = findDOMNode(this.imageDialog);
@@ -223,7 +282,7 @@ class Settings extends Component<Props, State> {
             } else {
               const data = res.data.updateUser;
 
-              this.props.login({ ...data.user, token: data.token });
+              this.login({ ...data.user, token: data.token });
             }
           });
       }
@@ -246,7 +305,7 @@ class Settings extends Component<Props, State> {
           } else {
             const data = res.data.updateUser;
 
-            this.props.login({ ...data.user, token: data.token });
+            this.login({ ...data.user, token: data.token });
           }
         });
     }

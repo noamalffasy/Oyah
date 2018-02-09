@@ -1,21 +1,48 @@
 import * as React from "react";
 import { Component } from "react";
 
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import Head from "next/head";
+
+import * as userActionCreators from "../actions/user";
 
 import App from "../components/App";
 
 import Image from "../components/Image";
 
 import withData from "../lib/withData";
+import { graphql } from "../utils/graphql";
+import gql from "graphql-tag";
 
 interface Props {
+  data?: any
+  dispatch?: any;
   user?: any;
   signInModal?: any;
 }
 
+@graphql(gql`
+  {
+    currentUser {
+      ok
+      jwt
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        name
+        bio
+        mains
+        reddit
+        twitter
+      }
+    }
+  }
+`)
 class Profile extends Component<Props> {
   constructor(props: Props) {
     super(props);
@@ -23,7 +50,32 @@ class Profile extends Component<Props> {
     this.state = { articles: [] };
   }
 
-  componentDidMount() {}
+  componentWillReceiveProps(nextProps: Props) {
+    const { dispatch, user } = nextProps;
+    const login = bindActionCreators(userActionCreators.login, dispatch);
+    if (
+      nextProps.data &&
+      !nextProps.data.loading &&
+      nextProps.data.currentUser &&
+      nextProps.data.currentUser.user !== null &&
+      (!this.props.data.currentUser || nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+    ) {
+      const data = nextProps.data.currentUser;
+      if (data.error) {
+        if (
+          data.error[0].message !== "User is not logged in (or authenticated)."
+        )  {
+          console.error(data.error);
+        }
+      } else {
+        login({
+          ...user,
+          ...data.user,
+          mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+        });
+      }
+    }
+  }
 
   render() {
     if (Object.keys(this.props.user).length !== 0) {

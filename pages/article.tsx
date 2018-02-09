@@ -1,7 +1,10 @@
 import * as React from "react";
 import { Component } from "react";
 
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+
+import * as userActionCreators from "../actions/user";
 
 import * as uuid from "uuid/v4";
 import Head from "next/head";
@@ -98,9 +101,11 @@ interface Props extends React.Props<ArticlePage> {
   match: any;
   user: User;
   openSignInModal: any;
+  data?: any;
   getArticle?: any;
   getUser?: any;
   url?: any;
+  dispatch?: any;
   deleteArticle?: any;
   signInModal?: any;
 }
@@ -118,6 +123,24 @@ interface State {
   notFound?: boolean;
 }
 
+@graphql(
+  gql`
+    {
+      currentUser {
+        ok
+        jwt
+        errors {
+          field
+          message
+        }
+        user {
+          id
+          likes
+        }
+      }
+    }
+  `
+)
 @graphql(
   gql`
     mutation getArticle($id: String!) {
@@ -241,6 +264,32 @@ class ArticlePage extends Component<Props, State> {
       .catch((err: any) => {
         console.error(err);
       });
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const { dispatch, user } = nextProps;
+    const login = bindActionCreators(userActionCreators.login, dispatch);
+    if (
+      nextProps.data &&
+      !nextProps.data.loading &&
+      nextProps.data.currentUser &&
+      nextProps.data.currentUser.user !== null &&
+      (!this.props.data.currentUser || nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+    ) {
+      const data = nextProps.data.currentUser;
+      if (data.error) {
+        if (
+          data.error[0].message !== "User is not logged in (or authenticated)."
+        ) {
+          console.error(data.error);
+        }
+      } else {
+        login({
+          ...user,
+          ...data.user
+        });
+      }
+    }
   }
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
