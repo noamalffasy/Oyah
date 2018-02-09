@@ -97,9 +97,9 @@ interface User {
 interface Props extends React.Props<ArticlePage> {
   match: any;
   user: User;
-  getArticle: any;
-  getUser: any;
   openSignInModal: any;
+  getArticle?: any;
+  getUser?: any;
   url?: any;
   deleteArticle?: any;
   signInModal?: any;
@@ -185,87 +185,12 @@ class ArticlePage extends Component<Props, State> {
     this.deleteComment = this.deleteComment.bind(this);
   }
 
-  getInitialProps() {
-    console.log(this.props.getArticle)
-    this.props
-      .getArticle({
-        variables: { id: this.state.id }
-      })
-      .then((getArticle: any) => {
-        console.log(getArticle)
-        if (getArticle.error) {
-          if (
-            getArticle.error[0].message === "Cannot read property 'get' of null"
-          ) {
-            this.setState((prevState: any) => ({
-              ...prevState,
-              notFound: true,
-              title: "Not Found"
-            }));
-            return {
-              notFound: true
-            };
-          } else {
-            console.error(getArticle.error.message);
-          }
-        } else if (getArticle.data.getArticle.id !== null) {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            ...getArticle.data.getArticle
-          }));
-
-          this.props
-            .getUser({
-              variables: {
-                id: getArticle.data.getArticle.authorID
-              }
-            })
-            .then((getUser: any) => {
-              if (getUser.error) {
-                console.error(getUser.error.message);
-              } else {
-                this.setState((prevState: any) => ({
-                  ...prevState,
-                  author: {
-                    ...getUser.data.getUser,
-                    image:
-                      "/img/users/" +
-                      encodeURIComponent(getUser.data.getUser.image)
-                  }
-                }));
-                return {
-                  ...getArticle.data.getArticle,
-                  author: {
-                    ...getUser.data.getUser,
-                    image:
-                      "/img/users/" +
-                      encodeURIComponent(getUser.data.getUser.image)
-                  }
-                };
-              }
-            });
-        } else {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            notFound: true,
-            title: "Not Found"
-          }));
-          return {
-            notFound: true
-          };
-        }
-      });
-  }
-
   componentDidMount() {
-    // document.title = "Article | Oyah";
-    console.log(this.props.getArticle)
     this.props
       .getArticle({
         variables: { id: this.state.id }
       })
       .then((getArticle: any) => {
-        console.log(getArticle);
         if (getArticle.error) {
           if (
             getArticle.error[0].message === "Cannot read property 'get' of null"
@@ -316,10 +241,6 @@ class ArticlePage extends Component<Props, State> {
       .catch((err: any) => {
         console.error(err);
       });
-  }
-
-  componentDidUpdate() {
-    // document.title = this.state.title + " | Oyah";
   }
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
@@ -392,7 +313,7 @@ class ArticlePage extends Component<Props, State> {
         <App {...this.props}>
           <div className="ArticlePage">
             <Head>
-              <title>{this.state.title + ` | Oyah`}</title>
+              <title>{this.state.title || "Article" + ` | Oyah`}</title>
               <meta name="description" content={this.state.title} />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>

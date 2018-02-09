@@ -1,7 +1,8 @@
 import { ApolloClient } from "apollo-client";
 import { HttpLink } from "apollo-link-http";
 import { RetryLink } from "apollo-link-retry";
-import { ApolloLink } from "apollo-link";
+import { onError } from "apollo-link-error";
+import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { createUploadLink } from "apollo-upload-client";
 import fetch from "node-fetch";
@@ -30,14 +31,27 @@ function create(initialState: any) {
     return forward(operation);
   });
 
+  const errorLink = onError(({ graphQLErrors, networkError }: any) => {
+    if (graphQLErrors)
+      graphQLErrors.map(({ message, locations, path }: any) =>
+        console.log(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+        ),
+      );
+  
+    if (networkError) console.log(`[Network error]: ${networkError}`);
+  });
+
   return new ApolloClient({
     connectToDevTools: process.browser,
     ssrMode: !process.browser, // Disables forceFetch on the server (so queries are only run once),
-    link: ApolloLink.from([
-      new RetryLink(),
-      authMiddleware,
-      createUploadLink({ uri, fetch, credentials: "include" })
-    ]),
+    // link: ApolloLink.from([
+    //   errorLink,
+    //   authMiddleware,
+    //   // createUploadLink({ uri, fetch, credentials: "include" })
+    //   new HttpLink({ uri, credentials: "include" })
+    // ]),
+    link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),
     // link: new HttpLink({ uri, fetch, credentials: "include" }),
     cache: new InMemoryCache().restore(initialState || {})
   });
