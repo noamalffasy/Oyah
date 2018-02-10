@@ -5,7 +5,6 @@ const initialState = { state: "close" };
 function SignInModal(state = initialState, action) {
   switch (action.type) {
     case SignInModalActionTypes.OPEN:
-      console.log(action);
       return {
         ...state,
         state: "open",
