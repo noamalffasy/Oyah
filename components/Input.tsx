@@ -148,6 +148,47 @@ class Input extends Component<Props, State> {
       findDOMNode(this.input).value = "";
       this.input.value = "";
     }
+    if (
+      nextProps.type === "select-dropdown" &&
+      nextProps.selections &&
+      nextProps.selections !== [] &&
+      nextProps.selections.length > 0 &&
+      nextProps.selections[0] !== "" &&
+      !this.state.focus &&
+      nextProps.selections !== this.props.selections
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        focus: true,
+        empty: false
+      }));
+      this.setState(prevState => ({
+        ...prevState,
+        selections: nextProps.selections
+      }));
+      findDOMNode(this.box)
+        .querySelectorAll("li")
+        .forEach((elem, i) => {
+          if (
+            nextProps.selections.filter(
+              e => e === elem.querySelector("h2").innerText
+            ).length > 0
+          ) {
+            this["checkbox_" + i].check();
+          }
+        });
+    } else if (
+      nextProps.type === "select-dropdown" &&
+      nextProps.selections &&
+      nextProps.selections[0] === "" &&
+      nextProps.selections !== this.props.selections
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        focus: false
+      }));
+      findDOMNode(this.textarea).value = "";
+    }
   }
 
   selectInput(e) {
