@@ -6,6 +6,7 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import * as userActionCreators from "../actions/user";
+import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 
@@ -170,7 +171,8 @@ class Settings extends Component<Props, State> {
             loggedIn: false
           }));
         } else {
-          console.error(data.error);
+          // console.error(data.error);
+          this.setError(data.error)
         }
       } else {
         this.login({
@@ -183,6 +185,7 @@ class Settings extends Component<Props, State> {
   }
 
   login = bindActionCreators(userActionCreators.login, this.props.dispatch)
+  setError = bindActionCreators(errorActionCreators.setError, this.props.dispatch)
 
   openImageDialog() {
     const imageDialog = findDOMNode(this.imageDialog);
@@ -242,17 +245,14 @@ class Settings extends Component<Props, State> {
       this.props
         .uploadFile({
           variables: {
-            file: {
-              name: "Logo-TUMTUM_grande.jpg",
-              size: 22397,
-              type: "image/jpeg"
-            },
+            file: image,
             where: "user"
           }
         })
         .then((res: any) => {
           if (res.error) {
-            console.error(res.error);
+            // console.error(res.error);
+            this.setError(res.error);
           } else {
             const data = res.data.uploadFile;
 
@@ -278,7 +278,8 @@ class Settings extends Component<Props, State> {
           })
           .then((res: any) => {
             if (res.error) {
-              console.error(res.error);
+              // console.error(res.error);
+              this.setError(res.error);
             } else {
               const data = res.data.updateUser;
 
@@ -301,7 +302,8 @@ class Settings extends Component<Props, State> {
         })
         .then((res: any) => {
           if (res.error) {
-            console.error(res.error);
+            // console.error(res.error);
+            this.setError(res.error)
           } else {
             const data = res.data.updateUser;
 
@@ -310,6 +312,7 @@ class Settings extends Component<Props, State> {
         });
     }
   }
+
 
   render() {
     if (Object.keys(this.props.user).length !== 0) {
@@ -777,7 +780,8 @@ class Settings extends Component<Props, State> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(Settings));

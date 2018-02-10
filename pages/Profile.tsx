@@ -286,7 +286,8 @@ class Profile extends Component<Props> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(Profile));

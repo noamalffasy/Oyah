@@ -9,6 +9,7 @@ import Head from "next/head";
 
 import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
+import * as errorActionCreators from "../actions/error";
 
 import Article from "./Article";
 
@@ -36,6 +37,7 @@ import {
   faTwitter,
   faFacebookF
 } from "@fortawesome/fontawesome-free-brands";
+import ErrorAlert from "./ErrorAlert";
 
 fontawesome.library.add(
   faSearch,
@@ -129,7 +131,7 @@ class App extends Component<any, any> {
   //   };
 
   render() {
-    const { dispatch, signInModal, user } = this.props;
+    const { dispatch, signInModal, user, error } = this.props;
     const openSignInModal = bindActionCreators(
       signInModalActionCreators.open,
       dispatch
@@ -140,8 +142,10 @@ class App extends Component<any, any> {
     );
     const login = bindActionCreators(userActionCreators.login, dispatch);
     const logout = bindActionCreators(userActionCreators.logout, dispatch);
+    const setError = bindActionCreators(errorActionCreators.setError, dispatch);
     return (
       <div className={this.state.container ? "App container" : "App"}>
+        <ErrorAlert error={error} setError={setError} />
         <Navbar
           url={this.props.url}
           container={this.state.container}
@@ -177,7 +181,8 @@ class App extends Component<any, any> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default App;

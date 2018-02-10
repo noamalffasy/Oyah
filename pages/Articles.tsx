@@ -127,7 +127,8 @@ class Articles extends Component<Props, State> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(Articles));

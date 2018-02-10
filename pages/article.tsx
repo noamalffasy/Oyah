@@ -1781,7 +1781,8 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(ArticlePage));

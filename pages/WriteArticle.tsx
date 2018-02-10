@@ -2,7 +2,10 @@ import * as React from "react";
 import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+
+import * as errorActionCreators from "../actions/error";
 
 import Textarea from "react-textarea-autosize";
 import * as MarkdownIt from "markdown-it";
@@ -33,6 +36,7 @@ interface Props {
   user?: any;
   signInModal?: any;
   url?: any;
+  dispatch?: any;
 }
 
 interface State {
@@ -45,8 +49,6 @@ interface State {
   image: any;
   content: any;
   edit: any;
-  errorOpen: boolean;
-  error: any;
   value?: any;
 }
 
@@ -546,27 +548,20 @@ class WriteArticle extends Component<Props, State> {
             }
           }
         } else {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            errorOpen: true,
-            error: "Content mustn't be empty"
-          }));
+          this.setError("Content mustn't be empty");
         }
       } else {
-        this.setState((prevState: any) => ({
-          ...prevState,
-          errorOpen: true,
-          error: "Image mustn't be empty"
-        }));
+        this.setError("Image mustn't be empty");
       }
     } else {
-      this.setState((prevState: any) => ({
-        ...prevState,
-        errorOpen: true,
-        error: "Title mustn't be empty"
-      }));
+      this.setError("Title mustn't be empty");
     }
   }
+
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
 
   render() {
     if (
@@ -582,31 +577,6 @@ class WriteArticle extends Component<Props, State> {
               <link rel="stylesheet" href="/css/simplemde.min.css" />
               {/* <base href="http://localhost:8081/" /> */}
             </Head>
-            <div
-              className={
-                this.state.errorOpen
-                  ? "alert alert-danger fade show"
-                  : "alert alert-danger alert-dismissible fade hide"
-              }
-              role="alert"
-              style={!this.state.errorOpen ? { top: "-5rem" } : { top: 0 }}
-            >
-              <strong>An error occured!</strong> {this.state.error}
-              <button
-                type="button"
-                className="close"
-                aria-label="Close"
-                onClick={e => {
-                  e.preventDefault();
-                  this.setState((prevState: any) => ({
-                    ...prevState,
-                    errorOpen: false
-                  }));
-                }}
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
             <div className="container">
               <div className="Content">
                 <Textarea
@@ -914,12 +884,12 @@ class WriteArticle extends Component<Props, State> {
             .NotAuthorized {
               text-align: center;
             }
-            
+
             .NotAuthorized > h2 {
               font-size: 4rem;
               color: #cc0000;
             }
-            
+
             .NotAuthorized > p {
               font-size: 2rem;
             }
@@ -932,7 +902,8 @@ class WriteArticle extends Component<Props, State> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(WriteArticle));
