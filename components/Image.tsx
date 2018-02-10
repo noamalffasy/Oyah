@@ -183,6 +183,7 @@ class Image extends Component<Props, State> {
         <div
           className={
             "image placeholder" +
+            (this.state.smallLoaded ? " loading" : "") +
             (this.props.className ? " " + this.props.className : "")
           }
           data-large={
@@ -215,6 +216,11 @@ class Image extends Component<Props, State> {
             .image.placeholder {
               position: relative;
               overflow: hidden;
+            }
+
+            .image.placeholder.loading {
+              background-color: #e0e0e0;
+              animation: 1.5s infinite;
             }
 
             .image.placeholder img {
