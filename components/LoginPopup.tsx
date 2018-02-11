@@ -210,21 +210,18 @@ class LoginPopup extends Component<Props, State> {
             ...prevState,
             error: "Passwords don't match"
           }));
-          console.error("Passwords don't match");
         }
       } else {
         this.setState(prevState => ({
           ...prevState,
           error: "Email isn't valid"
         }));
-        console.error("Email isn't valid");
       }
     } else {
       this.setState(prevState => ({
         ...prevState,
         error: "You must fill all the fields"
       }));
-      console.error("You must fill all the fields");
     }
   }
 
