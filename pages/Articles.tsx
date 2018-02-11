@@ -101,6 +101,10 @@ class Articles extends Component<Props, State> {
             /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
             /* width: calc(1/2*100% - 1/2*2.5rem); */
           }
+
+          .Articles .Article .image {
+            min-height: 20rem;
+          }
           @media (min-width: 576px) {
             .Articles {
               width: 85%;

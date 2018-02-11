@@ -30,7 +30,10 @@ class Placeholder extends Component<any, any> {
 class Article extends Component<any, any> {
   render() {
     return (
-      <ReactPlaceholder customPlaceholder={<Placeholder />} ready={!this.props.loading}>
+      <ReactPlaceholder
+        customPlaceholder={<Placeholder />}
+        ready={!this.props.loading}
+      >
         <Link
           href={"/article?id=" + this.props.id}
           as={"/articles/" + this.props.id}
@@ -136,7 +139,8 @@ class Article extends Component<any, any> {
             -moz-osx-font-smoothing: grayscale;
             backface-visibility: hidden;
           }
-          @media (min-width: 768px) {
+          @media (min-width: 768px),
+          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .text h2 {
               font-size: 4vmin;
             }
@@ -146,13 +150,13 @@ class Article extends Component<any, any> {
           .Article .image {
             width: 100%;
             height: 100%;
-            min-height: 20rem;
             border-radius: 8px;
             user-select: none;
             cursor: pointer;
             transition: all 0.3s;
           }
-          @media (min-width: 992px) {
+          @media (min-width: 992px),
+          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .image {
               height: 100%;
               min-height: 100%;

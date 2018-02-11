@@ -62,7 +62,7 @@ class Index extends Component<Props> {
             flex: 2.1 1;
             width: 100%;
             max-height: 15rem;
-            height: 15rem;
+            min-height: 15rem;
             margin: 0;
             margin-bottom: 1rem;
           }
@@ -86,6 +86,7 @@ class Index extends Component<Props> {
             margin: 0 0.5rem 0 0;
             flex: 1 1;
             width: 100%;
+            min-height: 7rem;
           }
 
           .Home .Highlights .other .Article:last-child {
