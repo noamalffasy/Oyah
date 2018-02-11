@@ -4,6 +4,7 @@ import { Component } from "react";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
+import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
 
 import * as uuid from "uuid/v4";
@@ -100,7 +101,6 @@ interface User {
 interface Props extends React.Props<ArticlePage> {
   match: any;
   user: User;
-  openSignInModal: any;
   data?: any;
   getArticle?: any;
   getUser?: any;
@@ -207,7 +207,7 @@ class ArticlePage extends Component<Props, State> {
     this.deleteArticle = this.deleteArticle.bind(this);
     this.deleteComment = this.deleteComment.bind(this);
   }
-
+  
   componentDidMount() {
     this.props
       .getArticle({
@@ -274,7 +274,8 @@ class ArticlePage extends Component<Props, State> {
       !nextProps.data.loading &&
       nextProps.data.currentUser &&
       nextProps.data.currentUser.user !== null &&
-      (!this.props.data.currentUser || nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+      (!this.props.data.currentUser ||
+        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
     ) {
       const data = nextProps.data.currentUser;
       if (data.error) {
@@ -299,7 +300,8 @@ class ArticlePage extends Component<Props, State> {
       // (this.more && this.more.contains(nextProps.clicked)) ||
       !this.state.content ||
       !this.state.author ||
-      this.props.user !== nextProps.user
+      this.props.user !== nextProps.user ||
+      this.props.signInModal !== nextProps.signInModal
       // (nextProps.clicked === this.props.clicked &&
       //   !this.state.menuOpen &&
       //   this.state.content &&
@@ -355,6 +357,8 @@ class ArticlePage extends Component<Props, State> {
       removeComments: this.state.removeComments.concat([id])
     }));
   }
+
+  openSignInModal = bindActionCreators(signInModalActionCreators.open, this.props.dispatch)
 
   render() {
     if (!this.state.notFound) {
@@ -522,7 +526,7 @@ class ArticlePage extends Component<Props, State> {
 
                   <Responses
                     user={this.props.user}
-                    openSignInModal={this.props.openSignInModal}
+                    openSignInModal={this.openSignInModal}
                     articleID={this.state.id}
                     author={this.state.author}
                     comments={this.state.comments}
@@ -1253,6 +1257,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                 Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
                 sans-serif;
               text-align: center;
+              padding: 1rem 0.6rem;
               cursor: default;
             }
 
