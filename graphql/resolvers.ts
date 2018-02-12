@@ -499,7 +499,6 @@ export default {
         if (comment.dataValues.authorID === user.id) {
           Comment.destroy({ where: { id, articleID } })
             .then((result: any) => {
-              console.log(result);
               return { status: result };
             })
             .catch((err: any) => {
