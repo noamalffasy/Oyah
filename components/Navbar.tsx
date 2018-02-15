@@ -5,6 +5,8 @@ import Link from "next/link";
 import { withRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Collapse, NavbarToggler } from "reactstrap";
+
 import Image from "./Image";
 import Input from "./Input";
 
@@ -26,6 +28,13 @@ interface Props {
   searchArticle?: any;
 }
 
+interface State {
+  focus: boolean;
+  container: boolean;
+  navOpen: boolean;
+  searchTerm: any;
+}
+
 @graphql(
   gql`
     mutation searchArticle($searchTerm: String!) {
@@ -39,15 +48,21 @@ interface Props {
     name: "searchArticle"
   }
 )
-class Navbar extends Component<Props, any> {
+class Navbar extends Component<Props, State> {
   constructor(props: Props, context: any) {
     super(props, context);
 
-    this.state = { focus: false, container: props.container, searchTerm: "" };
+    this.state = {
+      focus: false,
+      container: props.container,
+      navOpen: false,
+      searchTerm: ""
+    };
 
     this.addContainer = this.addContainer.bind(this);
     this.onFocus = this.onFocus.bind(this);
     this.onBlur = this.onBlur.bind(this);
+    this.toggleNav = this.toggleNav.bind(this);
     this.search = this.search.bind(this);
   }
 
@@ -68,13 +83,13 @@ class Navbar extends Component<Props, any> {
     }
   }
 
-  addContainer(props: any) {
+  addContainer(props: Props) {
     const url = props.url;
     if (
       (url.pathname === "/article" || url.pathname === "/WriteArticle") &&
       this.state.container === true
     ) {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         container: false
       }));
@@ -83,7 +98,7 @@ class Navbar extends Component<Props, any> {
       url.pathname !== "/WriteArticle" &&
       this.state.container === false
     ) {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         container: true
       }));
@@ -91,16 +106,23 @@ class Navbar extends Component<Props, any> {
   }
 
   onFocus() {
-    this.setState((prevState: any) => ({
+    this.setState(prevState => ({
       ...prevState,
       focus: true
     }));
   }
 
   onBlur() {
-    this.setState((prevState: any) => ({
+    this.setState(prevState => ({
       ...prevState,
       focus: false
+    }));
+  }
+
+  toggleNav() {
+    this.setState(prevState => ({
+      ...prevState,
+      navOpen: !this.state.navOpen
     }));
   }
 
@@ -140,19 +162,8 @@ class Navbar extends Component<Props, any> {
         <Link href="/">
           <a className="navbar-brand">Oyah</a>
         </Link>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
-
-        <div className="collapse navbar-collapse" id="navbarSupportedContent">
+        <NavbarToggler onClick={this.toggleNav} />
+        <Collapse isOpen={this.state.navOpen} navbar>
           <ul className="navbar-nav mr-auto">
             <li
               className={
@@ -216,7 +227,7 @@ class Navbar extends Component<Props, any> {
             openSignInModal={this.props.openSignInModal}
             closeSignInModal={this.props.closeSignInModal}
           />
-        </div>
+        </Collapse>
         <style jsx>{`
           .navbar .navbar-brand {
             font-family: "Times New Roman", Times, serif;
@@ -235,15 +246,6 @@ class Navbar extends Component<Props, any> {
 
           .navbar .navbar-brand:hover {
             text-decoration: none !important;
-          }
-
-          .navbar .navbar-toggler {
-            border: 0;
-            outline: 0;
-          }
-
-          .navbar .navbar-toggler span {
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
           }
 
           .navbar .navbar-nav {
@@ -295,6 +297,14 @@ class Navbar extends Component<Props, any> {
           }
         `}</style>
         <style jsx global>{`
+          .navbar .navbar-toggler {
+            border: 0;
+            outline: 0;
+          }
+
+          .navbar .navbar-toggler span {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+          }
           .navbar .search button svg {
             max-width: 1rem;
           }
