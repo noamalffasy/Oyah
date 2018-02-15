@@ -153,166 +153,165 @@ class Navbar extends Component<Props, State> {
 
   render() {
     return (
-      <nav
-        className={
-          "navbar navbar-expand-lg navbar-light" +
-          (!this.state.container ? " container" : "")
-        }
-      >
-        <Link href="/">
-          <a className="navbar-brand">Oyah</a>
-        </Link>
-        <NavbarToggler onClick={this.toggleNav} />
-        <Collapse isOpen={this.state.navOpen} navbar>
-          <ul className="navbar-nav mr-auto">
-            <li
-              className={
-                this.props.url.pathname === "/" ? "nav-item active" : "nav-item"
-              }
+      <div className={!this.state.container ? " container" : ""}>
+        <nav className="navbar navbar-expand-lg navbar-light">
+          <Link href="/">
+            <a className="navbar-brand">Oyah</a>
+          </Link>
+          <NavbarToggler onClick={this.toggleNav} />
+          <Collapse isOpen={this.state.navOpen} navbar>
+            <ul className="navbar-nav mr-auto">
+              <li
+                className={
+                  this.props.url.pathname === "/"
+                    ? "nav-item active"
+                    : "nav-item"
+                }
+              >
+                <Link href="/">
+                  <a className="nav-link">Home</a>
+                </Link>
+              </li>
+              <li
+                className={
+                  this.props.url.pathname.startsWith("/Articles") ||
+                  this.props.url.pathname.startsWith("/Search") ||
+                  this.props.url.pathname === "/article" ||
+                  this.props.url.pathname === "/WriteArticle"
+                    ? "nav-item active"
+                    : "nav-item"
+                }
+              >
+                <Link href="/Articles" as="/articles">
+                  <a className="nav-link">Articles</a>
+                </Link>
+              </li>
+              <li
+                className={
+                  this.props.url.pathname === "/Contact"
+                    ? "nav-item active"
+                    : "nav-item"
+                }
+              >
+                <Link href="/Contact" as="/contact">
+                  <a className="nav-link">Contact us</a>
+                </Link>
+              </li>
+            </ul>
+            <form
+              className="search form-inline my-2 my-lg-0"
+              onSubmit={this.search}
             >
-              <Link href="/">
-                <a className="nav-link">Home</a>
-              </Link>
-            </li>
-            <li
-              className={
-                this.props.url.pathname.startsWith("/Articles") ||
-                this.props.url.pathname.startsWith("/Search") ||
-                this.props.url.pathname === "/article" ||
-                this.props.url.pathname === "/WriteArticle"
-                  ? "nav-item active"
-                  : "nav-item"
-              }
-            >
-              <Link href="/Articles" as="/articles">
-                <a className="nav-link">Articles</a>
-              </Link>
-            </li>
-            <li
-              className={
-                this.props.url.pathname === "/Contact"
-                  ? "nav-item active"
-                  : "nav-item"
-              }
-            >
-              <Link href="/Contact" as="/contact">
-                <a className="nav-link">Contact us</a>
-              </Link>
-            </li>
-          </ul>
-          <form
-            className="search form-inline my-2 my-lg-0"
-            onSubmit={this.search}
-          >
-            <button className="btn my-2 my-sm-0" type="submit">
-              <FontAwesomeIcon icon="search" />
-            </button>
-            <Input
-              label="Search for an article"
-              type="search"
-              value={this.state.searchTerm}
-              style={{
-                flex: "1 1",
-                margin: "0 1.5rem 0 0.5rem"
-              }}
-              ref={input => {
-                this.input = input;
-              }}
+              <button className="btn my-2 my-sm-0" type="submit">
+                <FontAwesomeIcon icon="search" />
+              </button>
+              <Input
+                label="Search for an article"
+                type="search"
+                value={this.state.searchTerm}
+                style={{
+                  flex: "1 1",
+                  margin: "0 1.5rem 0 0.5rem"
+                }}
+                ref={input => {
+                  this.input = input;
+                }}
+              />
+            </form>
+            <Account
+              logout={this.props.logout}
+              login={this.props.login}
+              user={this.props.user}
+              openSignInModal={this.props.openSignInModal}
+              closeSignInModal={this.props.closeSignInModal}
             />
-          </form>
-          <Account
-            logout={this.props.logout}
-            login={this.props.login}
-            user={this.props.user}
-            openSignInModal={this.props.openSignInModal}
-            closeSignInModal={this.props.closeSignInModal}
-          />
-        </Collapse>
-        <style jsx>{`
-          .navbar .navbar-brand {
-            font-family: "Times New Roman", Times, serif;
-            font-weight: bold;
-            font-size: 4rem;
-            text-transform: uppercase;
-            user-select: none;
-            -webkit-user-drag: none;
-            opacity: 1;
+          </Collapse>
+          <style jsx>{`
+            .navbar .navbar-brand {
+              font-family: "Times New Roman", Times, serif;
+              font-weight: bold;
+              font-size: 4rem;
+              text-transform: uppercase;
+              user-select: none;
+              -webkit-user-drag: none;
+              opacity: 1;
 
-            background: -webkit-linear-gradient(#000, #f00);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
+              background: -webkit-linear-gradient(#000, #f00);
+              -webkit-background-clip: text;
+              background-clip: text;
+              -webkit-text-fill-color: transparent;
+            }
 
-          .navbar .navbar-brand:hover {
-            text-decoration: none !important;
-          }
+            .navbar .navbar-brand:hover {
+              text-decoration: none !important;
+            }
 
-          .navbar .navbar-nav {
-            text-align: center;
-          }
+            .navbar .navbar-nav {
+              text-align: center;
+            }
 
-          .navbar a.nav-link {
-            color: rgba(0, 0, 0, 0.5) !important;
-            white-space: nowrap;
-            opacity: 1;
-            transition: all 0.1s;
-          }
+            .navbar a.nav-link {
+              color: rgba(0, 0, 0, 0.5) !important;
+              white-space: nowrap;
+              opacity: 1;
+              transition: all 0.1s;
+            }
 
-          .navbar a.nav-link:hover {
-            color: rgba(0, 0, 0, 0.7) !important;
-            text-decoration: none !important;
-          }
+            .navbar a.nav-link:hover {
+              color: rgba(0, 0, 0, 0.7) !important;
+              text-decoration: none !important;
+            }
 
-          .navbar .nav-item.active a.nav-link {
-            color: rgba(0, 0, 0, 0.9) !important;
-          }
+            .navbar .nav-item.active a.nav-link {
+              color: rgba(0, 0, 0, 0.9) !important;
+            }
 
-          .navbar .search {
-            margin: 0 auto;
-            width: 15rem;
-            display: flex;
-          }
-
-          .navbar .search button {
-            background: none;
-            color: #cc0000;
-          }
-
-          @media (min-width: 992px),
-            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .navbar .search {
-              margin: 0;
+              margin: 0 auto;
+              width: 15rem;
+              display: flex;
             }
-            .navbar .search-input {
-              margin-right: 1rem;
-            }
-          }
 
-          @media (min-width: 1200px),
-            @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
-            .navbar .search {
-              width: unset;
+            .navbar .search button {
+              background: none;
+              color: #cc0000;
             }
-          }
-        `}</style>
-        <style jsx global>{`
-          .navbar .navbar-toggler {
-            border: 0;
-            outline: 0;
-          }
 
-          .navbar .navbar-toggler span {
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
-          }
-          .navbar .search button svg {
-            max-width: 1rem;
-          }
-          .navbar .search p.Input span input {
-            padding: 0;
-          }
-        `}</style>
-      </nav>
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .navbar .search {
+                margin: 0;
+              }
+              .navbar .search-input {
+                margin-right: 1rem;
+              }
+            }
+
+            @media (min-width: 1200px),
+              @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
+              .navbar .search {
+                width: unset;
+              }
+            }
+          `}</style>
+          <style jsx global>{`
+            .navbar .navbar-toggler {
+              border: 0;
+              outline: 0;
+            }
+
+            .navbar .navbar-toggler span {
+              background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+            }
+            .navbar .search button svg {
+              max-width: 1rem;
+            }
+            .navbar .search p.Input span input {
+              padding: 0;
+            }
+          `}</style>
+        </nav>
+      </div>
     );
   }
 }
