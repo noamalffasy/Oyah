@@ -105,18 +105,21 @@ class Articles extends Component<Props, State> {
           .Articles .Article .image {
             min-height: 20rem;
           }
-          @media (min-width: 576px) {
+          @media (min-width: 576px),
+          @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles {
               width: 85%;
               margin: 0 auto;
             }
           }
-          @media (min-width: 768px) {
+          @media (min-width: 768px),
+          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles .Article {
               width: calc(1/2*100% - 1/2*2.5rem);
             }
           }
-          @media (min-width: 992px) {
+          @media (min-width: 992px),
+          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles .Article {
               width: calc(1/3*100% - (1 - 1/3)*1rem);
               height: 15rem;

@@ -207,7 +207,7 @@ class ArticlePage extends Component<Props, State> {
     this.deleteArticle = this.deleteArticle.bind(this);
     this.deleteComment = this.deleteComment.bind(this);
   }
-  
+
   componentDidMount() {
     this.props
       .getArticle({
@@ -358,7 +358,10 @@ class ArticlePage extends Component<Props, State> {
     }));
   }
 
-  openSignInModal = bindActionCreators(signInModalActionCreators.open, this.props.dispatch)
+  openSignInModal = bindActionCreators(
+    signInModalActionCreators.open,
+    this.props.dispatch
+  );
 
   render() {
     if (!this.state.notFound) {
@@ -627,7 +630,8 @@ class ArticlePage extends Component<Props, State> {
               /* margin-bottom: 2rem; */
             }
 
-            @media (min-width: 768px) {
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .Content {
                 width: 70%;
               }
@@ -636,7 +640,8 @@ class ArticlePage extends Component<Props, State> {
               }
             }
 
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage h1 {
                 font-size: 4rem;
               }
@@ -690,25 +695,29 @@ class ArticlePage extends Component<Props, State> {
               animation: imageLoad 1s infinite;
             }
 
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .body .image {
                 min-height: 20rem;
               }
             }
-            @media (min-width: 768px) {
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .article-image {
                 min-height: 25rem;
                 max-height: 25rem;
               }
             }
 
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .body .image {
                 min-height: 25rem;
               }
             }
 
-            @media (min-width: 1200px) {
+            @media (min-width: 1200px),
+              @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .article-image {
                 min-height: 30rem;
                 max-height: 30rem;
@@ -1257,7 +1266,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                 Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
                 sans-serif;
               text-align: center;
-              padding: 1rem 0.6rem;
+              padding: 0.3rem 0.6rem;
               cursor: default;
             }
 
@@ -1772,7 +1781,8 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
             font-weight: 400;
           }
 
-          @media (min-width: 576px) {
+          @media (min-width: 576px),
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .deletePopup .modal-content .modal-footer {
               justify-content: flex-end;
               flex-flow: row;

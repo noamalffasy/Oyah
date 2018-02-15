@@ -450,7 +450,8 @@ class LoginPopup extends Component<Props, State> {
             color: #7f7f7f;
             font-weight: 400;
           }
-          @media (min-width: 576px) {
+          @media (min-width: 576px),
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .LoginPopup .modal-content .modal-footer {
               justify-content: flex-end;
               flex-flow: row;

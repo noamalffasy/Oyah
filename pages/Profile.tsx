@@ -17,7 +17,7 @@ import { graphql } from "../utils/graphql";
 import gql from "graphql-tag";
 
 interface Props {
-  data?: any
+  data?: any;
   dispatch?: any;
   user?: any;
   signInModal?: any;
@@ -58,13 +58,14 @@ class Profile extends Component<Props> {
       !nextProps.data.loading &&
       nextProps.data.currentUser &&
       nextProps.data.currentUser.user !== null &&
-      (!this.props.data.currentUser || nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+      (!this.props.data.currentUser ||
+        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
     ) {
       const data = nextProps.data.currentUser;
       if (data.error) {
         if (
           data.error[0].message !== "User is not logged in (or authenticated)."
-        )  {
+        ) {
           console.error(data.error);
         }
       } else {
@@ -220,12 +221,14 @@ class Profile extends Component<Props> {
             .Profile .other-info td {
               padding: 0.5rem 2rem;
             }
-            @media (min-width: 480px) {
+            @media (min-width: 480px),
+              @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .user .bio {
                 max-width: 70%;
               }
             }
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile {
                 padding-bottom: 4.5rem;
               }
@@ -233,7 +236,8 @@ class Profile extends Component<Props> {
                 max-width: 60%;
               }
             }
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .user {
                 flex-flow: row;
               }

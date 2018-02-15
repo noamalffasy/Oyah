@@ -172,7 +172,7 @@ class Settings extends Component<Props, State> {
           }));
         } else {
           // console.error(data.error);
-          this.setError(data.error)
+          this.setError(data.error);
         }
       } else {
         this.login({
@@ -184,8 +184,11 @@ class Settings extends Component<Props, State> {
     }
   }
 
-  login = bindActionCreators(userActionCreators.login, this.props.dispatch)
-  setError = bindActionCreators(errorActionCreators.setError, this.props.dispatch)
+  login = bindActionCreators(userActionCreators.login, this.props.dispatch);
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
 
   openImageDialog() {
     const imageDialog = findDOMNode(this.imageDialog);
@@ -303,7 +306,7 @@ class Settings extends Component<Props, State> {
         .then((res: any) => {
           if (res.error) {
             // console.error(res.error);
-            this.setError(res.error)
+            this.setError(res.error);
           } else {
             const data = res.data.updateUser;
 
@@ -312,7 +315,6 @@ class Settings extends Component<Props, State> {
         });
     }
   }
-
 
   render() {
     if (Object.keys(this.props.user).length !== 0) {
@@ -662,12 +664,14 @@ class Settings extends Component<Props, State> {
               cursor: pointer;
               color: #7f7f7f;
             }
-            @media (min-width: 480px) {
+            @media (min-width: 480px),
+              @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .other-info td:nth-child(odd) {
                 display: table-cell;
               }
             }
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user .info .image h2 {
                 font-size: 6vmin;
               }
@@ -675,17 +679,20 @@ class Settings extends Component<Props, State> {
                 padding-bottom: 3.5rem;
               }
             }
-            @media (min-width: 768px) {
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings {
                 width: 70%;
               }
             }
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user {
                 flex-flow: row;
               }
             }
-            @media (min-width: 1200px) {
+            @media (min-width: 1200px),
+              @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user .info .image h2 {
                 font-size: 3vmin;
               }
@@ -729,17 +736,20 @@ class Settings extends Component<Props, State> {
             .Settings .login-info td .Input.withStart {
               width: calc(100% - 1.2rem);
             }
-            @media (min-width: 480px) {
+            @media (min-width: 480px),
+              @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user .bio {
                 max-width: 70%;
               }
             }
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user .bio {
                 max-width: 60%;
               }
             }
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user .bio {
                 max-width: 40%;
               }

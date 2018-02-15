@@ -150,7 +150,8 @@ class Index extends Component<Props> {
             bottom: -4.5rem;
           }
 
-          @media (min-width: 480px) {
+          @media (min-width: 480px),
+          @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights {
               margin: 0 0 1rem;
             }
@@ -172,7 +173,8 @@ class Index extends Component<Props> {
             }
           }
 
-          @media (min-width: 576px) {
+          @media (min-width: 576px),
+          @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home {
               width: 85%;
             }
@@ -210,7 +212,8 @@ class Index extends Component<Props> {
             }
           }
 
-          @media (min-width: 768px) {
+          @media (min-width: 768px),
+          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights {
               margin: 0 0 1rem;
             }
@@ -226,7 +229,8 @@ class Index extends Component<Props> {
             }
           }
 
-          @media (min-width: 992px) {
+          @media (min-width: 992px),
+          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights:not(.two) > .Article {
               max-height: 30rem;
               height: 30rem;

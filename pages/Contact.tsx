@@ -9,7 +9,6 @@ import Head from "next/head";
 import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
-
 import Input from "../components/Input";
 
 // GraphQL
@@ -17,7 +16,6 @@ import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
-import ErrorAlert from "../components/ErrorAlert";
 
 interface Props {
   sendMail?: any;
@@ -125,10 +123,13 @@ class Contact extends Component<Props, State> {
     }
   }
 
-  setError = bindActionCreators(errorActionCreators.setError, this.props.dispatch)
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
 
   render() {
-    if (this.state.message === "") {
+    if (this.state.message === "" || this.state.message === undefined) {
       return (
         <App {...this.props}>
           <Head>
@@ -229,7 +230,8 @@ class Contact extends Component<Props, State> {
               cursor: pointer;
               color: #7f7f7f;
             }
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Content {
                 padding-bottom: 3.5rem;
               }
@@ -237,12 +239,14 @@ class Contact extends Component<Props, State> {
                 width: 80%;
               }
             }
-            @media (min-width: 768px) {
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .Contact form {
                 width: 70%;
               }
             }
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Contact form {
                 width: 50%;
               }

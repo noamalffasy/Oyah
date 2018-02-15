@@ -849,12 +849,14 @@ class WriteArticle extends Component<Props, State> {
               cursor: pointer;
               color: #7f7f7f;
             }
-            @media (min-width: 576px) {
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Content {
                 padding-bottom: 3.5rem;
               }
             }
-            @media (min-width: 768px) {
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .WriteArticle .Content {
                 width: 70%;
               }
@@ -864,7 +866,8 @@ class WriteArticle extends Component<Props, State> {
               }
             }
 
-            @media (min-width: 1200px) {
+            @media (min-width: 1200px),
+              @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
               .WriteArticle .article-image {
                 min-height: 30rem;
                 max-height: 30rem;

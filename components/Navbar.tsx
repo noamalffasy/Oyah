@@ -277,7 +277,8 @@ class Navbar extends Component<Props, any> {
             color: #cc0000;
           }
 
-          @media (min-width: 992px) {
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .navbar .search {
               margin: 0;
             }
@@ -286,7 +287,8 @@ class Navbar extends Component<Props, any> {
             }
           }
 
-          @media (min-width: 1200px) {
+          @media (min-width: 1200px),
+            @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
             .navbar .search {
               width: unset;
             }
@@ -373,7 +375,7 @@ class Account extends Component<any, any> {
         }
       } else {
         this.props.login({
-          ...data.user,
+          ...data.user
           // mains: data.user.mains !== null ? data.user.mains.split(", ") : null
         });
 
@@ -706,7 +708,8 @@ class Account extends Component<any, any> {
               height: 2rem;
             }
 
-            @media (min-width: 992px) {
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Account {
                 width: 4rem;
                 margin-bottom: 0;

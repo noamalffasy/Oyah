@@ -855,7 +855,7 @@ class Input extends Component<Props, State> {
                 padding: 0 1.5rem 0 0;
                 pointer-events: none;
               }
-              
+
               p.Input.dropdown .box {
                 text-align: left;
                 list-style: none;
@@ -1074,7 +1074,8 @@ class Input extends Component<Props, State> {
                   padding: 0;
                 }
               }
-              @media (min-width: 768px) {
+              @media (min-width: 768px),
+                @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
                 p.Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
@@ -1345,7 +1346,8 @@ class Input extends Component<Props, State> {
                   padding: 0;
                 }
               }
-              @media (min-width: 768px) {
+              @media (min-width: 768px),
+                @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
                 p.Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
@@ -1502,7 +1504,8 @@ class Input extends Component<Props, State> {
                   padding: 0;
                 }
               }
-              @media (min-width: 768px) {
+              @media (min-width: 768px),
+                @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
                 p.Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
