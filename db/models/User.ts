@@ -25,6 +25,9 @@ export const User = db.define(
     likes: {
       type: Sequelize.TEXT
     },
+    comment_likes: {
+      type: Sequelize.TEXT
+    },
     image: {
       type: Sequelize.TEXT
     },

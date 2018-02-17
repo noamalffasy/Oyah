@@ -90,7 +90,8 @@ interface User {
   email?: string;
   small_image?: string;
   image?: string;
-  likes?: number;
+  likes?: any;
+  comment_likes?: any;
   bio?: string;
   mains?: string;
   reddit?: string;
@@ -154,6 +155,7 @@ interface State {
           id
           authorID
           message
+          likes
         }
       }
     }
@@ -169,6 +171,7 @@ interface State {
         id
         nametag
         image
+        comment_likes
       }
     }
   `,
@@ -521,9 +524,10 @@ class ArticlePage extends Component<Props, State> {
                   />
 
                   <Bottombar
+                    where="article"
                     contentLoaded={this.state.content !== undefined}
                     user={this.props.user}
-                    articleID={this.state.id}
+                    id={this.state.id}
                     likes={this.state.likes}
                   />
 
@@ -733,16 +737,20 @@ class ArticlePage extends Component<Props, State> {
 }
 
 interface BottombarProps {
-  articleID: any;
+  where: string;
+  id: any;
+  articleID?: any;
   user: User;
   likes: any;
   contentLoaded: any;
   likeArticle?: any;
+  likeComment?: any;
 }
 
 interface BottombarState {
-  likedArticles: any;
+  liked: any;
   likes: any;
+  isLiked: boolean;
 }
 
 @graphql(
@@ -757,51 +765,157 @@ interface BottombarState {
     name: "likeArticle"
   }
 )
+@graphql(
+  gql`
+    mutation likeComment($id: String!, $articleID: String!, $liked: Boolean!) {
+      likeComment(id: $id, articleID: $articleID, liked: $liked) {
+        likes
+      }
+    }
+  `,
+  {
+    name: "likeComment"
+  }
+)
 class Bottombar extends Component<BottombarProps, BottombarState> {
   constructor(props: any) {
     super(props);
 
-    this.state = { likedArticles: [], likes: this.props.likes };
+    this.state = { liked: [], likes: this.props.likes, isLiked: false };
 
     this.toggleLike = this.toggleLike.bind(this);
   }
 
   componentWillReceiveProps(nextProps: BottombarProps) {
-    if (nextProps.user !== this.props.user && nextProps.user.likes) {
-      this.setState(prevState => ({
-        ...prevState,
-        likedArticles: nextProps.user.likes.split(", ")
-      }));
+    switch (nextProps.where) {
+      case "article":
+        if (nextProps.user !== this.props.user && nextProps.user.likes) {
+          this.setState(prevState => ({
+            ...prevState,
+            liked: nextProps.user.likes.split(", "),
+            isLiked: this.state.liked.includes(this.props.id)
+          }));
+        }
+        break;
+      case "comment":
+        if (
+          nextProps.user !== this.props.user &&
+          nextProps.user.comment_likes
+        ) {
+          this.setState(prevState => ({
+            ...prevState,
+            liked: nextProps.user.comment_likes.split(", "),
+            isLiked: this.state.liked.includes(
+              JSON.stringify({
+                id: this.props.id,
+                articleID: this.props.articleID
+              })
+            )
+          }));
+        }
+        break;
+      default:
+        if (nextProps.user !== this.props.user && nextProps.user.likes) {
+          this.setState(prevState => ({
+            ...prevState,
+            liked: nextProps.user.likes.split(", "),
+            isLiked: this.state.liked.includes(this.props.id)
+          }));
+        }
+        break;
     }
   }
 
   async toggleLike(e: any) {
     e.preventDefault();
-    const likedArticles = this.state.likedArticles;
-    const articleID = this.props.articleID;
-    const indexOfArticle = likedArticles.indexOf(articleID);
-
-    this.props
-      .likeArticle({
-        variables: {
-          articleID,
-          liked: !likedArticles.includes(articleID)
-        }
-      })
-      .then((res: any) => {
-        this.setState(prevState => ({
-          ...prevState,
-          likedArticles: likedArticles.includes(articleID)
-            ? likedArticles
-                .slice(0, indexOfArticle)
-                .concat(likedArticles.slice(indexOfArticle + 1))
-            : [...likedArticles, articleID],
-          likes: likedArticles.includes(articleID) ? this.state.likes - 1 : this.state.likes + 1
-        }));
-      })
-      .catch((err: Error) => {
-        console.error(err);
-      });
+    const liked = this.state.liked;
+    const id = this.props.id;
+    const indexOfArticle =
+      this.props.where === "article" ? liked.indexOf(id) : null;
+    switch (this.props.where) {
+      case "article":
+        this.props
+          .likeArticle({
+            variables: {
+              articleID: id,
+              liked: !liked.includes(id)
+            }
+          })
+          .then((res: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: liked.includes(id)
+                ? liked
+                    .slice(0, indexOfArticle)
+                    .concat(liked.slice(indexOfArticle + 1))
+                : [...liked, id],
+              likes: liked.includes(id)
+                ? this.state.likes - 1
+                : this.state.likes + 1,
+              isLiked: !liked.includes(id)
+            }));
+          })
+          .catch((err: Error) => {
+            console.error(err);
+          });
+        break;
+      case "comment":
+        const articleID = this.props.articleID;
+        const commentID = JSON.stringify({ articleID, id });
+        const indexOfComment = liked.indexOf(commentID);
+        this.props
+          .likeComment({
+            variables: {
+              id,
+              articleID,
+              liked: !liked.includes(commentID)
+            }
+          })
+          .then((res: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: liked.includes(commentID)
+                ? liked
+                    .slice(0, indexOfComment)
+                    .concat(liked.slice(indexOfComment + 1))
+                : [...liked, commentID],
+              likes: liked.includes(commentID)
+                ? this.state.likes - 1
+                : this.state.likes + 1,
+              isLiked: !liked.includes(commentID)
+            }));
+          })
+          .catch((err: Error) => {
+            console.error(err);
+          });
+        break;
+      default:
+        this.props
+          .likeArticle({
+            variables: {
+              articleID: id,
+              liked: !liked.includes(id)
+            }
+          })
+          .then((res: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: liked.includes(id)
+                ? liked
+                    .slice(0, indexOfArticle)
+                    .concat(liked.slice(indexOfArticle + 1))
+                : [...liked, id],
+              likes: liked.includes(id)
+                ? this.state.likes - 1
+                : this.state.likes + 1,
+              isLiked: !liked.includes(id)
+            }));
+          })
+          .catch((err: Error) => {
+            console.error(err);
+          });
+        break;
+    }
   }
 
   render() {
@@ -811,32 +925,40 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         style={this.props.contentLoaded ? { display: "" } : { display: "none" }}
       >
         <div className="like" style={{ width: "unset", margin: 0 }}>
-          <span className="like-count" style={{ color: "rgba(0, 0, 0, 0.5)" }}>{this.state.likes}</span>
+          <span className="like-count" style={{ color: "rgba(0, 0, 0, 0.5)" }}>
+            {this.state.likes}
+          </span>
           <button
             className="like"
             onClick={this.toggleLike}
             style={
-              this.state.likedArticles.includes(this.props.articleID)
-                ? {
-                    animation: "like .5s forwards"
-                  }
-                : {}
+              this.props.where === "comment"
+                ? this.state.isLiked
+                  ? {
+                      animation: "like .5s forwards"
+                    }
+                  : {}
+                : this.state.isLiked
+                  ? {
+                      animation: "like .5s forwards"
+                    }
+                  : {}
             }
           >
             <FontAwesomeIcon
               icon="heart"
               style={
-                this.state.likedArticles.includes(this.props.articleID)
-                  ? { opacity: 1 }
-                  : {}
+                this.props.where === "comment"
+                  ? this.state.isLiked ? { opacity: 1 } : {}
+                  : this.state.isLiked ? { opacity: 1 } : {}
               }
             />
             <FontAwesomeIcon
               icon={["far", "heart"]}
               style={
-                !this.state.likedArticles.includes(this.props.articleID)
-                  ? { opacity: 1 }
-                  : {}
+                this.props.where === "comment"
+                  ? !this.state.isLiked ? { opacity: 1 } : {}
+                  : !this.state.isLiked ? { opacity: 1 } : {}
               }
             />
           </button>
@@ -1211,46 +1333,59 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                       />
                     )}
                 </div>
-                {this.state["edit_" + elem.id] ? (
-                  <div>
-                    <Input
-                      label="Message"
-                      type="textarea"
-                      value={elem.message}
-                      style={{
-                        margin: "2rem 0.5rem 0",
-                        flex: "1 1 0",
-                        whiteSpace: "normal"
-                      }}
-                      ref={input => (this["edit_" + elem.id] = input)}
-                    />
-                    <div className="action-buttons">
-                      <button
-                        className="primary"
-                        onClick={() =>
-                          this.updateComment(elem.id, elem.author.id)
-                        }
-                      >
-                        Update
-                      </button>
-                      <button
-                        className="secondary"
-                        onClick={() => {
-                          this.setState(prevState => {
-                            let state: any = prevState;
-                            state["edit_" + elem.id] = false;
-
-                            return state;
-                          });
+                <div
+                  className="message-outer clearfix"
+                  style={{ padding: "0 0 1rem 0" }}
+                >
+                  {this.state["edit_" + elem.id] ? (
+                    <div>
+                      <Input
+                        label="Message"
+                        type="textarea"
+                        value={elem.message}
+                        style={{
+                          margin: "2rem 0.5rem 0",
+                          flex: "1 1 0",
+                          whiteSpace: "normal"
                         }}
-                      >
-                        Cancel
-                      </button>
+                        ref={input => (this["edit_" + elem.id] = input)}
+                      />
+                      <div className="action-buttons">
+                        <button
+                          className="primary"
+                          onClick={() =>
+                            this.updateComment(elem.id, elem.author.id)
+                          }
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="secondary"
+                          onClick={() => {
+                            this.setState(prevState => {
+                              let state: any = prevState;
+                              state["edit_" + elem.id] = false;
+
+                              return state;
+                            });
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <Markdown className="message" source={elem.message} />
-                )}
+                  ) : (
+                    <Markdown className="message" source={elem.message} />
+                  )}
+                  <Bottombar
+                    where="comment"
+                    id={elem.id}
+                    articleID={this.props.articleID}
+                    user={this.props.user}
+                    likes={elem.likes}
+                    contentLoaded={true}
+                  />
+                </div>
               </div>
             );
           })}
@@ -1363,9 +1498,14 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
               cursor: default;
             }
 
+            .Responses .response .message-outer.clearfix::after {
+              height: 0;
+            }
+
             .Responses .response .action-buttons {
               display: flex;
               flex-direction: row-reverse;
+              margin: 0 0 1rem 0;
             }
 
             .Responses .response .action-buttons button {

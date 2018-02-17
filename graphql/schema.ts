@@ -67,6 +67,9 @@ const User = new GraphQLObjectType({
       likes: {
         type: GraphQLString
       },
+      comment_likes: {
+        type: GraphQLString
+      },
       image: {
         type: GraphQLString
       },
@@ -179,6 +182,9 @@ const comment = new GraphQLObjectType({
       },
       message: {
         type: GraphQLString
+      },
+      likes: {
+        type: GraphQLInt
       }
     };
   }
@@ -383,6 +389,21 @@ const Mutation = new GraphQLObjectType({
           }
         },
         resolve: resolvers.sendComment
+      },
+      likeComment: {
+        type: comment,
+        args: {
+          id: {
+            type: GraphQLString
+          },
+          articleID: {
+            type: GraphQLString
+          },
+          liked: {
+            type: GraphQLBoolean
+          }
+        },
+        resolve: resolvers.likeComment
       },
       updateComment: {
         type: comment,

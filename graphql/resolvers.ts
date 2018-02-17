@@ -209,7 +209,11 @@ export default {
         }
       });
   },
-  createUser: async (_: any, { authProvider, nametag, name }: any, ctx: any) => {
+  createUser: async (
+    _: any,
+    { authProvider, nametag, name }: any,
+    ctx: any
+  ) => {
     const bcrypt = require("bcrypt");
     const jwt = require("jsonwebtoken");
     const saltRounds = 10;
@@ -225,7 +229,8 @@ export default {
       name: name ? name : null,
       email: authProvider.email.email,
       password: password,
-      likes: ""
+      likes: "",
+      comment_likes: ""
     };
 
     const response = User.findOrCreate({
@@ -468,6 +473,45 @@ export default {
           defaults: { articleID, authorID: user.id, message }
         });
         return { id, articleID, authorID: user.id, message };
+      })
+      .catch(err => {
+        throw err;
+      });
+  },
+  likeComment: async (_: any, { id, articleID, liked }: any, ctx: any) => {
+    return await isLoggedIn(ctx)
+      .then(async (res: any) => {
+        const user = res.user;
+        const likedComments = user.comment_likes.split(", ");
+        const commentID = JSON.stringify({ articleID, id });
+        const indexOfComment = likedComments.indexOf(commentID);
+        const commentLikes = liked
+          ? [...likedComments, commentID].join(", ")
+          : likedComments
+              .slice(0, indexOfComment)
+              .concat(likedComments.slice(indexOfComment + 1))
+              .join(", ");
+        return await Comment.findOne({ where: { id, articleID } }).then(
+          async (_comment: any) => {
+            const comment = _comment.get({ plain: true });
+            return await Comment.update(
+              { likes: liked ? comment.likes + 1 : comment.likes - 1 },
+              { where: { id, articleID } }
+            )
+              .then(async (_comment: any) => {
+                return await User.update({ comment_likes: commentLikes }, { where: { id: user.id } })
+                  .then((user: any) => {
+                    return comment;
+                  })
+                  .catch((err: Error) => {
+                    console.error(err);
+                  });
+              })
+              .catch((err: any) => {
+                console.error(err);
+              });
+          }
+        );
       })
       .catch(err => {
         throw err;
