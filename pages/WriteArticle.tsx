@@ -763,6 +763,7 @@ class WriteArticle extends Component<Props, State> {
               margin-bottom: 0.5rem;
               font-weight: 500;
               line-height: 1.2;
+              word-wrap: normal;
               overflow: hidden;
               resize: none;
             }
