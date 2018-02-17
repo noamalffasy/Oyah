@@ -732,6 +732,19 @@ class ArticlePage extends Component<Props, State> {
   }
 }
 
+interface BottombarProps {
+  articleID: any;
+  user: User;
+  likes: any;
+  contentLoaded: any;
+  likeArticle?: any;
+}
+
+interface BottombarState {
+  likedArticles: any;
+  likes: any;
+}
+
 @graphql(
   gql`
     mutation likeArticle($articleID: String!, $liked: Boolean!) {
@@ -744,18 +757,18 @@ class ArticlePage extends Component<Props, State> {
     name: "likeArticle"
   }
 )
-class Bottombar extends Component<any, any> {
+class Bottombar extends Component<BottombarProps, BottombarState> {
   constructor(props: any) {
     super(props);
 
-    this.state = { likedArticles: [] };
+    this.state = { likedArticles: [], likes: this.props.likes };
 
     this.toggleLike = this.toggleLike.bind(this);
   }
 
-  componentWillReceiveProps(nextProps: any) {
+  componentWillReceiveProps(nextProps: BottombarProps) {
     if (nextProps.user !== this.props.user && nextProps.user.likes) {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         likedArticles: nextProps.user.likes.split(", ")
       }));
@@ -776,13 +789,14 @@ class Bottombar extends Component<any, any> {
         }
       })
       .then((res: any) => {
-        this.setState((prevState: any) => ({
+        this.setState(prevState => ({
           ...prevState,
           likedArticles: likedArticles.includes(articleID)
             ? likedArticles
                 .slice(0, indexOfArticle)
                 .concat(likedArticles.slice(indexOfArticle + 1))
-            : [...likedArticles, articleID]
+            : [...likedArticles, articleID],
+          likes: likedArticles.includes(articleID) ? this.state.likes - 1 : this.state.likes + 1
         }));
       })
       .catch((err: Error) => {
@@ -796,34 +810,37 @@ class Bottombar extends Component<any, any> {
         className="Bottombar"
         style={this.props.contentLoaded ? { display: "" } : { display: "none" }}
       >
-        <button
-          className="like"
-          onClick={this.toggleLike}
-          style={
-            this.state.likedArticles.includes(this.props.articleID)
-              ? {
-                  animation: "like .5s forwards"
-                }
-              : {}
-          }
-        >
-          <FontAwesomeIcon
-            icon="heart"
+        <div className="like" style={{ width: "unset", margin: 0 }}>
+          <span className="like-count" style={{ color: "rgba(0, 0, 0, 0.5)" }}>{this.state.likes}</span>
+          <button
+            className="like"
+            onClick={this.toggleLike}
             style={
               this.state.likedArticles.includes(this.props.articleID)
-                ? { opacity: 1 }
+                ? {
+                    animation: "like .5s forwards"
+                  }
                 : {}
             }
-          />
-          <FontAwesomeIcon
-            icon={["far", "heart"]}
-            style={
-              !this.state.likedArticles.includes(this.props.articleID)
-                ? { opacity: 1 }
-                : {}
-            }
-          />
-        </button>
+          >
+            <FontAwesomeIcon
+              icon="heart"
+              style={
+                this.state.likedArticles.includes(this.props.articleID)
+                  ? { opacity: 1 }
+                  : {}
+              }
+            />
+            <FontAwesomeIcon
+              icon={["far", "heart"]}
+              style={
+                !this.state.likedArticles.includes(this.props.articleID)
+                  ? { opacity: 1 }
+                  : {}
+              }
+            />
+          </button>
+        </div>
         <button className="st-custom-button" data-network="reddit">
           <FontAwesomeIcon icon={["fab", "reddit-alien"]} />
         </button>
@@ -849,6 +866,7 @@ class Bottombar extends Component<any, any> {
             float: right;
           }
 
+          .Bottombar div,
           .Bottombar button {
             display: flex;
             align-items: center;
