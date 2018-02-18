@@ -14,6 +14,9 @@ export const Article = db.define("article", {
   },
   likes: {
     type: Sequelize.INTEGER
+  },
+  createdAt: {
+    type: Sequelize.DATE
   }
 });
 

@@ -14,6 +14,7 @@ import {
   GraphQLScalarType
 } from "graphql";
 import { GraphQLID, GraphQLBoolean, GraphQLInt } from "graphql/type/scalars";
+import { GraphQLDate } from "graphql-iso-date";
 import { GraphQLUpload } from "apollo-upload-server";
 
 import resolvers from "./resolvers";
@@ -161,6 +162,9 @@ const Article = new GraphQLObjectType({
       },
       comments: {
         type: new GraphQLList(comment)
+      },
+      createdAt: {
+        type: GraphQLDate
       }
     };
   }
@@ -526,7 +530,7 @@ export default new GraphQLSchema({
     comment,
     SigninPayload,
     UploadFilePayload,
-    Status,
+    Status
     // Upload
   ]
 });

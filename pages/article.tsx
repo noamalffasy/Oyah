@@ -14,6 +14,7 @@ import * as Markdown from "react-markdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
 import { RoundShape, TextRow } from "react-placeholder/lib/placeholders";
+import * as moment from "moment";
 
 import App from "../components/App";
 
@@ -43,16 +44,28 @@ class AuthorPlaceholder extends Component {
             animation: "loading 1.5s infinite"
           }}
         />
-        <TextRow
-          className="text"
-          color="#e0e0e0"
-          style={{
-            width: "10rem",
-            height: "1rem",
-            marginTop: "",
-            animation: "loading 1.5s infinite"
-          }}
-        />
+        <div>
+          <TextRow
+            className="text"
+            color="#e0e0e0"
+            style={{
+              width: "10rem",
+              height: "1rem",
+              marginTop: "",
+              animation: "loading 1.5s infinite"
+            }}
+          />
+          <TextRow
+            className="text"
+            color="#e0e0e0"
+            style={{
+              width: "5rem",
+              height: "1rem",
+              marginTop: "0.4rem",
+              animation: "loading 1.5s infinite"
+            }}
+          />
+        </div>
         <style jsx>{`
           .author {
             display: flex;
@@ -113,6 +126,7 @@ interface Props extends React.Props<ArticlePage> {
 
 interface State {
   id: string | any;
+  datePublished: string | undefined;
   title: string | undefined;
   content: string | undefined;
   comments: object[];
@@ -157,6 +171,7 @@ interface State {
           message
           likes
         }
+        createdAt
       }
     }
   `,
@@ -197,6 +212,7 @@ class ArticlePage extends Component<Props, State> {
 
     this.state = {
       id: props.url.query.id,
+      datePublished: undefined,
       title: undefined,
       content: undefined,
       comments: [],
@@ -230,9 +246,11 @@ class ArticlePage extends Component<Props, State> {
             console.error(getArticle.error.message);
           }
         } else if (getArticle.data.getArticle.id !== null) {
+          console.log(getArticle.data.getArticle.createdAt)
           this.setState((prevState: any) => ({
             ...prevState,
-            ...getArticle.data.getArticle
+            ...getArticle.data.getArticle,
+            datePublished: new Date(getArticle.data.getArticle.createdAt).getFullYear() === new Date().getFullYear() ? moment(getArticle.data.getArticle.createdAt).format("MMM DDD") : moment(getArticle.data.getArticle.createdAt).format("MMM D, YYYY")
           }));
 
           this.props
@@ -303,6 +321,7 @@ class ArticlePage extends Component<Props, State> {
       // (this.more && this.more.contains(nextProps.clicked)) ||
       !this.state.content ||
       !this.state.author ||
+      !this.state.datePublished ||
       this.props.user !== nextProps.user ||
       this.props.signInModal !== nextProps.signInModal
       // (nextProps.clicked === this.props.clicked &&
@@ -405,11 +424,21 @@ class ArticlePage extends Component<Props, State> {
                           borderRadius: "50%"
                         }}
                       />
-                      <h3>
-                        {this.state.author
-                          ? this.state.author.nametag
-                          : "Loading"}
-                      </h3>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column"
+                        }}
+                      >
+                        <h3>
+                          {this.state.author
+                            ? this.state.author.nametag
+                            : "Loading"}
+                        </h3>
+                        <span style={{ color: "rgba(0,0,0,.5)" }}>
+                          {this.state.datePublished || "Feb. 12"}
+                        </span>
+                      </div>
                     </div>
                   </ReactPlaceholder>
                   {Object.keys(this.props.user).length > 0 &&
@@ -569,6 +598,7 @@ class ArticlePage extends Component<Props, State> {
 
             .ArticlePage .top {
               display: flex;
+              margin-bottom: 0.5rem;
             }
 
             .ArticlePage .top .author {
@@ -576,7 +606,6 @@ class ArticlePage extends Component<Props, State> {
               flex-flow: row;
               align-items: center;
               flex: 1 1 0;
-              margin-bottom: 0.5rem;
             }
 
             .ArticlePage .top .author .image {
