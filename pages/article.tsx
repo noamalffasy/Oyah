@@ -391,7 +391,7 @@ class ArticlePage extends Component<Props, State> {
         <App {...this.props}>
           <div className="ArticlePage">
             <Head>
-              <title>{this.state.title || "Article" + ` | Oyah`}</title>
+              <title>{(this.state.title || "Article") + ` | Oyah`}</title>
               <meta name="description" content={this.state.title} />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>
