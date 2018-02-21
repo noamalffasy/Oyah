@@ -738,7 +738,7 @@ export default {
     return await transporter
       .sendMail(mailOptions)
       .then(info => {
-        return { sent: true };
+        return { status: true };
       })
       .catch(err => {
         throw err;
