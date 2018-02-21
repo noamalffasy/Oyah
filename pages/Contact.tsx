@@ -270,20 +270,27 @@ class Contact extends Component<Props, State> {
             <h2>{this.state.title}</h2>
             <p>{this.state.message}</p>
           </div>
-          <style jsx>
-            {`
-              .Contact {
-                text-align: center;
-              }
-              .Contact > h2 {
-                font-size: 4rem;
-                color: #cc0000;
-              }
-              .Contact > p {
-                font-size: 2rem;
-              }
-            `}
-          </style>
+          <style jsx>{`
+            .Content {
+              padding-bottom: 4.5rem;
+            }
+
+            .Content::after {
+              content: "";
+              clear: both;
+              display: block;
+            }
+            .Contact {
+              text-align: center;
+            }
+            .Contact > h2 {
+              font-size: 4rem;
+              color: #cc0000;
+            }
+            .Contact > p {
+              font-size: 2rem;
+            }
+          `}</style>
         </App>
       );
     }
