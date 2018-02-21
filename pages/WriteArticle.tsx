@@ -19,6 +19,7 @@ import * as uuid from "uuid/v4";
 import { prototype } from "react-markdown";
 
 import Head from "next/head";
+import Router from "next/router";
 
 import App from "../components/App";
 
@@ -56,6 +57,7 @@ interface State {
   gql`
     mutation getArticle($id: String!) {
       getArticle(id: $id) {
+        id
         title
         content
         authorID
@@ -133,6 +135,7 @@ class WriteArticle extends Component<Props, State> {
     this.md = new MarkdownIt();
 
     this.state = {
+      id: null,
       notAuthorized: false,
       output: "",
       focus: false,
@@ -150,7 +153,7 @@ class WriteArticle extends Component<Props, State> {
     if (this.props.url.query.id === null) {
       const id = uuid();
 
-      this.props.url.push("/articles/new/" + id);
+      Router.push("/articles/new/" + id);
 
       this.setState((prevState: any) => ({
         ...prevState,
@@ -347,13 +350,17 @@ class WriteArticle extends Component<Props, State> {
     const image = this.state.image
       ? this.imageDialog.files.length > 0
         ? this.imageDialog.files[0]
-        : this.state.image
+        : this.state.image.startsWith("/img/articles/")
+          ? null
+          : this.state.image
       : null;
     const content = this.state.value || this.editor.props.value;
     let imagePath = null;
 
     if (title !== ("" || undefined)) {
-      if (image !== null) {
+      if (!this.state.edit && image === null) {
+        this.setError("Image mustn't be empty");
+      } else {
         if (content !== ("" || undefined)) {
           if (
             typeof image === "string" &&
@@ -390,8 +397,8 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          this.props.url.push(
-                            "/articles/" + res.data.createArticle.id
+                          Router.push(
+                            "/articles/" + this.state.id
                           );
                         }
                       })
@@ -413,7 +420,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          this.props.url.push(
+                          Router.push(
                             "/articles/" + res.data.updateArticle.id
                           );
                         }
@@ -429,6 +436,7 @@ class WriteArticle extends Component<Props, State> {
               });
           } else if (
             typeof image === "object" &&
+            image !== null &&
             this.imageDialog.validity.valid
           ) {
             this.props
@@ -440,7 +448,6 @@ class WriteArticle extends Component<Props, State> {
                 }
               })
               .then((res: any) => {
-                console.log(res);
                 if (res.error) {
                   console.error(res.error.message);
                 } else {
@@ -460,8 +467,8 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          this.props.url.push(
-                            "/articles/" + res.data.createArticle.id
+                          Router.push(
+                            "/articles/" + this.state.id
                           );
                         }
                       })
@@ -483,7 +490,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          this.props.url.push(
+                          Router.push(
                             "/articles/" + res.data.updateArticle.id
                           );
                         }
@@ -514,8 +521,8 @@ class WriteArticle extends Component<Props, State> {
                       console.error(error.message);
                     });
                   } else {
-                    this.props.url.push(
-                      "/articles/" + res.data.createArticle.id
+                    Router.push(
+                      "/articles/" + this.state.id
                     );
                   }
                 })
@@ -537,8 +544,8 @@ class WriteArticle extends Component<Props, State> {
                       console.error(error.message);
                     });
                   } else {
-                    this.props.url.push(
-                      "/articles/" + res.data.updateArticle.id
+                    Router.push(
+                      "/articles/" + this.state.id
                     );
                   }
                 })
@@ -550,8 +557,6 @@ class WriteArticle extends Component<Props, State> {
         } else {
           this.setError("Content mustn't be empty");
         }
-      } else {
-        this.setError("Image mustn't be empty");
       }
     } else {
       this.setError("Title mustn't be empty");
