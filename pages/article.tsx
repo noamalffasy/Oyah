@@ -246,7 +246,6 @@ class ArticlePage extends Component<Props, State> {
             console.error(getArticle.error.message);
           }
         } else if (getArticle.data.getArticle.id !== null) {
-          console.log(getArticle.data.getArticle.createdAt)
           this.setState((prevState: any) => ({
             ...prevState,
             ...getArticle.data.getArticle,
@@ -518,7 +517,6 @@ class ArticlePage extends Component<Props, State> {
                 backgroundSize: "cover",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center center",
-                backgroundAttachment: "fixed",
                 backgroundColor: "#c3c3c3",
                 zIndex: "1",
                 width: "100%",
