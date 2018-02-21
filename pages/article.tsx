@@ -1580,9 +1580,14 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                 sans-serif;
             }
 
+            .Responses .input .message p.Input span::after {
+              margin: -0.1rem 0 0 0;
+            }
+
             .Responses .response .message {
               margin: 1rem 0.5rem;
             }
+
           `}</style>
         </div>
       );

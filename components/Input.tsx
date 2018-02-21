@@ -1060,7 +1060,8 @@ class Input extends Component<Props, State> {
                 content: "";
                 display: block;
                 transform: scaleX(0);
-                margin: -0.15rem 0 0 0;
+                /* margin: -0.15rem 0 0 0; */
+                margin: 0;
                 border-bottom: 2px solid #cc0000;
                 width: 100%;
                 transition: all 0.3s;
