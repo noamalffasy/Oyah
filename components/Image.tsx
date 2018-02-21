@@ -279,8 +279,8 @@ class Image extends Component<Props, State> {
                 : this.props.src.replace(/\.[^.]*$/, "") +
                   "_small" +
                   this.props.src.replace(/.*(?=\.)/, ""),
-            filter: this.state.largeLoaded ? "none" : "blur(20px)",
-            backgroundAttachment: this.state.largeLoaded ? "fixed" : "unset"
+            filter: this.state.largeLoaded ? "none" : "blur(20px)"
+            // backgroundAttachment: this.state.largeLoaded ? "fixed" : "unset"
           }}
           onClick={this.props.onClick}
           ref={div => (this.placeholder = div)}
@@ -299,6 +299,11 @@ class Image extends Component<Props, State> {
               background-size: cover;
               background-repeat: no-repeat;
               overflow: hidden;
+            }
+            @media (min-width: 992px) {
+              .image.placeholder {
+                background-attachment: fixed;
+              }
             }
           `}</style>
         </div>
