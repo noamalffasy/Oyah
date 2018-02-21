@@ -1,6 +1,7 @@
 import * as sequelize from "sequelize";
 // import jwt from "express-jwt";
 import * as nodemailer from "nodemailer";
+import * as toArray from "stream-to-array";
 import * as sharp from "sharp";
 
 import db from "../db";
@@ -39,37 +40,27 @@ function checkMagicNumbers(magic: any) {
     return true;
 }
 
-function writeFile(filename: any, data: any, encoding: any, is_stream = false) {
+function writeFile(filename: any, data: any, encoding: any, extname: any) {
   const fs = require("fs");
   return new Promise((resolve, reject) => {
-    if (is_stream) {
-      data
-        .on("error", (err: Error) => {
-          if (data.truncated) {
-            fs.unlinkSync(filename);
-          }
-          reject(err);
-        })
-        .on("end", () => {
-          resolve(data);
-        })
-        .pipe(fs.createWriteStream(filename));
-    } else {
-      fs.writeFile(filename, data, encoding, (err: Error) => {
-        if (err) reject(err);
-        else resolve(data);
-      });
-    }
+    sharp(data).toFile(filename.replace(extname, ".jpeg"), (err, info) => {
+      if (err) reject(err);
+      resolve(data);
+    });
+    // fs.writeFile(filename, data, encoding, (err: Error) => {
+    //   if (err) reject(err);
+    //   else resolve(data);
+    // });
   });
 }
 
 function saveResizedImages(_filename: any, extname: any) {
   const filename = _filename.replace(extname, "");
 
-  sharp(_filename)
+  sharp(_filename.replace(extname, ".jpeg"))
     .resize(40, undefined)
     .withoutEnlargement()
-    .toFile(filename + "_small" + extname, (err, info) => {
+    .toFile(filename + "_small.jpeg", (err, info) => {
       if (err) throw err;
     });
 }
@@ -499,7 +490,10 @@ export default {
               { where: { id, articleID } }
             )
               .then(async (_comment: any) => {
-                return await User.update({ comment_likes: commentLikes }, { where: { id: user.id } })
+                return await User.update(
+                  { comment_likes: commentLikes },
+                  { where: { id: user.id } }
+                )
                   .then((user: any) => {
                     return comment;
                   })
@@ -588,7 +582,7 @@ export default {
       .then(async (res: any) => {
         const user = res.user.dataValues;
         const article = await Article.find({ where: { id } });
-        if (article.dataValues.authorID === user.id) {
+        if (article.dataValues.authorID.toString() === user.id) {
           await Article.update({ title, content }, { where: { id } })
             .then((result: any) => {
               return {
@@ -633,48 +627,47 @@ export default {
         throw err;
       });
   },
-  // uploadFile: async (_: any, { file, where, articleID, image }, ctx: any) => {
-  uploadFile: async (_: any, args: any, ctx: any) => {
+  uploadFile: async (
+    _: any,
+    { file, where, articleID, image }: any,
+    ctx: any
+  ) => {
+    // uploadFile: async (_: any, args: any, ctx: any) => {
     // const req = root.rootValue.req;
-    console.log("args", args);
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
-        console.log(args);
-        const { file, where, articleID, image } = args;
         const path = require("path");
         const fs = require("fs");
-        const _file = file ? await file : null;
-        console.log(_file, file);
+        const util = require("util");
+        const _file = await file;
 
         if (res) {
           const user = res.user;
 
-          let id: any;
-          if (where === "user") {
-            id = user.id;
-          }
+          const id = where === "user" ? user.id : null;
           const buffer = !image
-            ? _file.stream
+            ? await toArray(_file.stream).then((parts: any) => {
+                const buffers = parts.map(
+                  (part: any) =>
+                    util.isBuffer(part) ? part : Buffer.from(part)
+                );
+                return Buffer.concat(buffers);
+              })
             : Buffer.from(
                 image.replace(/data:image\/(.*?);base64,/, ""),
                 "base64"
               );
           const magic = buffer.toString("hex", 0, 4);
-          let filename: string;
-          if (!image) {
-            filename =
-              where === "user"
-                ? "user-#" + user.id + path.extname(_file.filename)
-                : articleID + path.extname(_file.filename);
-          } else {
-            filename =
-              where === "user"
-                ? "user-#" +
-                  user.id +
-                  "." +
-                  /data:image\/(.*?);base64/.exec(image)[1]
-                : articleID + "." + /data:image\/(.*?);base64/.exec(image)[1];
-          }
+          const filename = !image
+            ? where === "user"
+              ? "user-#" + user.id + path.extname(_file.filename)
+              : articleID + path.extname(_file.filename)
+            : where === "user"
+              ? "user-#" +
+                user.id +
+                "." +
+                /data:image\/(.*?);base64/.exec(image)[1]
+              : articleID + "." + /data:image\/(.*?);base64/.exec(image)[1];
           if (checkMagicNumbers(magic)) {
             return writeFile(
               where === "user"
@@ -683,6 +676,8 @@ export default {
               buffer,
               "binary",
               !image
+                ? path.extname(_file.filename)
+                : /data:image\/(.*?);base64/.exec(image)[1]
             )
               .then(result => {
                 if (where === "user") {

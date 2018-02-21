@@ -45,6 +45,8 @@ const FieldType = new GraphQLObjectType({
   }
 });
 
+const Upload = GraphQLUpload;
+
 const User = new GraphQLObjectType({
   name: "User",
   description: "User object",
@@ -478,24 +480,24 @@ const Mutation = new GraphQLObjectType({
         },
         resolve: resolvers.deleteArticle
       },
-      // uploadFile: {
-      //   type: UploadFilePayload,
-      //   args: {
-      //     file: {
-      //       type: Upload
-      //     },
-      //     where: {
-      //       type: GraphQLString
-      //     },
-      //     articleID: {
-      //       type: GraphQLString
-      //     },
-      //     image: {
-      //       type: GraphQLString
-      //     }
-      //   },
-      //   resolve: resolvers.uploadFile
-      // },
+      uploadFile: {
+        type: UploadFilePayload,
+        args: {
+          file: {
+            type: Upload
+          },
+          where: {
+            type: GraphQLString
+          },
+          articleID: {
+            type: GraphQLString
+          },
+          image: {
+            type: GraphQLString
+          }
+        },
+        resolve: resolvers.uploadFile
+      },
       sendMail: {
         type: Status,
         args: {
@@ -531,6 +533,6 @@ export default new GraphQLSchema({
     SigninPayload,
     UploadFilePayload,
     Status
-    // Upload
+    Upload
   ]
 });

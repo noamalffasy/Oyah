@@ -5,7 +5,7 @@ import { onError } from "apollo-link-error";
 import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { createUploadLink } from "apollo-upload-client";
-import fetch from "node-fetch";
+import fetch from "isomorphic-unfetch";
 
 let apolloClient: any = null;
 
@@ -18,7 +18,7 @@ function create(initialState: any) {
   const domain =
     process.env.NODE_ENV === "production"
       ? "https://www.oyah.xyz"
-      : "http://localhost:3000";
+      : "http://192.168.1.55:3000";
   const uri = domain + "/graphql";
 
   const authMiddleware = new ApolloLink((operation: any, forward: any) => {
@@ -35,23 +35,23 @@ function create(initialState: any) {
     if (graphQLErrors)
       graphQLErrors.map(({ message, locations, path }: any) =>
         console.log(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-        ),
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        )
       );
-  
+
     if (networkError) console.log(`[Network error]: ${networkError}`);
   });
 
   return new ApolloClient({
     connectToDevTools: process.browser,
     ssrMode: !process.browser, // Disables forceFetch on the server (so queries are only run once),
-    // link: ApolloLink.from([
-    //   errorLink,
-    //   authMiddleware,
-    //   // createUploadLink({ uri, fetch, credentials: "include" })
-    //   new HttpLink({ uri, credentials: "include" })
-    // ]),
-    link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),
+    link: ApolloLink.from([
+      errorLink,
+      authMiddleware,
+      createUploadLink({ uri, credentials: "include" })
+      // new HttpLink({ uri, credentials: "include" })
+    ]),
+    // link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),
     // link: new HttpLink({ uri, fetch, credentials: "include" }),
     cache: new InMemoryCache().restore(initialState || {})
   });
