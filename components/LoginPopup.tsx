@@ -3,6 +3,8 @@ import { Component } from "react";
 
 import { validate } from "email-validator";
 
+import Router from "next/router";
+
 import Input from "./Input";
 
 // GraphQL
@@ -14,11 +16,14 @@ interface Props {
   signInModal: any;
   closeSignInModal: any;
   login: any;
+  url: any;
   signinUser?: any;
   createUser?: any;
 }
 
 interface State {
+  url?: any;
+  urlAs?: any;
   open?: any;
   login?: any;
   error?: any;
@@ -82,10 +87,18 @@ class LoginPopup extends Component<Props, State> {
 
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.signInModal.state !== this.props.signInModal.state) {
+      const url = this.props.url.pathname + Object.keys(this.props.url.query).map((key: any, i: number) => {
+        if(i === 0) {
+          return `?${key}=${this.props.url.query[key]}`;
+        } 
+        return `${key}=${this.props.url.query[key]}`
+      }).join("&");
       this.setState(prevState => ({
         ...prevState,
         open: nextProps.signInModal.state === "open" ? true : false,
-        login: nextProps.signInModal.whatToOpen === "login"
+        login: nextProps.signInModal.whatToOpen === "login",
+        urlAs: this.props.url.asPath,
+        url,
       }));
     }
   }
@@ -227,6 +240,7 @@ class LoginPopup extends Component<Props, State> {
 
   closeDialog(e: any) {
     if (!this.popup.contains(e.target)) {
+      Router.push(this.state.url + "?", this.state.urlAs);
       this.props.closeSignInModal();
     }
   }
@@ -345,6 +359,12 @@ class LoginPopup extends Component<Props, State> {
                 className="btn btn-secondary"
                 onClick={e => {
                   e.preventDefault();
+
+                  Router.push(
+                    !this.state.login ? this.props.url.pathname + "?login" : this.props.url.pathname + "?signup",
+                    !this.state.login ? "/login" : "/signup"
+                  );
+
                   this.setState(prevState => ({
                     ...prevState,
                     login: !this.state.login,

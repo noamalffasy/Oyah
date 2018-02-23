@@ -131,7 +131,7 @@ class App extends Component<any, any> {
   //   };
 
   render() {
-    const { dispatch, signInModal, user, error } = this.props;
+    const { dispatch, signInModal, user, error, url } = this.props;
     const openSignInModal = bindActionCreators(
       signInModalActionCreators.open,
       dispatch
@@ -167,6 +167,7 @@ class App extends Component<any, any> {
           signInModal={signInModal}
           closeSignInModal={closeSignInModal}
           login={login}
+          url={url}
         />
         <style jsx>{`
           .App {
