@@ -9,6 +9,7 @@ import Router from "next/router";
 import { validate } from "email-validator";
 
 import * as userActionCreators from "../actions/user";
+import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 import Input from "../components/Input";
@@ -95,28 +96,21 @@ class Login extends Component<Props, State> {
               this.remember.reset();
 
               Router.push("/");
-
-              this.setState(prevState => ({
-                ...prevState,
-                error: false
-              }));
             }
           });
       } else {
-        this.setState(prevState => ({
-          ...prevState,
-          error: "Email isn't valid"
-        }));
+        this.setError("Email isn't valid");
       }
     } else {
-      this.setState(prevState => ({
-        ...prevState,
-        error: "You must fill all the fields"
-      }));
+      this.setError("You must fill all the fields");
     }
   }
 
   login = bindActionCreators(userActionCreators.login, this.props.dispatch);
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
 
   render() {
     return (
