@@ -4,3 +4,4 @@ export * from "./User";
 export * from "./Session";
 export * from "./Article";
 export * from "./Comment";
+export * from "./ResetSession";

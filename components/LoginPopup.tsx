@@ -19,6 +19,7 @@ interface Props {
   url: any;
   signinUser?: any;
   createUser?: any;
+  forgetPassword?: any;
 }
 
 interface State {
@@ -26,6 +27,8 @@ interface State {
   urlAs?: any;
   open?: any;
   login?: any;
+  reset?: any;
+  resetStatus?: any;
   error?: any;
 }
 
@@ -74,31 +77,54 @@ interface State {
     name: "createUser"
   }
 )
+@graphql(
+  gql`
+    mutation forgetPassword($email: String) {
+      forgetPassword(email: $email) {
+        status
+      }
+    }
+  `,
+  {
+    name: "forgetPassword"
+  }
+)
 class LoginPopup extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = { open: false, login: true, error: false };
+    this.state = {
+      open: false,
+      login: true,
+      reset: false,
+      resetStatus: undefined,
+      error: false
+    };
 
     this.login = this.login.bind(this);
     this.signup = this.signup.bind(this);
+    this.sendMail = this.sendMail.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.signInModal.state !== this.props.signInModal.state) {
-      const url = this.props.url.pathname + Object.keys(this.props.url.query).map((key: any, i: number) => {
-        if(i === 0) {
-          return `?${key}=${this.props.url.query[key]}`;
-        } 
-        return `${key}=${this.props.url.query[key]}`
-      }).join("&");
+      const url =
+        this.props.url.pathname +
+        Object.keys(this.props.url.query)
+          .map((key: any, i: number) => {
+            if (i === 0) {
+              return `?${key}=${this.props.url.query[key]}`;
+            }
+            return `${key}=${this.props.url.query[key]}`;
+          })
+          .join("&");
       this.setState(prevState => ({
         ...prevState,
         open: nextProps.signInModal.state === "open" ? true : false,
         login: nextProps.signInModal.whatToOpen === "login",
         urlAs: this.props.url.asPath,
-        url,
+        url
       }));
     }
   }
@@ -238,6 +264,43 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
+  sendMail(e: any) {
+    if (e) {
+      e.preventDefault();
+    }
+
+    if (this.forgotPassword.email.input.value !== "") {
+      if (validate(this.forgotPassword.email.input.value)) {
+        this.props
+          .forgetPassword({
+            variables: { email: this.forgotPassword.email.input.value }
+          })
+          .then((res: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              resetStatus: res.data.forgetPassword.status
+            }));
+          })
+          .catch((err: Error) => {
+            this.setState(prevState => ({
+              ...prevState,
+              error: err
+            }));
+          });
+      } else {
+        this.setState(prevState => ({
+          ...prevState,
+          error: "Email isn't valid"
+        }));
+      }
+    } else {
+      this.setState(prevState => ({
+        ...prevState,
+        error: "You must fill all the fields"
+      }));
+    }
+  }
+
   closeDialog(e: any) {
     if (!this.popup.contains(e.target)) {
       Router.push(this.state.url + "?", this.state.urlAs);
@@ -279,7 +342,9 @@ class LoginPopup extends Component<Props, State> {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                {this.state.login ? "Sign in" : "Create an account"}
+                {!this.state.reset
+                  ? this.state.login ? "Sign in" : "Create an account"
+                  : "Forgot password"}
               </h5>
               <button
                 type="button"
@@ -325,8 +390,16 @@ class LoginPopup extends Component<Props, State> {
               </button>
             </div>
             <Login
+              forgotPassword={(e: any) => {
+                e.preventDefault();
+
+                this.setState(prevState => ({
+                  ...prevState,
+                  reset: true
+                }));
+              }}
               style={
-                !this.state.login
+                !this.state.login || this.state.reset
                   ? {
                       opacity: 0,
                       display: "none"
@@ -337,7 +410,7 @@ class LoginPopup extends Component<Props, State> {
             />
             <CreateAccount
               style={
-                this.state.login
+                this.state.login || this.state.reset
                   ? {
                       opacity: 0,
                       display: "none"
@@ -346,13 +419,31 @@ class LoginPopup extends Component<Props, State> {
               }
               ref={div => (this.createAccount = div)}
             />
+            <ForgotPassword
+              status={this.state.resetStatus}
+              style={
+                !this.state.reset
+                  ? {
+                      opacity: 0,
+                      display: "none"
+                    }
+                  : {}
+              }
+              ref={div => (this.forgotPassword = div)}
+            />
             <div className="modal-footer">
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={this.state.login ? this.login : this.signup}
+                onClick={
+                  !this.state.reset
+                    ? this.state.login ? this.login : this.signup
+                    : this.sendMail
+                }
               >
-                {this.state.login ? "Login" : "Create an account"}
+                {!this.state.reset
+                  ? this.state.login ? "Login" : "Create an account"
+                  : "Continue"}
               </button>
               <button
                 type="button"
@@ -361,20 +452,33 @@ class LoginPopup extends Component<Props, State> {
                   e.preventDefault();
 
                   Router.push(
-                    !this.state.login ? this.props.url.pathname + "?login" : this.props.url.pathname + "?signup",
-                    !this.state.login ? "/login" : "/signup"
+                    !this.state.reset
+                      ? !this.state.login
+                        ? this.props.url.pathname + "?login"
+                        : this.props.url.pathname + "?signup"
+                      : this.state.login
+                        ? this.props.url.pathname + "?login"
+                        : this.props.url.pathname + "?signup",
+                    !this.state.reset
+                      ? !this.state.login ? "/login" : "/signup"
+                      : this.state.login ? "/login" : "/signup"
                   );
 
                   this.setState(prevState => ({
                     ...prevState,
-                    login: !this.state.login,
+                    login: !this.state.reset
+                      ? !this.state.login
+                      : this.state.login,
+                    reset: false,
                     error: false
                   }));
                 }}
               >
-                {this.state.login
-                  ? "Create an account"
-                  : "Already have an account?"}
+                {!this.state.reset
+                  ? this.state.login
+                    ? "Create an account"
+                    : "Already have an account?"
+                  : "Remember the password?"}
               </button>
             </div>
           </div>
@@ -518,6 +622,7 @@ class LoginPopup extends Component<Props, State> {
 }
 
 interface LoginProps {
+  forgotPassword: any;
   style?: any;
 }
 
@@ -541,7 +646,7 @@ class Login extends Component<LoginProps> {
             this.password = input;
           }}
         />
-        <div className="remember-checkbox">
+        <div className="remember-checkbox" style={{ marginBottom: "1rem" }}>
           <Input
             id="remember"
             type="checkbox"
@@ -557,6 +662,9 @@ class Login extends Component<LoginProps> {
             Remember me
           </label>
         </div>
+        <a href="#" onClick={this.props.forgotPassword}>
+          Forgot password?
+        </a>
       </div>
     );
   }
@@ -606,6 +714,44 @@ class CreateAccount extends Component<CreateAccountProps> {
         />
       </div>
     );
+  }
+}
+
+interface ForgotPasswordProps {
+  status: any;
+  style?: any;
+}
+
+class ForgotPassword extends Component<ForgotPasswordProps> {
+  render() {
+    if (this.props.status === undefined) {
+      return (
+        <div className="modal-body" style={this.props.style}>
+          <Input
+            label="Your account's email"
+            type="email"
+            autocomplete="email"
+            ref={input => {
+              this.email = input;
+            }}
+          />
+        </div>
+      );
+    } else if (this.props.status === true) {
+      return (
+        <div className="modal-body" style={this.props.style}>
+          <h5>The mail has been sent</h5>
+          <p>Open the mail we have sent you and follow the instructions</p>
+        </div>
+      );
+    } else {
+      return (
+        <div className="modal-body" style={this.props.style}>
+          <h5>An error occured</h5>
+          <p>Please try again later</p>
+        </div>
+      );
+    }
   }
 }
 

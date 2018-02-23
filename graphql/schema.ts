@@ -262,6 +262,17 @@ const AUTH_PROVIDER_EMAIL = new GraphQLInputObjectType({
   }
 });
 
+const Email = new GraphQLObjectType({
+  name: "email",
+  fields() {
+    return {
+      email: {
+        type: GraphQLString
+      }
+    }
+  }
+});
+
 // Root query.  This is our 'public API'.
 const Query = new GraphQLObjectType({
   name: "Query",
@@ -293,6 +304,9 @@ const Mutation = new GraphQLObjectType({
         args: {
           id: {
             type: GraphQLID
+          },
+          email: {
+            type: GraphQLString
           }
         },
         resolve: resolvers.getUser
@@ -317,6 +331,36 @@ const Mutation = new GraphQLObjectType({
           }
         },
         resolve: resolvers.signinUser
+      },
+      forgetPassword: {
+        type: Status,
+        args: {
+          email: {
+            type: GraphQLString
+          }
+        },
+        resolve: resolvers.forgetPassword
+      },
+      getResetEmail: {
+        type: Email,
+        args: {
+          id: {
+            type: GraphQLID
+          }
+        },
+        resolve: resolvers.getResetEmail
+      },
+      resetPassword: {
+        type: SigninPayload,
+        args: {
+          email: {
+            type: GraphQLString
+          },
+          password: {
+            type: GraphQLString
+          }
+        },
+        resolve: resolvers.resetPassword
       },
       updateUser: {
         type: SigninPayload,
@@ -532,7 +576,8 @@ export default new GraphQLSchema({
     comment,
     SigninPayload,
     UploadFilePayload,
-    Status
-    Upload
+    Status,
+    Upload,
+    Email
   ]
 });

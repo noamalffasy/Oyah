@@ -32,6 +32,7 @@
     "graphql": "^0.12.3",
     "graphql-iso-date": "^3.5.0",
     "graphql-tag": "^2.6.1",
+    "hashids": "^1.1.4",
     "isomorphic-unfetch": "^2.0.0",
     "jsonwebtoken": "^8.1.1",
     "koa": "^2.4.1",
@@ -70,6 +71,7 @@
   "devDependencies": {
     "@types/compression": "0.0.35",
     "@types/graphql": "^0.12.3",
+    "@types/hashids": "^1.0.30",
     "@types/koa": "^2.0.43",
     "@types/koa-bodyparser": "^4.2.0",
     "@types/koa-router": "^7.0.27",

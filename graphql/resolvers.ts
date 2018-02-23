@@ -3,9 +3,10 @@ import * as sequelize from "sequelize";
 import * as nodemailer from "nodemailer";
 import * as toArray from "stream-to-array";
 import * as sharp from "sharp";
+import * as Hashids from "hashids";
 
 import db from "../db";
-import { User, Article, Comment } from "../db/models";
+import { User, Article, Comment, ResetSession } from "../db/models";
 
 import { createSession, getSessionOnJWT } from "../db/models/Session";
 
@@ -88,6 +89,26 @@ function parseJSONLiteral(ast: any) {
   }
 }
 
+async function _sendMail(mailOptions: any) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "noahm1228@gmail.com",
+      pass: "200702579"
+    }
+  });
+
+  // send mail with defined transport object
+  return await transporter
+    .sendMail(mailOptions)
+    .then(info => {
+      return { status: true };
+    })
+    .catch(err => {
+      throw err;
+    });
+}
+
 export default {
   // Query
   allUsers: async () => {
@@ -144,22 +165,31 @@ export default {
   },
 
   // Mutation
-  getUser: async (_: any, { id }: any) => {
+  getUser: async (_: any, { id, email }: any) => {
     const path = require("path");
     const fs = require("fs");
 
-    let user = await User.findOne({ where: { id } })
-      .then((user: any) => {
-        return user.get({ plain: true });
-      })
-      .catch((err: Error) => {
-        if (err.message === "Cannot read property 'get' of null") {
-          throw new Error("User doesn't exist");
-        }
-        throw err;
-      });
-
-    return user;
+    return id
+      ? await User.findOne({ where: { id } })
+          .then((user: any) => {
+            return user.get({ plain: true });
+          })
+          .catch((err: Error) => {
+            if (err.message === "Cannot read property 'get' of null") {
+              throw new Error("User doesn't exist");
+            }
+            throw err;
+          })
+      : await User.findOne({ where: { email } })
+          .then((user: any) => {
+            return user.get({ plain: true });
+          })
+          .catch((err: Error) => {
+            if (err.message === "Cannot read property 'get' of null") {
+              throw new Error("User doesn't exist");
+            }
+            throw err;
+          });
   },
   signinUser: async (_: any, { email }: any, ctx: any) => {
     const bcrypt = require("bcrypt");
@@ -268,6 +298,83 @@ export default {
     } else {
       throw new Error("User already exists");
     }
+  },
+  forgetPassword: async (_: any, { email }: any) => {
+    let id: number;
+    while (true) {
+      id = Math.floor(Math.random() * 900000) + 100000;
+
+      const sess = ResetSession.findOrCreate({
+        where: { id },
+        defaults: { id, email }
+      });
+
+      const exists = await sess.spread((session: any, created: any) => {
+        return !created;
+      });
+
+      if (!exists) {
+        setTimeout(() => {
+          ResetSession.destroy({ where: { id } });
+        }, 15 * 60000);
+        break;
+      }
+    }
+
+    const hashids = new Hashids("oyah.xyz", 8);
+
+    const mailOptions = {
+      from: `Oyah`,
+      to: email,
+      subject: "Oyah reset password",
+      text: "https://www.oyah.xyz/reset?id=" + hashids.encode(id)
+    };
+
+    return await _sendMail(mailOptions);
+  },
+  getResetEmail: async (_: any, { id }: any) => {
+    return await ResetSession.findOne({ where: { id } })
+      .then((res: any) => {
+        const resetSession = res.get({ plain: true });
+
+        return resetSession;
+      })
+      .catch((err: Error) => {
+        throw err;
+      });
+  },
+  resetPassword: async (_: any, { email, password: _password }: any, ctx: any) => {
+    const bcrypt = require("bcrypt");
+    const saltRounds = 10;
+
+    const _oldUser = await User.findOne({ where: { email } });
+    const oldUser = _oldUser.get({ plain: true });
+
+    const password = await bcrypt
+      .hash(_password, saltRounds)
+      .then((hash: any) => {
+        return hash;
+      });
+
+    return await User.update({ ...oldUser, password }, { where: { email } })
+      .then(async (result: any) => {
+        const token = await createSession({ ...oldUser, password });
+
+        ctx.cookies.set("reactQLJWT", token.jwt(), {
+        expires: token.expiresAt
+      });
+
+        return {
+          user: {
+            ...oldUser,
+            password
+          },
+          token
+        };
+      })
+      .catch((err: Error) => {
+        throw err;
+      });
   },
   updateUser: async (_: any, info: any, ctx: any) => {
     return await isLoggedIn(ctx)
@@ -719,29 +826,13 @@ export default {
       });
   },
   sendMail: async (_: any, { name, email, subject, message }: any) => {
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "noahm1228@gmail.com",
-        pass: "200702579"
-      }
-    });
-
-    let mailOptions = {
+    const mailOptions = {
       from: `"${name}" <${email}>`,
       to: "noahm1234@outlook.com",
       subject: subject,
       text: message
     };
 
-    // send mail with defined transport object
-    return await transporter
-      .sendMail(mailOptions)
-      .then(info => {
-        return { status: true };
-      })
-      .catch(err => {
-        throw err;
-      });
+    return await _sendMail(mailOptions);
   }
 };
