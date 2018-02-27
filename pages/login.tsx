@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 
 import Router from "next/router";
+import Head from "next/head";
 
 import { validate } from "email-validator";
 
@@ -116,6 +117,10 @@ class Login extends Component<Props, State> {
     return (
       <App {...this.props}>
         <div className="Login">
+          <Head>
+            <title>Sign in | Oyah</title>
+            <meta name="description" content="Login to your account in Oyah" />
+          </Head>
           <h2 className="title">Sign in</h2>
           <Input
             label="Email"
