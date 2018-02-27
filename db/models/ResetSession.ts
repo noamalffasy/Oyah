@@ -2,7 +2,7 @@ import * as Sequelize from "sequelize";
 
 import db from "../index";
 
-export const ResetSession = db.define("resetSession", {
+export const ResetSession = db.define("resetsession", {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true
