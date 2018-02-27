@@ -18,6 +18,7 @@ interface Props {
   data?: any;
   user?: any;
   signInModal?: any;
+  error?: any;
 }
 
 interface State {

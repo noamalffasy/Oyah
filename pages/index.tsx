@@ -18,6 +18,7 @@ interface Props {
   url?: any;
   user?: any;
   signInModal?: any;
+  error?: any;
 }
 
 class Index extends Component<Props> {
