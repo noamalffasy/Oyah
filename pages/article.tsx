@@ -1221,7 +1221,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
             this.setState(prevState => ({
               ...prevState,
               comments: [
-                { ...res.data.sendComment, author: this.props.author },
+                { ...res.data.sendComment, author: this.props.user },
                 ...this.state.comments
               ]
             }));
@@ -1295,8 +1295,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                         this.props.user.image !== undefined
                         ? "/img/users/" +
                           encodeURIComponent(this.props.user.image)
-                        : ""
-                      : ""
+                        : "/img/User.png"
+                      : "/img/User.png"
                   }
                   style={{
                     width: "3rem",
@@ -1343,8 +1343,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                           ? elem.author.image !== null &&
                             elem.author.image !== undefined
                             ? elem.author.image
-                            : ""
-                          : ""
+                            : "/img/User.png"
+                          : "/img/User.png"
                       }
                       alt={elem.author ? elem.author.nametag : "Loading"}
                       style={{
