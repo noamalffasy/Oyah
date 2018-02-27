@@ -87,7 +87,7 @@ class Articles extends Component<Props, State> {
           }
 
           .Articles {
-            margin: 0 0 4rem;
+            margin: 0;
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
@@ -99,12 +99,13 @@ class Articles extends Component<Props, State> {
             /* margin: 0.5rem; */
             /* margin: 0 0.5rem 0.5rem 0; */
             margin: 0 auto 0.7rem;
+            width: calc(100% - 1.25rem);
             /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
             /* width: calc(1/2*100% - 1/2*2.5rem); */
           }
 
           .Articles .Article .image {
-            min-height: 20rem;
+            min-height: 15rem;
           }
           @media (min-width: 576px),
           @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
@@ -112,11 +113,20 @@ class Articles extends Component<Props, State> {
               width: 85%;
               margin: 0 auto;
             }
+            .Articles .Article {
+              width: calc(50% - 1.25rem)
+            }
+            .Articles .Article .image {
+              min-height: 10rem;
+            }
           }
           @media (min-width: 768px),
           @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles .Article {
               width: calc(1/2*100% - 1/2*2.5rem);
+            }
+            .Articles .Article .image {
+              min-height: 15rem;
             }
           }
           @media (min-width: 992px),
