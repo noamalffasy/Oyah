@@ -64,6 +64,12 @@ class Signup extends Component<Props, State> {
     this.signup = this.signup.bind(this);
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (Object.keys(nextProps.user).length > 0) {
+      Router.push("/");
+    }
+  }
+
   signup() {
     if (
       this.nametag.input.value !== "" &&

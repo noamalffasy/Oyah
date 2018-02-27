@@ -61,6 +61,12 @@ class Login extends Component<Props, State> {
     this.signin = this.signin.bind(this);
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (Object.keys(nextProps.user).length > 0) {
+      Router.push("/");
+    }
+  }
+
   signin() {
     if (this.email.input.value !== "" && this.password.input.value !== "") {
       if (validate(this.email.input.value)) {
