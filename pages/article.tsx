@@ -965,7 +965,8 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
             style={{
               color: "rgba(0, 0, 0, 0.5)",
               fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
+              fontSize: "1rem"
             }}
           >
             {this.state.likes}
