@@ -642,11 +642,24 @@ class Login extends Component<LoginProps> {
           label="Password"
           type="password"
           autocomplete="password"
+          style={{ marginBottom: "1rem" }}
           ref={input => {
             this.password = input;
           }}
         />
-        <div className="remember-checkbox" style={{ marginBottom: "1rem" }}>
+        <a
+          href="#"
+          style={{
+            display: "inline-block",
+            fontSize: ".9rem",
+            textAlign: "center",
+            marginBottom: "1rem"
+          }}
+          onClick={this.props.forgotPassword}
+        >
+          Forgot password?
+        </a>
+        <div className="remember-checkbox" style={{ marginBottom: ".5rem" }}>
           <Input
             id="remember"
             type="checkbox"
@@ -662,9 +675,6 @@ class Login extends Component<LoginProps> {
             Remember me
           </label>
         </div>
-        <a href="#" onClick={this.props.forgotPassword}>
-          Forgot password?
-        </a>
       </div>
     );
   }
