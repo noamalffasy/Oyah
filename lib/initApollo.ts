@@ -53,7 +53,17 @@ function create(initialState: any) {
     ]),
     // link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),
     // link: new HttpLink({ uri, fetch, credentials: "include" }),
-    cache: new InMemoryCache().restore(initialState || {})
+    cache: new InMemoryCache().restore(initialState || {}),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: "network-only",
+        errorPolicy: "ignore"
+      },
+      query: {
+        fetchPolicy: "network-only",
+        errorPolicy: "all"
+      }
+    }
   });
 }
 
