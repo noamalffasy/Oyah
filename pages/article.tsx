@@ -1221,7 +1221,18 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
             this.setState(prevState => ({
               ...prevState,
               comments: [
-                { ...res.data.sendComment, author: this.props.user },
+                {
+                  ...res.data.sendComment,
+                  author: {
+                    ...this.props.user,
+                    image:
+                      this.props.user.image !== null &&
+                      this.props.user.image !== undefined
+                        ? "/img/users/" +
+                          encodeURIComponent(this.props.user.image)
+                        : "/img/User.png"
+                  }
+                },
                 ...this.state.comments
               ]
             }));
