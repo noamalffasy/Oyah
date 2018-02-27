@@ -167,6 +167,7 @@ class LoginPopup extends Component<Props, State> {
               this.signin.password.reset();
               this.signin.remember.reset();
 
+              Router.push(this.state.url + "?", this.state.urlAs);
               this.props.closeSignInModal();
 
               this.setState(prevState => ({
@@ -233,6 +234,7 @@ class LoginPopup extends Component<Props, State> {
                 this.createAccount.password.reset();
                 this.createAccount.confirmPassword.reset();
 
+                Router.push(this.state.url + "?", this.state.urlAs);
                 this.props.closeSignInModal();
 
                 this.setState(prevState => ({
