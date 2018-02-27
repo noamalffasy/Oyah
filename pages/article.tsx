@@ -522,7 +522,7 @@ class ArticlePage extends Component<Props, State> {
               fixed
               style={{
                 position: "relative",
-                backgroundSize: "cover",
+                backgroundSize: "100% 100%",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center center",
                 backgroundColor: "#c3c3c3",

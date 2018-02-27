@@ -296,7 +296,7 @@ class Image extends Component<Props, State> {
             .image.placeholder {
               position: relative;
               background-color: #f6f6f6;
-              background-size: cover;
+              background-size: 100% 100%;
               background-repeat: no-repeat;
               overflow: hidden;
             }
