@@ -566,12 +566,8 @@ class Account extends Component<any, any> {
             }
 
             /*  .Account > a:hover {
-            text-decoration: underline !important;
-          } */
-
-            .Account.active {
-              width: 15rem;
-            }
+              text-decoration: underline !important;
+            } */
 
             .Account .User {
               display: flex;
@@ -582,20 +578,6 @@ class Account extends Component<any, any> {
               /* margin-top: 2rem; */
               /* height: 6rem; */
               transition: all 0.3s;
-            }
-
-            .Account.active .User {
-              box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
-            }
-
-            .Account.active .User::after {
-              content: "";
-              display: block;
-              background: #fff;
-              top: 100%;
-              position: absolute;
-              height: 0.5rem;
-              width: 100%;
             }
 
             .Account .User img.arrow {
@@ -619,13 +601,6 @@ class Account extends Component<any, any> {
               transition: all 0.3s;
             }
 
-            .Account.active .Info {
-              background: #fff;
-              box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
-              height: auto;
-              padding-bottom: 3rem;
-            }
-
             .Account .Info::before {
               content: "";
               background: #fff;
@@ -637,18 +612,8 @@ class Account extends Component<any, any> {
               top: -4px;
             }
 
-            .Account.active .Info::before {
-              display: block;
-            }
-
             .Account .Info * {
               transition: all 0.3s;
-            }
-
-            .Account.active .Info * {
-              opacity: 1;
-              visibility: visible;
-              height: auto;
             }
 
             .Account .Info .user {
@@ -723,14 +688,43 @@ class Account extends Component<any, any> {
                 width: 4rem;
                 margin-bottom: 0;
               }
+              .Account.active {
+                width: 15rem;
+              }
+              .Account.active .User {
+                box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+              }
+              .Account.active .User::after {
+                content: "";
+                display: block;
+                background: #fff;
+                top: 100%;
+                position: absolute;
+                height: 0.5rem;
+                width: 100%;
+              }
               .Account .Info {
                 position: absolute;
                 height: 2rem;
+              }
+              .Account.active .Info {
+                background: #fff;
+                box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+                height: auto;
+                padding-bottom: 3rem;
+              }
+              .Account.active .Info::before {
+                display: block;
               }
               .Account .Info * {
                 opacity: 0;
                 height: 0;
                 visibility: hidden;
+              }
+              .Account.active .Info * {
+                opacity: 1;
+                visibility: visible;
+                height: auto;
               }
               .Account .Info img.arrow {
                 visibility: visible;
