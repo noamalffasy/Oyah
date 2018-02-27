@@ -461,6 +461,12 @@ class Account extends Component<any, any> {
       return (
         <div className="Account">
           <a onClick={() => this.props.openSignInModal("login")}>Sign in</a>
+          <style jsx>{`
+            .Account {
+              text-align: center;
+              margin-bottom: .8rem;
+            }
+          `}</style>
         </div>
       );
     } else {
