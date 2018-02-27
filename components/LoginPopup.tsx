@@ -175,6 +175,12 @@ class LoginPopup extends Component<Props, State> {
                 error: false
               }));
             }
+          })
+          .catch((err: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              error: err.graphQLErrors[0].message
+            }));
           });
       } else {
         this.setState(prevState => ({
@@ -243,8 +249,11 @@ class LoginPopup extends Component<Props, State> {
                 }));
               }
             })
-            .catch((err: Error) => {
-              console.error(err);
+            .catch((err: any) => {
+              this.setState(prevState => ({
+                ...prevState,
+                error: err.graphQLErrors[0].message
+              }));
             });
         } else {
           this.setState(prevState => ({
@@ -283,10 +292,10 @@ class LoginPopup extends Component<Props, State> {
               resetStatus: res.data.forgetPassword.status
             }));
           })
-          .catch((err: Error) => {
+          .catch((err: any) => {
             this.setState(prevState => ({
               ...prevState,
-              error: err
+              error: err.graphQLErrors[0].message
             }));
           });
       } else {
