@@ -1360,6 +1360,11 @@ class Input extends Component<Props, State> {
                 }
               }
             `}</style>
+            <style jsx global>{`
+              p.Input span a svg {
+                max-width: 1rem;
+              }
+            `}</style>
           </p>
         );
       default:
