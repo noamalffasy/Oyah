@@ -716,7 +716,7 @@ export default {
       .then(async (res: any) => {
         const user = res.user.dataValues;
         const article = await Article.find({ where: { id } });
-        if (article.dataValues.authorID === user.id) {
+        if (article.dataValues.authorID.toString() === user.id) {
           await Article.destroy({ where: { id } })
             .then((result: any) => {
               return { status: result };
