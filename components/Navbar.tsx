@@ -464,7 +464,14 @@ class Account extends Component<any, any> {
           <style jsx>{`
             .Account {
               text-align: center;
-              margin-bottom: .8rem;
+              margin-bottom: 0.8rem;
+            }
+
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Account {
+                margin-bottom: 0;
+              }
             }
           `}</style>
         </div>
