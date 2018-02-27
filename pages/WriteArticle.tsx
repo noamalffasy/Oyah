@@ -140,7 +140,9 @@ class WriteArticle extends Component<Props, State> {
       output: "",
       focus: false,
       title: "",
-      image: null
+      image: null,
+      content: undefined,
+      edit: false
     };
 
     this.renderToPreview = this.renderToPreview.bind(this);
@@ -212,7 +214,7 @@ class WriteArticle extends Component<Props, State> {
             res.errors.forEach((error: any) => {
               console.error(error);
             });
-          } else {
+          } else if (res.data.getArticle.id !== null) {
             if (
               this.props.user.id === res.data.getArticle.authorID &&
               res.data.getArticle.content !== null
@@ -377,7 +379,6 @@ class WriteArticle extends Component<Props, State> {
                 }
               })
               .then((res: any) => {
-                console.log(res);
                 if (res.error) {
                   console.error(res.error.message);
                 } else {
@@ -397,9 +398,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          Router.push(
-                            "/articles/" + this.state.id
-                          );
+                          Router.push("/articles/" + this.state.id);
                         }
                       })
                       .catch((err: any) => {
@@ -420,9 +419,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          Router.push(
-                            "/articles/" + res.data.updateArticle.id
-                          );
+                          Router.push("/articles/" + res.data.updateArticle.id);
                         }
                       })
                       .catch((err: any) => {
@@ -467,9 +464,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          Router.push(
-                            "/articles/" + this.state.id
-                          );
+                          Router.push("/articles/" + this.state.id);
                         }
                       })
                       .catch((err: any) => {
@@ -490,9 +485,7 @@ class WriteArticle extends Component<Props, State> {
                             console.error(error.message);
                           });
                         } else {
-                          Router.push(
-                            "/articles/" + res.data.updateArticle.id
-                          );
+                          Router.push("/articles/" + res.data.updateArticle.id);
                         }
                       })
                       .catch((err: any) => {
@@ -521,9 +514,7 @@ class WriteArticle extends Component<Props, State> {
                       console.error(error.message);
                     });
                   } else {
-                    Router.push(
-                      "/articles/" + this.state.id
-                    );
+                    Router.push("/articles/" + this.state.id);
                   }
                 })
                 .catch((err: any) => {
@@ -544,9 +535,7 @@ class WriteArticle extends Component<Props, State> {
                       console.error(error.message);
                     });
                   } else {
-                    Router.push(
-                      "/articles/" + this.state.id
-                    );
+                    Router.push("/articles/" + this.state.id);
                   }
                 })
                 .catch((err: any) => {
