@@ -300,37 +300,42 @@ export default {
     }
   },
   forgetPassword: async (_: any, { email }: any) => {
-    let id: number;
-    while (true) {
-      id = Math.floor(Math.random() * 900000) + 100000;
+    const user = await User.findOne({ where: { email } });
+    if (user !== null && user.get({ plain: true }).id !== null) {
+      let id: number;
+      while (true) {
+        id = Math.floor(Math.random() * 900000) + 100000;
 
-      const sess = ResetSession.findOrCreate({
-        where: { id },
-        defaults: { id, email }
-      });
+        const sess = ResetSession.findOrCreate({
+          where: { id },
+          defaults: { id, email }
+        });
 
-      const exists = await sess.spread((session: any, created: any) => {
-        return !created;
-      });
+        const exists = await sess.spread((session: any, created: any) => {
+          return !created;
+        });
 
-      if (!exists) {
-        setTimeout(() => {
-          ResetSession.destroy({ where: { id } });
-        }, 15 * 60000);
-        break;
+        if (!exists) {
+          setTimeout(() => {
+            ResetSession.destroy({ where: { id } });
+          }, 15 * 60000);
+          break;
+        }
       }
+
+      const hashids = new Hashids("oyah.xyz", 8);
+
+      const mailOptions = {
+        from: `Oyah`,
+        to: email,
+        subject: "Oyah reset password",
+        text: "https://www.oyah.xyz/reset?id=" + hashids.encode(id)
+      };
+
+      return await _sendMail(mailOptions);
+    } else {
+      throw ["There's no user with this email"];
     }
-
-    const hashids = new Hashids("oyah.xyz", 8);
-
-    const mailOptions = {
-      from: `Oyah`,
-      to: email,
-      subject: "Oyah reset password",
-      text: "https://www.oyah.xyz/reset?id=" + hashids.encode(id)
-    };
-
-    return await _sendMail(mailOptions);
   },
   getResetEmail: async (_: any, { id }: any) => {
     return await ResetSession.findOne({ where: { id } })
@@ -343,7 +348,11 @@ export default {
         throw err;
       });
   },
-  resetPassword: async (_: any, { email, password: _password }: any, ctx: any) => {
+  resetPassword: async (
+    _: any,
+    { email, password: _password }: any,
+    ctx: any
+  ) => {
     const bcrypt = require("bcrypt");
     const saltRounds = 10;
 
@@ -361,8 +370,8 @@ export default {
         const token = await createSession({ ...oldUser, password });
 
         ctx.cookies.set("reactQLJWT", token.jwt(), {
-        expires: token.expiresAt
-      });
+          expires: token.expiresAt
+        });
 
         return {
           user: {
