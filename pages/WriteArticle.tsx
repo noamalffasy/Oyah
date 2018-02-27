@@ -189,7 +189,7 @@ class WriteArticle extends Component<Props, State> {
     } else {
       const id = this.props.url.query.id;
 
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         id
       }));
@@ -219,7 +219,7 @@ class WriteArticle extends Component<Props, State> {
               this.props.user.id === res.data.getArticle.authorID &&
               res.data.getArticle.content !== null
             ) {
-              this.setState((prevState: any) => ({
+              this.setState(prevState => ({
                 ...prevState,
                 edit: true,
                 title: res.data.getArticle.title,
@@ -227,13 +227,13 @@ class WriteArticle extends Component<Props, State> {
                 content: res.data.getArticle.content
               }));
             } else if (res.data.getArticle.content !== null) {
-              this.setState((prevState: any) => ({
+              this.setState(prevState => ({
                 ...prevState,
                 notAuthorized: true,
                 authorID: res.data.getArticle.authorID
               }));
             } else {
-              this.setState((prevState: any) => ({
+              this.setState(prevState => ({
                 ...prevState,
                 edit: true
               }));
