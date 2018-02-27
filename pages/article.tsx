@@ -1984,6 +1984,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
             background: none;
             cursor: pointer;
             box-shadow: none;
+            margin: 0;
             outline: 0;
             opacity: 0.8;
             transition: all 0.15s;
