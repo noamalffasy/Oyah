@@ -191,6 +191,9 @@ const comment = new GraphQLObjectType({
       },
       likes: {
         type: GraphQLInt
+      },
+      createdAt: {
+        type: GraphQLDate
       }
     };
   }

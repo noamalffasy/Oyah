@@ -14,6 +14,9 @@ export const Comment = db.define("comment", {
   },
   likes: {
     type: Sequelize.INTEGER
+  },
+  createdAt: {
+    type: Sequelize.DATE
   }
 });
 

@@ -122,6 +122,7 @@ interface Props extends React.Props<ArticlePage> {
   dispatch?: any;
   deleteArticle?: any;
   signInModal?: any;
+  error?: any;
 }
 
 interface State {
@@ -170,6 +171,7 @@ interface State {
           authorID
           message
           likes
+          createdAt
         }
         createdAt
       }
@@ -249,7 +251,13 @@ class ArticlePage extends Component<Props, State> {
           this.setState((prevState: any) => ({
             ...prevState,
             ...getArticle.data.getArticle,
-            datePublished: new Date(getArticle.data.getArticle.createdAt).getFullYear() === new Date().getFullYear() ? moment(getArticle.data.getArticle.createdAt).format("MMM DDD") : moment(getArticle.data.getArticle.createdAt).format("MMM D, YYYY")
+            datePublished:
+              new Date(getArticle.data.getArticle.createdAt).getFullYear() ===
+              new Date().getFullYear()
+                ? moment(getArticle.data.getArticle.createdAt).format("MMM D")
+                : moment(getArticle.data.getArticle.createdAt).format(
+                    "MMM D, YYYY"
+                  )
           }));
 
           this.props
@@ -952,7 +960,14 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         style={this.props.contentLoaded ? { display: "" } : { display: "none" }}
       >
         <div className="like" style={{ width: "unset", margin: 0 }}>
-          <span className="like-count" style={{ color: "rgba(0, 0, 0, 0.5)" }}>
+          <span
+            className="like-count"
+            style={{
+              color: "rgba(0, 0, 0, 0.5)",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
+            }}
+          >
             {this.state.likes}
           </span>
           <button
@@ -1340,7 +1355,27 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                         background: "none"
                       }}
                     />
-                    <h3>{elem.author ? elem.author.nametag : "Loading"}</h3>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column"
+                      }}
+                    >
+                      <h3>{elem.author ? elem.author.nametag : "Loading"}</h3>
+                      <span
+                        style={{
+                          color: "rgba(0,0,0,.5)",
+                          fontFamily:
+                            '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
+                          fontSize: "1rem"
+                        }}
+                      >
+                        {new Date(elem.createdAt).getFullYear() ===
+                        new Date().getFullYear()
+                          ? moment(elem.createdAt).format("MMM D")
+                          : moment(elem.createdAt).format("MMM D, YYYY")}
+                      </span>
+                    </div>
                   </div>
                   {Object.keys(this.props.user).length > 0 &&
                     elem.author &&
@@ -1520,7 +1555,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                 sans-serif;
               display: inline;
               font-size: 1rem;
-              font-weight: 400;
+              font-weight: 500;
               margin: 0;
               cursor: default;
             }
@@ -1587,7 +1622,6 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
             .Responses .response .message {
               margin: 1rem 0.5rem;
             }
-
           `}</style>
         </div>
       );
