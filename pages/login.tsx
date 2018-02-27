@@ -116,7 +116,7 @@ class Login extends Component<Props, State> {
   render() {
     return (
       <App {...this.props}>
-        <div className="Login">
+        <div className="Login Content clearfix">
           <Head>
             <title>Sign in | Oyah</title>
             <meta name="description" content="Login to your account in Oyah" />
@@ -161,8 +161,11 @@ class Login extends Component<Props, State> {
           </div>
         </div>
         <style jsx>{`
+          .Content {
+            padding-bottom: 4.5rem;
+          }
+
           .Login {
-            width: 50%;
             margin: 0 auto;
             text-align: center;
           }
@@ -199,6 +202,25 @@ class Login extends Component<Props, State> {
             margin: 0 0 1rem 1rem;
             cursor: pointer;
             color: #cc0000;
+          }
+
+          @media (min-width: 576px),
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Login {
+              width: 80%;
+            }
+          }
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Login {
+              width: 70%;
+            }
+          }
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Login {
+              width: 50%;
+            }
           }
         `}</style>
         <style jsx global>{`
