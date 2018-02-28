@@ -14,15 +14,28 @@ import Quote from "../components/Quote";
 
 import withData from "../lib/withData";
 
+import { graphql } from "../utils/graphql";
+import gql from "graphql-tag";
+
 interface Props {
+  data?: any;
   url?: any;
   user?: any;
   signInModal?: any;
   error?: any;
 }
 
+@graphql(gql`
+  {
+    getRandomQuote {
+      quote
+      author
+    }
+  }
+`)
 class Index extends Component<Props> {
   render() {
+    const { data: { loading, getRandomQuote } } = this.props;
     return (
       <App {...this.props}>
         <div className="Home Content">
@@ -33,7 +46,7 @@ class Index extends Component<Props> {
           </Head>
           <Highlights url={this.props.url} />
           <Other />
-          <Quote />
+          {!loading && <Quote author={getRandomQuote.author} quote={getRandomQuote.quote} />}
         </div>
         <style jsx global>{`
           .Content {
@@ -45,7 +58,7 @@ class Index extends Component<Props> {
             clear: both;
             display: block;
           }
-          
+
           .Home {
             /* width: 85%; */
             margin: 0 auto 0;
@@ -152,7 +165,7 @@ class Index extends Component<Props> {
           }
 
           @media (min-width: 480px),
-          @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights {
               margin: 0 0 1rem;
             }
@@ -175,7 +188,7 @@ class Index extends Component<Props> {
           }
 
           @media (min-width: 576px),
-          @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home {
               width: 85%;
             }
@@ -214,7 +227,7 @@ class Index extends Component<Props> {
           }
 
           @media (min-width: 768px),
-          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights {
               margin: 0 0 1rem;
             }
@@ -231,7 +244,7 @@ class Index extends Component<Props> {
           }
 
           @media (min-width: 992px),
-          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights:not(.two) > .Article {
               max-height: 30rem;
               height: 30rem;

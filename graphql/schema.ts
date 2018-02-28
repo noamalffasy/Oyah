@@ -172,6 +172,24 @@ const Article = new GraphQLObjectType({
   }
 });
 
+const Quote = new GraphQLObjectType({
+  name: "Quote",
+  description: "Quote object",
+  fields() {
+    return {
+      id: {
+        type: GraphQLID
+      },
+      quote: {
+        type: GraphQLString
+      },
+      author: {
+        type: GraphQLString
+      }
+    };
+  }
+});
+
 const comment = new GraphQLObjectType({
   name: "Comment",
   description: "Comment object",
@@ -198,8 +216,6 @@ const comment = new GraphQLObjectType({
     };
   }
 });
-
-// const Upload = GraphQLUpload;
 
 const SigninPayload = new GraphQLObjectType({
   name: "SigninPayload",
@@ -272,7 +288,7 @@ const Email = new GraphQLObjectType({
       email: {
         type: GraphQLString
       }
-    }
+    };
   }
 });
 
@@ -293,6 +309,10 @@ const Query = new GraphQLObjectType({
       allArticles: {
         type: new GraphQLList(Article),
         resolve: resolvers.allArticles
+      },
+      getRandomQuote: {
+        type: Quote,
+        resolve: resolvers.getRandomQuote
       }
     };
   }

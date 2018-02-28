@@ -6,7 +6,7 @@ import * as sharp from "sharp";
 import * as Hashids from "hashids";
 
 import db from "../db";
-import { User, Article, Comment, ResetSession } from "../db/models";
+import { User, Article, Comment, ResetSession, Quote } from "../db/models";
 
 import { createSession, getSessionOnJWT } from "../db/models/Session";
 
@@ -162,6 +162,17 @@ export default {
       });
       return Articles;
     });
+  },
+  getRandomQuote: async () => {
+    return await Quote.findAll({
+      order: [[sequelize.literal("RAND()")]]
+    })
+      .then((quote: any) => {
+        return quote[0].get({ plain: true });
+      })
+      .catch((err: Error) => {
+        throw err;
+      });
   },
 
   // Mutation
