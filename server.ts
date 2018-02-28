@@ -53,6 +53,11 @@ app.prepare().then(() => {
     router.get("/graphql", graphiqlKoa({ endpointURL: "/graphql" }));
   }
 
+  router.get("/", async ctx => {
+    await app.render(ctx.req, ctx.res, "/index", ctx.query);
+    ctx.respond = false;
+  });
+
   router.get("/articles", async ctx => {
     await app.render(ctx.req, ctx.res, "/Articles", ctx.query);
     ctx.respond = false;
@@ -88,6 +93,21 @@ app.prepare().then(() => {
     ctx.respond = false;
   });
 
+  router.get("/reset", async ctx => {
+    await app.render(ctx.req, ctx.res, "/reset", ctx.query);
+    ctx.respond = false;
+  });
+
+  router.get("/login", async ctx => {
+    await app.render(ctx.req, ctx.res, "/login", ctx.query);
+    ctx.respond = false;
+  });
+
+  router.get("/logout", async ctx => {
+    await app.render(ctx.req, ctx.res, "/logout", ctx.query);
+    ctx.respond = false;
+  });
+
   router.get("/profile", async ctx => {
     await app.render(ctx.req, ctx.res, "/Profile", ctx.query);
     ctx.respond = false;
@@ -98,9 +118,26 @@ app.prepare().then(() => {
     ctx.respond = false;
   });
 
+
   router.get("/signout", async ctx => {
     ctx.cookies.set("reactQLJWT", "");
     ctx.redirect("/");
+  });
+
+  router.get("/policies/:name", async ctx => {
+    await app.render(ctx.req, ctx.res, "/policy", {
+      ...ctx.query,
+      name: ctx.params.name
+    });
+    ctx.respond = false;
+  });
+
+  router.get("/users/:nametag", async ctx => {
+    await app.render(ctx.req, ctx.res, "/Profile", {
+      ...ctx.query,
+      nametag: ctx.params.nametag
+    });
+    ctx.respond = false;
   });
 
   router.get("*", async ctx => {

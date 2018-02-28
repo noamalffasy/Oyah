@@ -176,7 +176,7 @@ export default {
   },
 
   // Mutation
-  getUser: async (_: any, { id, email }: any) => {
+  getUser: async (_: any, { id, email, nametag }: any) => {
     const path = require("path");
     const fs = require("fs");
 
@@ -191,16 +191,27 @@ export default {
             }
             throw err;
           })
-      : await User.findOne({ where: { email } })
-          .then((user: any) => {
-            return user.get({ plain: true });
-          })
-          .catch((err: Error) => {
-            if (err.message === "Cannot read property 'get' of null") {
-              throw new Error("User doesn't exist");
-            }
-            throw err;
-          });
+      : email
+        ? await User.findOne({ where: { email } })
+            .then((user: any) => {
+              return user.get({ plain: true });
+            })
+            .catch((err: Error) => {
+              if (err.message === "Cannot read property 'get' of null") {
+                throw new Error("User doesn't exist");
+              }
+              throw err;
+            })
+        : await User.findOne({ where: { nametag } })
+            .then((user: any) => {
+              return user.get({ plain: true });
+            })
+            .catch((err: Error) => {
+              if (err.message === "Cannot read property 'get' of null") {
+                throw new Error("User doesn't exist");
+              }
+              throw err;
+            });
   },
   signinUser: async (_: any, { email }: any, ctx: any) => {
     const bcrypt = require("bcrypt");

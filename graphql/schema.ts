@@ -330,6 +330,9 @@ const Mutation = new GraphQLObjectType({
           },
           email: {
             type: GraphQLString
+          },
+          nametag: {
+            type: GraphQLString
           }
         },
         resolve: resolvers.getUser

@@ -5,6 +5,7 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import Head from "next/head";
+import Error from "next/error";
 
 import * as userActionCreators from "../actions/user";
 
@@ -18,9 +19,17 @@ import gql from "graphql-tag";
 
 interface Props {
   data?: any;
+  getUser?: any;
   dispatch?: any;
   user?: any;
   signInModal?: any;
+  error?: any;
+  url?: any;
+}
+
+interface State {
+  articles: any;
+  user: any;
 }
 
 @graphql(gql`
@@ -34,7 +43,11 @@ interface Props {
       }
       user {
         id
+        small_image
+        image
         name
+        nametag
+        email
         bio
         mains
         reddit
@@ -43,120 +56,177 @@ interface Props {
     }
   }
 `)
-class Profile extends Component<Props> {
+@graphql(
+  gql`
+    mutation getUser($nametag: String) {
+      getUser(nametag: $nametag) {
+        id
+        small_image
+        image
+        nametag
+        name
+        email
+        bio
+        mains
+        reddit
+        twitter
+      }
+    }
+  `,
+  {
+    name: "getUser"
+  }
+)
+class Profile extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = { articles: [] };
+    this.state = { articles: [], user: {} };
+  }
+
+  componentDidMount() {
+    if (this.props.url.query.nametag !== undefined) {
+      this.props
+        .getUser({
+          variables: {
+            nametag: this.props.url.query.nametag
+          }
+        })
+        .then((res: any) => {
+          this.setState(prevState => ({
+            ...prevState,
+            user: {
+              ...res.data.getUser,
+              mains:
+                res.data.getUser.mains !== null
+                  ? res.data.getUser.mains.split(", ")
+                  : null
+            }
+          }));
+        });
+    }
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const { dispatch, user } = nextProps;
-    const login = bindActionCreators(userActionCreators.login, dispatch);
-    if (
-      nextProps.data &&
-      !nextProps.data.loading &&
-      nextProps.data.currentUser &&
-      nextProps.data.currentUser.user !== null &&
-      (!this.props.data.currentUser ||
-        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
-    ) {
-      const data = nextProps.data.currentUser;
-      if (data.error) {
-        if (
-          data.error[0].message !== "User is not logged in (or authenticated)."
-        ) {
-          console.error(data.error);
+    if (this.props.url.query.nametag === undefined) {
+      const { dispatch, user } = nextProps;
+      const login = bindActionCreators(userActionCreators.login, dispatch);
+      if (
+        nextProps.data &&
+        !nextProps.data.loading &&
+        nextProps.data.currentUser &&
+        nextProps.data.currentUser.user !== null &&
+        (!this.props.data.currentUser ||
+          nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+      ) {
+        const data = nextProps.data.currentUser;
+        if (data.error) {
+          if (
+            data.error[0].message !==
+            "User is not logged in (or authenticated)."
+          ) {
+            console.error(data.error);
+          }
+        } else {
+          login({
+            ...user,
+            ...data.user,
+            mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+          });
+
+          this.setState(prevState => ({
+            ...prevState,
+            user: {
+              ...user,
+              ...data.user,
+              mains:
+                data.user.mains !== null ? data.user.mains.split(", ") : null
+            }
+          }));
         }
-      } else {
-        login({
-          ...user,
-          ...data.user,
-          mains: data.user.mains !== null ? data.user.mains.split(", ") : null
-        });
       }
     }
   }
 
   render() {
-    if (Object.keys(this.props.user).length !== 0) {
+    if (Object.keys(this.state.user).length !== 0) {
       return (
         <App {...this.props}>
           <div className="Profile Content">
             <Head>
-              <title>{this.props.user.nametag + " | Oyah"}</title>
+              <title>{this.state.user.nametag + " | Oyah"}</title>
               <meta
                 name="description"
-                content={this.props.user.nametag + " profile"}
+                content={this.state.user.nametag + " profile"}
               />
             </Head>
             <div className="user">
               <div className="info">
                 <Image
                   src={
-                    this.props.user.image !== null
+                    this.state.user.image !== null
                       ? "/img/users/" +
-                        encodeURIComponent(this.props.user.image)
+                        encodeURIComponent(this.state.user.image)
                       : "/img/User.png"
                   }
-                  alt={this.props.user.nametag}
+                  alt={this.state.user.nametag}
                 />
-                <h2>{this.props.user.nametag}</h2>
+                <h2>{this.state.user.nametag}</h2>
               </div>
-              {this.props.user.bio !== null && <p>{this.props.user.bio}</p>}
+              {this.state.user.bio !== null && <p>{this.state.user.bio}</p>}
             </div>
             <table className="other-info">
               <tbody>
-                {this.props.user.name !== null &&
-                  this.props.user.name !== "" && (
+                {this.state.user.name !== null &&
+                  this.state.user.name !== "" && (
                     <tr>
                       <td>Full Name</td>
-                      <td>{this.props.user.name}</td>
+                      <td>{this.state.user.name}</td>
                     </tr>
                   )}
-                {this.props.user.mains !== null &&
-                  this.props.user.mains !== "" && (
+                {this.state.user.mains !== null &&
+                  this.state.user.mains !== "" && (
                     <tr>
                       <td>Mains</td>
-                      <td>{this.props.user.mains}</td>
+                      <td>{this.state.user.mains}</td>
                     </tr>
                   )}
-                {this.props.user.reddit !== null &&
-                  this.props.user.reddit !== "" && (
+                {this.state.user.reddit !== null &&
+                  this.state.user.reddit !== "" && (
                     <tr>
                       <td>Reddit</td>
                       <td>
                         <a
                           href={
-                            "https://reddit.com/u/" + this.props.user.reddit
+                            "https://reddit.com/u/" + this.state.user.reddit
                           }
                         >
                           <b>u/</b>
-                          {this.props.user.reddit}
+                          {this.state.user.reddit}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.props.user.twitter !== null &&
-                  this.props.user.twitter !== "" && (
+                {this.state.user.twitter !== null &&
+                  this.state.user.twitter !== "" && (
                     <tr>
                       <td>Twitter</td>
                       <td>
                         <a
                           href={
-                            "https://twitter.com/" + this.props.user.twitter
+                            "https://twitter.com/" + this.state.user.twitter
                           }
                         >
                           <b>@</b>
-                          {this.props.user.twitter}
+                          {this.state.user.twitter}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.props.user.name === null &&
-                  this.props.user.mains === null &&
-                  this.props.user.reddit === null &&
-                  this.props.user.twitter === null && (
+                {this.state.user.name === null &&
+                  this.state.user.mains === null &&
+                  this.state.user.reddit === null &&
+                  this.state.user.twitter === null && (
                     <tr>
                       <td>No info has been provided yet by the user</td>
                     </tr>
@@ -258,32 +328,36 @@ class Profile extends Component<Props> {
         </App>
       );
     } else {
-      return (
-        <App {...this.props}>
-          <div className="NotLoggedIn Content">
-            <Head>
-              <title>{"Not logged in | Oyah"}</title>
-              <meta name="description" content="Not logged in, Oyah" />
-            </Head>
-            <h2>Not Logged In</h2>
-            <p>You need to login in order to view this page</p>
-          </div>
-          <style jsx>{`
-            .NotLoggedIn {
-              text-align: center;
-            }
+      if (this.props.url.query.nametag !== undefined) {
+        return <Error statusCode={404} />;
+      } else {
+        return (
+          <App {...this.props}>
+            <div className="NotLoggedIn Content">
+              <Head>
+                <title>{"Not logged in | Oyah"}</title>
+                <meta name="description" content="Not logged in, Oyah" />
+              </Head>
+              <h2>Not Logged In</h2>
+              <p>You need to login in order to view this page</p>
+            </div>
+            <style jsx>{`
+              .NotLoggedIn {
+                text-align: center;
+              }
 
-            .NotLoggedIn > h2 {
-              font-size: 4rem;
-              color: #cc0000;
-            }
+              .NotLoggedIn > h2 {
+                font-size: 4rem;
+                color: #cc0000;
+              }
 
-            .NotLoggedIn > p {
-              font-size: 2rem;
-            }
-          `}</style>
-        </App>
-      );
+              .NotLoggedIn > p {
+                font-size: 2rem;
+              }
+            `}</style>
+          </App>
+        );
+      }
     }
   }
 }
