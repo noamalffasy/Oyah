@@ -4,6 +4,7 @@ import { Component } from "react";
 import { validate } from "email-validator";
 
 import Router from "next/router";
+import Link from "next/link";
 
 import Input from "./Input";
 
@@ -207,6 +208,7 @@ class LoginPopup extends Component<Props, State> {
           this.createAccount.password.input.value ===
           this.createAccount.confirmPassword.input.value
         ) {
+          if(this.createAccount.terms.isChecked()) {
           this.props
             .createUser({
               variables: {
@@ -255,6 +257,12 @@ class LoginPopup extends Component<Props, State> {
                 error: err.graphQLErrors[0].message
               }));
             });
+          } else {
+            this.setState(prevState => ({
+              ...prevState,
+              error: "You must agree to the terms"
+            }));
+          }
         } else {
           this.setState(prevState => ({
             ...prevState,
@@ -602,12 +610,26 @@ class LoginPopup extends Component<Props, State> {
             transition: all 0.3s;
           }
 
+          .LoginPopup .modal-content .modal-body p.Input.half::last-child {
+            margin-bottom: 1.5rem;
+          }
+
+          .LoginPopup .modal-content .modal-body .terms-checkbox {
+            margin-bottom: 1rem;
+          }
+
           .LoginPopup
             .modal-content
             .modal-body
             .remember-checkbox
             p.Input.checkbox,
-          .LoginPopup .modal-content .modal-body .remember-checkbox label {
+          .LoginPopup .modal-content .modal-body .remember-checkbox label,
+          .LoginPopup
+            .modal-content
+            .modal-body
+            .terms-checkbox
+            p.Input.checkbox,
+          .LoginPopup .modal-content .modal-body .terms-checkbox label {
             vertical-align: middle;
           }
 
@@ -615,16 +637,30 @@ class LoginPopup extends Component<Props, State> {
             .modal-content
             .modal-body
             .remember-checkbox
+            p.Input.checkbox,
+          .LoginPopup
+            .modal-content
+            .modal-body
+            .terms-checkbox
             p.Input.checkbox {
             margin: 0 0.5rem 0 0;
           }
 
-          .LoginPopup .modal-content .modal-body .remember-checkbox label {
+          .LoginPopup .modal-content .modal-body .remember-checkbox label,
+          .LoginPopup .modal-content .modal-body .terms-checkbox label {
             margin: 0;
           }
 
-          .LoginPopup .modal-content .modal-body label[for="remember"] {
+          .LoginPopup .modal-content .modal-body label[for="remember"],
+          .LoginPopup .modal-content .modal-body label[for="terms"] {
             color: #161616;
+          }
+
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .LoginPopup .modal-content .modal-body p.Input.half {
+              margin-bottom: 1.5rem;
+            }
           }
         `}</style>
       </div>
@@ -733,6 +769,25 @@ class CreateAccount extends Component<CreateAccountProps> {
             this.confirmPassword = input;
           }}
         />
+        <div className="terms-checkbox" style={{ marginBottom: ".5rem" }}>
+          <Input
+            id="terms"
+            type="checkbox"
+            label=""
+            ref={checkbox => (this.terms = checkbox)}
+          />
+          <label
+            htmlFor="terms"
+            onClick={e => {
+              this.terms.check();
+            }}
+          >
+            I agree to the{" "}
+            <Link href="/policy?name=terms" as="/policies/terms">
+              <a>terms of use</a>
+            </Link>
+          </label>
+        </div>
       </div>
     );
   }

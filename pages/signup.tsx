@@ -6,6 +6,7 @@ import { bindActionCreators } from "redux";
 
 import Router from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 
 import { validate } from "email-validator";
 
@@ -78,45 +79,49 @@ class Signup extends Component<Props, State> {
     ) {
       if (validate(this.email.input.value)) {
         if (this.password.input.value === this.confirmPassword.input.value) {
-          this.props
-            .createUser({
-              variables: {
-                nametag: this.nametag.input.value,
-                authProvider: {
-                  email: {
-                    email: this.email.input.value,
-                    password: this.password.input.value
+          if (this.terms.isChecked()) {
+            this.props
+              .createUser({
+                variables: {
+                  nametag: this.nametag.input.value,
+                  authProvider: {
+                    email: {
+                      email: this.email.input.value,
+                      password: this.password.input.value
+                    }
                   }
                 }
-              }
-            })
-            .then((res: any) => {
-              if (res.errors) {
-                let errors: any[] = [];
-                res.errors.forEach((error: Error) => {
-                  errors.push(error.message);
-                  console.error(error);
-                });
-                this.setState(prevState => ({
-                  ...prevState,
-                  error: errors.join("\n\u2022 ")
-                }));
-              } else {
-                const data = res.data.createUser;
-                // this.props.cookies.set("token", data.token);
-                this.login({ ...data.user, token: data.token });
+              })
+              .then((res: any) => {
+                if (res.errors) {
+                  let errors: any[] = [];
+                  res.errors.forEach((error: Error) => {
+                    errors.push(error.message);
+                    console.error(error);
+                  });
+                  this.setState(prevState => ({
+                    ...prevState,
+                    error: errors.join("\n\u2022 ")
+                  }));
+                } else {
+                  const data = res.data.createUser;
+                  // this.props.cookies.set("token", data.token);
+                  this.login({ ...data.user, token: data.token });
 
-                this.nametag.reset();
-                this.email.reset();
-                this.password.reset();
-                this.confirmPassword.reset();
+                  this.nametag.reset();
+                  this.email.reset();
+                  this.password.reset();
+                  this.confirmPassword.reset();
 
-                Router.push("/");
-              }
-            })
-            .catch((err: Error) => {
-              console.error(err);
-            });
+                  Router.push("/");
+                }
+              })
+              .catch((err: Error) => {
+                console.error(err);
+              });
+          } else {
+            this.setError("You must agree to the terms");
+          }
         } else {
           this.setError("Passwords don't match");
         }
@@ -139,7 +144,7 @@ class Signup extends Component<Props, State> {
       <App {...this.props}>
         <div className="Signup Content clearfix">
           <Head>
-            <title>Sign in | Oyah</title>
+            <title>Sign up | Oyah</title>
             <meta name="description" content="Create account on Oyah" />
           </Head>
           <h2 className="title">Create an account</h2>
@@ -177,6 +182,25 @@ class Signup extends Component<Props, State> {
               this.confirmPassword = input;
             }}
           />
+          <div className="terms-checkbox" style={{ marginBottom: ".5rem" }}>
+            <Input
+              id="terms"
+              type="checkbox"
+              label=""
+              ref={checkbox => (this.terms = checkbox)}
+            />
+            <label
+              htmlFor="terms"
+              onClick={e => {
+                this.terms.check();
+              }}
+            >
+              I agree to the{" "}
+              <Link href="/policy?name=terms" as="/policies/terms">
+                <a>terms of use</a>
+              </Link>
+            </label>
+          </div>
           <div className="action-buttons">
             <button className="primary" onClick={this.signup}>
               Create an account
@@ -195,6 +219,10 @@ class Signup extends Component<Props, State> {
 
           .Signup h2 {
             margin: 0 0 2rem 0;
+          }
+
+          .Signup .terms-checkbox {
+            text-align: left;
           }
 
           .Signup .action-buttons {
@@ -238,6 +266,31 @@ class Signup extends Component<Props, State> {
             @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Signup {
               width: 50%;
+            }
+          }
+        `}</style>
+        <style jsx global>{`
+          .Signup .terms-checkbox p.Input.checkbox,
+          .Signup .terms-checkbox label {
+            vertical-align: middle;
+          }
+
+          .Signup .terms-checkbox p.Input.checkbox {
+            margin: 0 0.5rem 0 0;
+          }
+
+          .Signup .terms-checkbox label {
+            margin: 0;
+          }
+
+          .Signup label[for="terms"] {
+            color: #161616;
+          }
+
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Signup p.Input.half {
+              margin-bottom: 1.5rem;
             }
           }
         `}</style>
