@@ -16,6 +16,25 @@ class Quote extends Component<Props> {
             <cite title="Source Title">{this.props.author}</cite>
           </footer>
         </blockquote>
+        <style jsx>{`
+          .Quote .blockquote {
+            max-width: 100%%;
+          }
+
+          @media (min-width: 576px),
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Quote .blockquote {
+              max-width: 75%;
+            }
+          }
+
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Quote .blockquote {
+              max-width: 50%;
+            }
+          }
+        `}</style>
       </div>
     );
   }
