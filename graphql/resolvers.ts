@@ -41,10 +41,10 @@ function checkMagicNumbers(magic: any) {
     return true;
 }
 
-function writeFile(filename: any, data: any, encoding: any, extname: any) {
+function writeFile(filename: any, data: any, encoding: any) {
   const fs = require("fs");
   return new Promise((resolve, reject) => {
-    sharp(data).toFile(filename.replace(extname, ".jpeg"), (err, info) => {
+    sharp(data).toFile(filename, (err, info) => {
       if (err) reject(err);
       resolve(data);
     });
@@ -55,10 +55,10 @@ function writeFile(filename: any, data: any, encoding: any, extname: any) {
   });
 }
 
-function saveResizedImages(_filename: any, extname: any) {
-  const filename = _filename.replace(extname, "");
+function saveResizedImages(data: any, _filename: any) {
+  const filename = _filename.replace(".jpeg", "");
 
-  sharp(_filename.replace(extname, ".jpeg"))
+  sharp(data)
     .resize(40, undefined)
     .withoutEnlargement()
     .toFile(filename + "_small.jpeg", (err, info) => {
@@ -809,34 +809,29 @@ export default {
           const magic = buffer.toString("hex", 0, 4);
           const filename = !image
             ? where === "user"
-              ? "user-#" + user.id + path.extname(_file.filename)
-              : articleID + path.extname(_file.filename)
+              ? "user-#" + user.id + ".jpeg"
+              : articleID + ".jpeg"
             : where === "user"
-              ? "user-#" +
-                user.id +
-                "." +
-                /data:image\/(.*?);base64/.exec(image)[1]
-              : articleID + "." + /data:image\/(.*?);base64/.exec(image)[1];
+              ? "user-#" + user.id + ".jpeg"
+              : articleID + ".jpeg";
           if (checkMagicNumbers(magic)) {
-            return writeFile(
+            return await writeFile(
               where === "user"
                 ? path.join(__dirname, "../static/img/users/") + filename
                 : path.join(__dirname, "../static/img/articles/") + filename,
               buffer,
-              "binary",
-              !image
-                ? path.extname(_file.filename)
-                : /data:image\/(.*?);base64/.exec(image)[1]
+              "binary"
             )
-              .then(result => {
+              .then(async result => {
                 if (where === "user") {
-                  User.update({ image: filename }, { where: { id } })
-                    .then((result: any) => {
+                  return await User.update(
+                    { image: filename },
+                    { where: { id } }
+                  )
+                    .then(async (result: any) => {
                       saveResizedImages(
-                        path.join(__dirname, "../static/img/users/") + filename,
-                        !image
-                          ? path.extname(_file.filename)
-                          : "." + /data:image\/(.*?);base64/.exec(image)[1]
+                        buffer,
+                        path.join(__dirname, "../static/img/users/") + filename
                       );
                       return { path: filename };
                     })
@@ -845,15 +840,13 @@ export default {
                     });
                 } else {
                   saveResizedImages(
-                    path.join(__dirname, "../static/img/articles/") + filename,
-                    !image
-                      ? path.extname(_file.filename)
-                      : "." + /data:image\/(.*?);base64/.exec(image)[1]
+                    buffer,
+                    path.join(__dirname, "../static/img/articles/") + filename
                   );
                   return { path: filename };
                 }
               })
-              .catch(err => {
+              .catch((err: Error) => {
                 throw err;
               });
           } else {
