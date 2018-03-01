@@ -65,10 +65,8 @@ class Articles extends Component<Props, State> {
               return (
                 <Article
                   title={elem.title}
-                  image={process.env.PUBLIC_URL + elem.image}
                   alt={elem.alt}
                   id={elem.id}
-                  style={{ order: i }}
                   loading={this.props.data.loading}
                   key={i}
                 />
