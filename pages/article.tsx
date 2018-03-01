@@ -20,7 +20,8 @@ import App from "../components/App";
 
 import Image from "../components/Image";
 import Input from "../components/Input";
-import NotFound from "next/error";
+
+import Error from "./_error";
 
 // GraphQL
 import graphql from "../utils/graphql";
@@ -766,7 +767,7 @@ class ArticlePage extends Component<Props, State> {
         </App>
       );
     } else {
-      return <NotFound statusCode={404} />;
+      return <Error {...this.props} statusCode={404} />;
     }
   }
 }
