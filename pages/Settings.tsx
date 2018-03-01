@@ -14,6 +14,8 @@ import Image from "../components/Image";
 import Input from "../components/Input";
 
 import Head from "next/head";
+import Router from "next/router";
+
 import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
@@ -111,7 +113,6 @@ interface State {
       ) {
         user {
           id
-          image
           nametag
           email
           bio
@@ -244,7 +245,6 @@ class Settings extends Component<Props, State> {
     const confirmPassword = this.confirmPassword.input.value;
 
     if (image !== null) {
-      console.log(image);
       this.props
         .uploadFile({
           variables: {
@@ -258,8 +258,9 @@ class Settings extends Component<Props, State> {
             this.setError(res.error);
           } else {
             const data = res.data.uploadFile;
+            console.log(res);
 
-            console.log(data.path);
+            this.login({ ...this.props.user, image: data.path });
           }
         });
     }
@@ -314,6 +315,8 @@ class Settings extends Component<Props, State> {
           }
         });
     }
+
+    Router.push("/Profile", "/profile");
   }
 
   render() {
@@ -375,7 +378,7 @@ class Settings extends Component<Props, State> {
                 className="bio"
                 label="Biography"
                 type="textarea"
-                spellCheck="false"
+                spellCheck={false}
                 value={this.props.user.bio || ""}
                 ref={input => {
                   this.biography = input;
@@ -406,8 +409,7 @@ class Settings extends Component<Props, State> {
                       label="Your main characters"
                       type="select-dropdown"
                       selections={this.props.user.mains || ""}
-                      maxSelections="10000"
-                      clicked={this.props.clicked}
+                      maxSelections={10000}
                       list={[
                         "Bowser",
                         "Captain Falcon",
@@ -517,7 +519,6 @@ class Settings extends Component<Props, State> {
               </tbody>
             </table>
             <div className="action-buttons">
-              <button className="secondary">Cancel</button>
               <button className="primary" onClick={this.update}>
                 Update
               </button>
