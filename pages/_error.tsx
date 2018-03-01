@@ -11,8 +11,9 @@ import withData from "../lib/withData";
 
 interface Props {
   statusCode: number;
-  signInModal: any;
-  user: any;
+  signInModal?: any;
+  user?: any;
+  error?: any;
 }
 
 class Error extends Component<Props, any> {
@@ -60,7 +61,8 @@ class Error extends Component<Props, any> {
 
 const mapStateToProps = (state: any) => ({
   signInModal: state.signInModal,
-  user: state.user
+  user: state.user,
+  error: state.error
 });
 
 export default withData(connect(mapStateToProps, null)(Error));
