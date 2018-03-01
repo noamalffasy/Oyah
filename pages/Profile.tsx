@@ -225,7 +225,7 @@ class Profile extends Component<Props, State> {
                   this.state.user.mains !== "" && (
                     <tr>
                       <td>Mains</td>
-                      <td>{this.state.user.mains}</td>
+                      <td>{this.state.user.mains.join(", ")}</td>
                     </tr>
                   )}
                 {this.state.user.reddit !== null &&
