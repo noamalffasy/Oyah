@@ -8,8 +8,11 @@ import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
 
 import * as uuid from "uuid/v4";
+
 import Head from "next/head";
+import Router from "next/router";
 import Link from "next/link";
+
 import * as Markdown from "react-markdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
@@ -410,39 +413,61 @@ class ArticlePage extends Component<Props, State> {
                     ready={this.state.author !== undefined}
                   >
                     <div className="author">
-                      <Image
-                        src={
-                          this.state.author
-                            ? this.state.author.image !== null &&
-                              this.state.author.image !== undefined
-                              ? this.state.author.image
+                      <a
+                        href={
+                          "/users/" +
+                          (this.state.author ? this.state.author.nametag : "")
+                        }
+                        style={{ opacity: 1 }}
+                      >
+                        <Image
+                          src={
+                            this.state.author
+                              ? this.state.author.image !== null &&
+                                this.state.author.image !== undefined
+                                ? this.state.author.image
+                                : ""
                               : ""
-                            : ""
-                        }
-                        alt={
-                          this.state.author
-                            ? this.state.author.nametag
-                            : "Loading"
-                        }
-                        style={{
-                          display: "inline-block",
-                          width: "4rem",
-                          height: "4rem",
-                          marginRight: "0.5rem",
-                          borderRadius: "50%"
-                        }}
-                      />
+                          }
+                          alt={
+                            this.state.author
+                              ? this.state.author.nametag
+                              : "Loading"
+                          }
+                          style={{
+                            display: "inline-block",
+                            width: "4rem",
+                            height: "4rem",
+                            marginRight: "0.5rem",
+                            borderRadius: "50%"
+                          }}
+                        />
+                      </a>
                       <div
                         style={{
                           display: "flex",
                           flexDirection: "column"
                         }}
                       >
-                        <h3>
-                          {this.state.author
-                            ? this.state.author.nametag
-                            : "Loading"}
-                        </h3>
+                        <a
+                          href={
+                            "/users/" +
+                            (this.state.author ? this.state.author.nametag : "")
+                          }
+                          style={{ opacity: 1 }}
+                        >
+                          <h3
+                            style={{
+                              display: "inherit",
+                              color: "#212529",
+                              cursor: "pointer"
+                            }}
+                          >
+                            {this.state.author
+                              ? this.state.author.nametag
+                              : "Loading"}
+                          </h3>
+                        </a>
                         <span style={{ color: "rgba(0,0,0,.5)" }}>
                           {this.state.datePublished || "Feb. 12"}
                         </span>
@@ -1349,32 +1374,54 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
               <div className="response" key={i}>
                 <div className="top">
                   <div className="author">
-                    <Image
-                      src={
-                        elem.author
-                          ? elem.author.image !== null &&
-                            elem.author.image !== undefined
-                            ? elem.author.image
-                            : "/img/User.png"
-                          : "/img/User.png"
+                    <a
+                      href={
+                        "/users/" + (elem.author ? elem.author.nametag : "")
                       }
-                      alt={elem.author ? elem.author.nametag : "Loading"}
-                      style={{
-                        display: "inline-block",
-                        width: "3rem",
-                        height: "3rem",
-                        borderRadius: "50%",
-                        margin: "0 0.5rem 0 0",
-                        background: "none"
-                      }}
-                    />
+                      style={{ opacity: 1 }}
+                    >
+                      <Image
+                        src={
+                          elem.author
+                            ? elem.author.image !== null &&
+                              elem.author.image !== undefined
+                              ? elem.author.image
+                              : "/img/User.png"
+                            : "/img/User.png"
+                        }
+                        alt={elem.author ? elem.author.nametag : "Loading"}
+                        style={{
+                          display: "inline-block",
+                          width: "3rem",
+                          height: "3rem",
+                          borderRadius: "50%",
+                          margin: "0 0.5rem 0 0",
+                          background: "none"
+                        }}
+                      />
+                    </a>
                     <div
                       style={{
                         display: "flex",
                         flexDirection: "column"
                       }}
                     >
-                      <h3>{elem.author ? elem.author.nametag : "Loading"}</h3>
+                      <a
+                        href={
+                          "/users/" + (elem.author ? elem.author.nametag : "")
+                        }
+                        style={{ opacity: 1 }}
+                      >
+                        <h3
+                          style={{
+                            display: "inherit",
+                            color: "#212529",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {elem.author ? elem.author.nametag : "Loading"}
+                        </h3>
+                      </a>
                       <span
                         style={{
                           color: "rgba(0,0,0,.5)",
