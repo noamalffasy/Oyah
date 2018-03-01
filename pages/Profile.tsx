@@ -94,11 +94,7 @@ interface State {
   }
 )
 class Profile extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-
-    this.state = { articles: [1, 2, 3], user: {} };
-  }
+  state = { articles: [1, 2, 3], user: {} };
 
   componentDidMount() {
     if (this.props.url.query.nametag !== undefined) {
@@ -136,7 +132,7 @@ class Profile extends Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.url.query.nametag === undefined) {
+    if (nextProps.url.query.nametag === undefined) {
       const { dispatch, user } = nextProps;
       const login = bindActionCreators(userActionCreators.login, dispatch);
       if (
@@ -144,7 +140,7 @@ class Profile extends Component<Props, State> {
         !nextProps.data.loading &&
         nextProps.data.currentUser &&
         nextProps.data.currentUser.user !== null &&
-        (!this.props.data.currentUser ||
+        (Object.keys(this.state.user).length === 0 ||
           nextProps.data.currentUser.user !== this.props.data.currentUser.user)
       ) {
         const data = nextProps.data.currentUser;
@@ -171,6 +167,19 @@ class Profile extends Component<Props, State> {
                 data.user.mains !== null ? data.user.mains.split(", ") : null
             }
           }));
+
+          this.props
+            .getArticlesByUser({
+              variables: {
+                authorID: data.user.id
+              }
+            })
+            .then((res: any) => {
+              this.setState(prevState => ({
+                ...prevState,
+                articles: res.data.getArticlesByUser
+              }));
+            });
         }
       }
     }
