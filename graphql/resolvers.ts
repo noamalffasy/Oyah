@@ -555,6 +555,17 @@ export default {
       }
     );
   },
+  getArticlesByUser: async (_: any, { authorID }: any) => {
+    return await Article.findAll({ where: { authorID } }).then(
+      (articles: any) => {
+        let Articles: any[] = [];
+        articles.forEach((article: any) => {
+          Articles.push(article.get({ plain: true }));
+        });
+        return Articles;
+      }
+    );
+  },
   likeArticle: async (_: any, { articleID, liked }: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {

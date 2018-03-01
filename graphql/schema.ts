@@ -439,6 +439,15 @@ const Mutation = new GraphQLObjectType({
         },
         resolve: resolvers.getArticle
       },
+      getArticlesByUser: {
+        type: new GraphQLList(Article),
+        args: {
+          authorID: {
+            type: GraphQLID
+          }
+        },
+        resolve: resolvers.getArticlesByUser
+      },
       likeArticle: {
         type: Article,
         args: {

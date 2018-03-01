@@ -5,21 +5,24 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import Head from "next/head";
-import Error from "next/error";
+import Error from "./_error";
 
 import * as userActionCreators from "../actions/user";
 
 import App from "../components/App";
 
 import Image from "../components/Image";
+import Article from "../components/Article";
 
 import withData from "../lib/withData";
+
 import { graphql } from "../utils/graphql";
 import gql from "graphql-tag";
 
 interface Props {
   data?: any;
   getUser?: any;
+  getArticlesByUser?: any;
   dispatch?: any;
   user?: any;
   signInModal?: any;
@@ -77,11 +80,24 @@ interface State {
     name: "getUser"
   }
 )
+@graphql(
+  gql`
+    mutation getArticlesByUser($authorID: ID) {
+      getArticlesByUser(authorID: $authorID) {
+        id
+        title
+      }
+    }
+  `,
+  {
+    name: "getArticlesByUser"
+  }
+)
 class Profile extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = { articles: [], user: {} };
+    this.state = { articles: [1, 2, 3], user: {} };
   }
 
   componentDidMount() {
@@ -103,6 +119,18 @@ class Profile extends Component<Props, State> {
                   : null
             }
           }));
+          this.props
+            .getArticlesByUser({
+              variables: {
+                authorID: res.data.getUser.id
+              }
+            })
+            .then((res: any) => {
+              this.setState(prevState => ({
+                ...prevState,
+                articles: res.data.getArticlesByUser
+              }));
+            });
         });
     }
   }
@@ -233,6 +261,19 @@ class Profile extends Component<Props, State> {
                   )}
               </tbody>
             </table>
+            <div className="articles">
+              {this.state.articles.map((elem: any, i: any) => {
+                return (
+                  <Article
+                    id={elem.id}
+                    title={elem.title}
+                    alt={elem.title}
+                    loading={this.state.articles[0].id === undefined}
+                    key={i}
+                  />
+                );
+              })}
+            </div>
           </div>
           <style jsx>{`
             .Profile .user {
@@ -266,7 +307,7 @@ class Profile extends Component<Props, State> {
 
             .Profile .other-info {
               text-align: center;
-              margin: 0 auto;
+              margin: 0 auto 2rem;
               padding: 0 0 1rem;
             }
 
@@ -324,12 +365,64 @@ class Profile extends Component<Props, State> {
               height: 10rem;
               border-radius: 50%;
             }
+
+            .Profile .articles {
+              margin: 0;
+              display: flex;
+              flex-direction: row;
+              flex-wrap: wrap;
+            }
+
+            .Profile .articles .Article {
+              /* flex: 1 1; */
+              /* margin: 0 0.5rem; */
+              /* margin: 0.5rem; */
+              /* margin: 0 0.5rem 0.5rem 0; */
+              margin: 0 auto 0.7rem;
+              width: calc(100% - 1.25rem);
+              /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
+              /* width: calc(1/2*100% - 1/2*2.5rem); */
+            }
+
+            .Profile .articles .Article .image {
+              min-height: 15rem;
+            }
+            @media (min-width: 576px),
+              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Profile .articles {
+                width: 85%;
+                margin: 0 auto;
+              }
+              .Profile .articles .Article {
+                width: calc(50% - 1.25rem);
+              }
+              .Profile .articles .Article .image {
+                min-height: 10rem;
+              }
+            }
+            @media (min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Profile .articles .Article {
+                width: calc(1/2*100% - 1/2*2.5rem);
+              }
+              .Profile .articles .Article .image {
+                min-height: 15rem;
+              }
+            }
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Profile .articles .Article {
+                width: calc(1/3*100% - (1 - 1/3)*1rem);
+                height: 15rem;
+                overflow: hidden;
+              }
+            }
           `}</style>
         </App>
       );
     } else {
       if (this.props.url.query.nametag !== undefined) {
-        return <Error statusCode={404} />;
+        return <Error {...this.props} statusCode={404} />;
       } else {
         return (
           <App {...this.props}>
