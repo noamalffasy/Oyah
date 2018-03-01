@@ -222,59 +222,66 @@ class LoginPopup extends Component<Props, State> {
           this.createAccount.password.input.value ===
           this.createAccount.confirmPassword.input.value
         ) {
-          if (this.createAccount.terms.isChecked()) {
-            this.props
-              .createUser({
-                variables: {
-                  nametag: this.createAccount.nametag.input.value,
-                  authProvider: {
-                    email: {
-                      email: this.createAccount.email.input.value,
-                      password: this.createAccount.password.input.value
+          if (this.createAccount.age.isChecked()) {
+            if (this.createAccount.terms.isChecked()) {
+              this.props
+                .createUser({
+                  variables: {
+                    nametag: this.createAccount.nametag.input.value,
+                    authProvider: {
+                      email: {
+                        email: this.createAccount.email.input.value,
+                        password: this.createAccount.password.input.value
+                      }
                     }
                   }
-                }
-              })
-              .then((res: any) => {
-                if (res.errors) {
-                  let errors: any[] = [];
-                  res.errors.forEach((error: Error) => {
-                    errors.push(error.message);
-                    console.error(error);
-                  });
+                })
+                .then((res: any) => {
+                  if (res.errors) {
+                    let errors: any[] = [];
+                    res.errors.forEach((error: Error) => {
+                      errors.push(error.message);
+                      console.error(error);
+                    });
+                    this.setState(prevState => ({
+                      ...prevState,
+                      error: errors.join("\n\u2022 ")
+                    }));
+                  } else {
+                    const data = res.data.createUser;
+                    // this.props.cookies.set("token", data.token);
+                    this.props.login({ ...data.user, token: data.token });
+
+                    this.createAccount.nametag.reset();
+                    this.createAccount.email.reset();
+                    this.createAccount.password.reset();
+                    this.createAccount.confirmPassword.reset();
+
+                    Router.push(this.state.url + "?", this.state.urlAs);
+                    this.props.closeSignInModal();
+
+                    this.setState(prevState => ({
+                      ...prevState,
+                      error: false
+                    }));
+                  }
+                })
+                .catch((err: any) => {
                   this.setState(prevState => ({
                     ...prevState,
-                    error: errors.join("\n\u2022 ")
+                    error: err.graphQLErrors[0].message
                   }));
-                } else {
-                  const data = res.data.createUser;
-                  // this.props.cookies.set("token", data.token);
-                  this.props.login({ ...data.user, token: data.token });
-
-                  this.createAccount.nametag.reset();
-                  this.createAccount.email.reset();
-                  this.createAccount.password.reset();
-                  this.createAccount.confirmPassword.reset();
-
-                  Router.push(this.state.url + "?", this.state.urlAs);
-                  this.props.closeSignInModal();
-
-                  this.setState(prevState => ({
-                    ...prevState,
-                    error: false
-                  }));
-                }
-              })
-              .catch((err: any) => {
-                this.setState(prevState => ({
-                  ...prevState,
-                  error: err.graphQLErrors[0].message
-                }));
-              });
+                });
+            } else {
+              this.setState(prevState => ({
+                ...prevState,
+                error: "You must agree to the terms"
+              }));
+            }
           } else {
             this.setState(prevState => ({
               ...prevState,
-              error: "You must agree to the terms"
+              error: "You must be 13 or over to create an account"
             }));
           }
         } else {
@@ -628,6 +635,7 @@ class LoginPopup extends Component<Props, State> {
             margin-bottom: 1.5rem;
           }
 
+          .LoginPopup .modal-content .modal-body .age-checkbox,
           .LoginPopup .modal-content .modal-body .terms-checkbox {
             margin-bottom: 1rem;
           }
@@ -638,6 +646,8 @@ class LoginPopup extends Component<Props, State> {
             .remember-checkbox
             p.Input.checkbox,
           .LoginPopup .modal-content .modal-body .remember-checkbox label,
+          .LoginPopup .modal-content .modal-body .age-checkbox p.Input.checkbox,
+          .LoginPopup .modal-content .modal-body .age-checkbox label,
           .LoginPopup
             .modal-content
             .modal-body
@@ -652,6 +662,7 @@ class LoginPopup extends Component<Props, State> {
             .modal-body
             .remember-checkbox
             p.Input.checkbox,
+          .LoginPopup .modal-content .modal-body .age-checkbox p.Input.checkbox,
           .LoginPopup
             .modal-content
             .modal-body
@@ -661,11 +672,13 @@ class LoginPopup extends Component<Props, State> {
           }
 
           .LoginPopup .modal-content .modal-body .remember-checkbox label,
+          .LoginPopup .modal-content .modal-body .age-checkbox label,
           .LoginPopup .modal-content .modal-body .terms-checkbox label {
             margin: 0;
           }
 
           .LoginPopup .modal-content .modal-body label[for="remember"],
+          .LoginPopup .modal-content .modal-body label[for="age"],
           .LoginPopup .modal-content .modal-body label[for="terms"] {
             color: #161616;
           }
@@ -783,6 +796,22 @@ class CreateAccount extends Component<CreateAccountProps> {
             this.confirmPassword = input;
           }}
         />
+        <div className="age-checkbox" style={{ marginBottom: "1rem" }}>
+          <Input
+            id="age"
+            type="checkbox"
+            label=""
+            ref={checkbox => (this.age = checkbox)}
+          />
+          <label
+            htmlFor="terms"
+            onClick={e => {
+              this.age.check();
+            }}
+          >
+            I confirm that I'm 13 or over
+          </label>
+        </div>
         <div className="terms-checkbox" style={{ marginBottom: ".5rem" }}>
           <Input
             id="terms"

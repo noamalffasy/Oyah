@@ -79,48 +79,52 @@ class Signup extends Component<Props, State> {
     ) {
       if (validate(this.email.input.value)) {
         if (this.password.input.value === this.confirmPassword.input.value) {
-          if (this.terms.isChecked()) {
-            this.props
-              .createUser({
-                variables: {
-                  nametag: this.nametag.input.value,
-                  authProvider: {
-                    email: {
-                      email: this.email.input.value,
-                      password: this.password.input.value
+          if (this.age.isChecked()) {
+            if (this.terms.isChecked()) {
+              this.props
+                .createUser({
+                  variables: {
+                    nametag: this.nametag.input.value,
+                    authProvider: {
+                      email: {
+                        email: this.email.input.value,
+                        password: this.password.input.value
+                      }
                     }
                   }
-                }
-              })
-              .then((res: any) => {
-                if (res.errors) {
-                  let errors: any[] = [];
-                  res.errors.forEach((error: Error) => {
-                    errors.push(error.message);
-                    console.error(error);
-                  });
-                  this.setState(prevState => ({
-                    ...prevState,
-                    error: errors.join("\n\u2022 ")
-                  }));
-                } else {
-                  const data = res.data.createUser;
-                  // this.props.cookies.set("token", data.token);
-                  this.login({ ...data.user, token: data.token });
+                })
+                .then((res: any) => {
+                  if (res.errors) {
+                    let errors: any[] = [];
+                    res.errors.forEach((error: Error) => {
+                      errors.push(error.message);
+                      console.error(error);
+                    });
+                    this.setState(prevState => ({
+                      ...prevState,
+                      error: errors.join("\n\u2022 ")
+                    }));
+                  } else {
+                    const data = res.data.createUser;
+                    // this.props.cookies.set("token", data.token);
+                    this.login({ ...data.user, token: data.token });
 
-                  this.nametag.reset();
-                  this.email.reset();
-                  this.password.reset();
-                  this.confirmPassword.reset();
+                    this.nametag.reset();
+                    this.email.reset();
+                    this.password.reset();
+                    this.confirmPassword.reset();
 
-                  Router.push("/");
-                }
-              })
-              .catch((err: Error) => {
-                console.error(err);
-              });
+                    Router.push("/");
+                  }
+                })
+                .catch((err: Error) => {
+                  console.error(err);
+                });
+            } else {
+              this.setError("You must agree to the terms");
+            }
           } else {
-            this.setError("You must agree to the terms");
+            this.setError("You must be 13 or over to create an account");
           }
         } else {
           this.setError("Passwords don't match");
@@ -182,6 +186,22 @@ class Signup extends Component<Props, State> {
               this.confirmPassword = input;
             }}
           />
+          <div className="age-checkbox" style={{ marginBottom: "1rem" }}>
+            <Input
+              id="age"
+              type="checkbox"
+              label=""
+              ref={checkbox => (this.age = checkbox)}
+            />
+            <label
+              htmlFor="age"
+              onClick={e => {
+                this.age.check();
+              }}
+            >
+              I confirm that I'm 13 or over
+            </label>
+          </div>
           <div className="terms-checkbox" style={{ marginBottom: ".5rem" }}>
             <Input
               id="terms"
@@ -221,6 +241,7 @@ class Signup extends Component<Props, State> {
             margin: 0 0 2rem 0;
           }
 
+          .Signup .age-checkbox,
           .Signup .terms-checkbox {
             text-align: left;
           }
@@ -270,19 +291,24 @@ class Signup extends Component<Props, State> {
           }
         `}</style>
         <style jsx global>{`
+          .Signup .age-checkbox p.Input.checkbox,
+          .Signup .age-checkbox label,
           .Signup .terms-checkbox p.Input.checkbox,
           .Signup .terms-checkbox label {
             vertical-align: middle;
           }
 
+          .Signup .age-checkbox p.Input.checkbox,
           .Signup .terms-checkbox p.Input.checkbox {
             margin: 0 0.5rem 0 0;
           }
 
+          .Signup .age-checkbox label,
           .Signup .terms-checkbox label {
             margin: 0;
           }
 
+          .Signup label[for="age"],
           .Signup label[for="terms"] {
             color: #161616;
           }
