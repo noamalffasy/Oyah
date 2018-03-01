@@ -22,6 +22,7 @@ import gql from "graphql-tag";
 
 interface Props {
   signinUser?: any;
+  forgetPassword?: any;
   signInModal?: any;
   user?: any;
   error?: any;
@@ -30,6 +31,8 @@ interface Props {
 }
 
 interface State {
+  reset: boolean;
+  resetStatus: boolean | undefined;
   email?: any;
 }
 
@@ -54,12 +57,27 @@ interface State {
     name: "signinUser"
   }
 )
+@graphql(
+  gql`
+    mutation forgetPassword($email: String) {
+      forgetPassword(email: $email) {
+        status
+      }
+    }
+  `,
+  {
+    name: "forgetPassword"
+  }
+)
 class Login extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
     this.signin = this.signin.bind(this);
+    this.sendMail = this.sendMail.bind(this);
   }
+
+  state = { reset: false, resetStatus: undefined };
 
   componentWillReceiveProps(nextProps: Props) {
     if (Object.keys(nextProps.user).length > 0) {
@@ -119,6 +137,37 @@ class Login extends Component<Props, State> {
     this.props.dispatch
   );
 
+  sendMail(e: any) {
+    if (e) {
+      e.preventDefault();
+    }
+
+    if (this.forgotPasswordEmail.input.value !== "") {
+      if (validate(this.forgotPasswordEmail.input.value)) {
+        this.props
+          .forgetPassword({
+            variables: { email: this.forgotPasswordEmail.input.value }
+          })
+          .then((res: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              resetStatus: res.data.forgetPassword.status
+            }));
+          })
+          .catch((err: any) => {
+            this.setState(prevState => ({
+              ...prevState,
+              error: err.graphQLErrors[0].message
+            }));
+          });
+      } else {
+        this.setError("Email isn't valid");
+      }
+    } else {
+      this.setError("You must fill all the fields");
+    }
+  }
+
   render() {
     return (
       <App {...this.props}>
@@ -127,44 +176,111 @@ class Login extends Component<Props, State> {
             <title>Sign in | Oyah</title>
             <meta name="description" content="Login to your account in Oyah" />
           </Head>
-          <h2 className="title">Sign in</h2>
-          <Input
-            label="Email"
-            type="email"
-            autocomplete="email"
-            ref={input => {
-              this.email = input;
-            }}
-          />
-          <Input
-            label="Password"
-            type="password"
-            autocomplete="password"
-            ref={input => {
-              this.password = input;
-            }}
-          />
-          <div className="remember-checkbox">
+          <div style={this.state.reset ? { opacity: 0, display: "none" } : {}}>
+            <h2 className="title">Sign in</h2>
             <Input
-              id="remember"
-              type="checkbox"
-              label=""
-              ref={checkbox => (this.remember = checkbox)}
+              label="Email"
+              type="email"
+              autocomplete="email"
+              ref={input => {
+                this.email = input;
+              }}
             />
-            <label
-              htmlFor="remember"
+            <Input
+              label="Password"
+              type="password"
+              autocomplete="password"
+              style={{ marginBottom: "1rem" }}
+              ref={input => {
+                this.password = input;
+              }}
+            />
+            <a
+              href="#"
+              style={{
+                display: "inline-block",
+                fontSize: ".9rem",
+                width: "100%",
+                textAlign: "left",
+                marginBottom: "1rem"
+              }}
               onClick={e => {
-                this.remember.check();
+                e.preventDefault();
+
+                this.setState(prevState => ({
+                  ...prevState,
+                  reset: true
+                }));
               }}
             >
-              Remember me
-            </label>
+              Forgot password?
+            </a>
+            <div className="remember-checkbox">
+              <Input
+                id="remember"
+                type="checkbox"
+                label=""
+                ref={checkbox => (this.remember = checkbox)}
+              />
+              <label
+                htmlFor="remember"
+                onClick={e => {
+                  this.remember.check();
+                }}
+              >
+                Remember me
+              </label>
+            </div>
           </div>
-          <div className="action-buttons">
-            <button className="primary" onClick={this.signin}>
-              Login
-            </button>
+          <div style={!this.state.reset ? { opacity: 0, display: "none" } : {}}>
+            <h2 className="title">Reset</h2>
+            {this.state.resetStatus === undefined && (
+              <div className="modal-body">
+                <Input
+                  label="Your account's email"
+                  type="email"
+                  autocomplete="email"
+                  ref={input => {
+                    this.forgotPasswordEmail = input;
+                  }}
+                />
+              </div>
+            )}
+            {this.state.resetStatus === true && (
+              <div className="reset">
+                <h5>The mail has been sent</h5>
+                <p>
+                  Open the mail we have sent you and follow the instructions
+                </p>
+              </div>
+            )}
+            {this.state.resetStatus === false && (
+              <div className="reset">
+                <h5>An error occured</h5>
+                <p>Please try again later</p>
+              </div>
+            )}
           </div>
+          {this.state.resetStatus === undefined && (
+            <div className="action-buttons">
+              <button
+                className="primary"
+                onClick={!this.state.reset ? this.signin : this.sendMail}
+              >
+                {!this.state.reset ? "Login" : "Continue"}
+              </button>
+              {this.state.reset && (
+                <button
+                  className="secondary"
+                  onClick={() =>
+                    this.setState(prevState => ({ ...prevState, reset: false }))
+                  }
+                >
+                  Remember the password?
+                </button>
+              )}
+            </div>
+          )}
         </div>
         <style jsx>{`
           .Content {
@@ -205,9 +321,14 @@ class Login extends Component<Props, State> {
           }
 
           .Login .action-buttons button.primary {
-            margin: 0 0 1rem 1rem;
-            cursor: pointer;
-            color: #cc0000;
+            color: #cc0017;
+            order: 1;
+            font-weight: 600;
+          }
+
+          .Login .action-buttons button.secondary {
+            color: #7f7f7f;
+            font-weight: 400;
           }
 
           @media (min-width: 576px),
