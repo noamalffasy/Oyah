@@ -110,23 +110,37 @@ class LoginPopup extends Component<Props, State> {
 
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.signInModal.state !== this.props.signInModal.state) {
-      const url =
-        this.props.url.pathname +
-        Object.keys(this.props.url.query)
-          .map((key: any, i: number) => {
-            if (i === 0) {
-              return `?${key}=${this.props.url.query[key]}`;
-            }
-            return `${key}=${this.props.url.query[key]}`;
-          })
-          .join("&");
       this.setState(prevState => ({
         ...prevState,
         open: nextProps.signInModal.state === "open" ? true : false,
-        login: nextProps.signInModal.whatToOpen === "login",
-        urlAs: this.props.url.asPath,
-        url
+        login: nextProps.signInModal.whatToOpen === "login"
       }));
+
+      if (nextProps.signInModal.state === "open") {
+        const url =
+          this.props.url.pathname +
+          Object.keys(this.props.url.query)
+            .map((key: any, i: number) => {
+              if (i === 0) {
+                return `?${key}=${this.props.url.query[key]}`;
+              }
+              return `${key}=${this.props.url.query[key]}`;
+            })
+            .join("&");
+
+        this.setState(prevState => ({
+          ...prevState,
+          urlAs: this.props.url.asPath,
+          url
+        }));
+
+        Router.push(
+          nextProps.signInModal.whatToOpen === "login"
+            ? nextProps.url.pathname + "?login"
+            : nextProps.url.pathname + "?signup",
+          nextProps.signInModal.whatToOpen === "login" ? "/login" : "/signup"
+        );
+      }
     }
   }
 
@@ -208,55 +222,55 @@ class LoginPopup extends Component<Props, State> {
           this.createAccount.password.input.value ===
           this.createAccount.confirmPassword.input.value
         ) {
-          if(this.createAccount.terms.isChecked()) {
-          this.props
-            .createUser({
-              variables: {
-                nametag: this.createAccount.nametag.input.value,
-                authProvider: {
-                  email: {
-                    email: this.createAccount.email.input.value,
-                    password: this.createAccount.password.input.value
+          if (this.createAccount.terms.isChecked()) {
+            this.props
+              .createUser({
+                variables: {
+                  nametag: this.createAccount.nametag.input.value,
+                  authProvider: {
+                    email: {
+                      email: this.createAccount.email.input.value,
+                      password: this.createAccount.password.input.value
+                    }
                   }
                 }
-              }
-            })
-            .then((res: any) => {
-              if (res.errors) {
-                let errors: any[] = [];
-                res.errors.forEach((error: Error) => {
-                  errors.push(error.message);
-                  console.error(error);
-                });
+              })
+              .then((res: any) => {
+                if (res.errors) {
+                  let errors: any[] = [];
+                  res.errors.forEach((error: Error) => {
+                    errors.push(error.message);
+                    console.error(error);
+                  });
+                  this.setState(prevState => ({
+                    ...prevState,
+                    error: errors.join("\n\u2022 ")
+                  }));
+                } else {
+                  const data = res.data.createUser;
+                  // this.props.cookies.set("token", data.token);
+                  this.props.login({ ...data.user, token: data.token });
+
+                  this.createAccount.nametag.reset();
+                  this.createAccount.email.reset();
+                  this.createAccount.password.reset();
+                  this.createAccount.confirmPassword.reset();
+
+                  Router.push(this.state.url + "?", this.state.urlAs);
+                  this.props.closeSignInModal();
+
+                  this.setState(prevState => ({
+                    ...prevState,
+                    error: false
+                  }));
+                }
+              })
+              .catch((err: any) => {
                 this.setState(prevState => ({
                   ...prevState,
-                  error: errors.join("\n\u2022 ")
+                  error: err.graphQLErrors[0].message
                 }));
-              } else {
-                const data = res.data.createUser;
-                // this.props.cookies.set("token", data.token);
-                this.props.login({ ...data.user, token: data.token });
-
-                this.createAccount.nametag.reset();
-                this.createAccount.email.reset();
-                this.createAccount.password.reset();
-                this.createAccount.confirmPassword.reset();
-
-                Router.push(this.state.url + "?", this.state.urlAs);
-                this.props.closeSignInModal();
-
-                this.setState(prevState => ({
-                  ...prevState,
-                  error: false
-                }));
-              }
-            })
-            .catch((err: any) => {
-              this.setState(prevState => ({
-                ...prevState,
-                error: err.graphQLErrors[0].message
-              }));
-            });
+              });
           } else {
             this.setState(prevState => ({
               ...prevState,
