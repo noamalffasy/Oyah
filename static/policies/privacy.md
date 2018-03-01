@@ -24,5 +24,4 @@ We recommend uploading content you made or found and has no copyright on it.
 ## Children’s Online Privacy Protection Act (COPPA)
 
 The Children’s Online Privacy Protection Act (COPPA) states that we mustn’t allow children under the age of 13 upload personal information without their parents’ permission.
-Therefore, we do allow underage children to use the website, but because of the law, we won’t allow the children upload any kind of personal information until the parents agree.
-Furthermore, we will provide the parents an account which will help them supervise their children’s actions and censor any kind of information that they publish if they don’t like it.
+Therefore, we currently don't allow underage children to use the website.
