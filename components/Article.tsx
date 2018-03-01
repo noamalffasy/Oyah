@@ -27,7 +27,15 @@ class Placeholder extends Component<any, any> {
   }
 }
 
-class Article extends Component<any, any> {
+interface Props {
+  id: any;
+  title: any;
+  alt: any;
+  loading: any;
+  main?: boolean;
+}
+
+class Article extends Component<Props, any> {
   render() {
     return (
       <ReactPlaceholder
