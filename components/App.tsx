@@ -175,6 +175,72 @@ class App extends Component<any, any> {
             position: relative;
           }
         `}</style>
+        <style jsx global>{`
+          @keyframes openCard {
+            0% {
+              top: -1rem;
+            }
+
+            100% {
+              top: 0;
+            }
+          }
+
+          @keyframes imageLoad {
+            0% {
+              background: #c0c0c0;
+            }
+
+            50% {
+              background: #aaa;
+            }
+
+            100% {
+              background: #c0c0c0;
+            }
+          }
+
+          @keyframes loading {
+            0% {
+              opacity: 0.6;
+            }
+
+            50% {
+              opacity: 1;
+            }
+
+            100% {
+              opacity: 0.6;
+            }
+          }
+
+          @keyframes like {
+            0% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.5);
+            }
+            100% {
+              transform: scale(1);
+            }
+          }
+
+          a {
+            color: #cc0000 !important;
+            font-weight: 600;
+            outline: 0;
+            opacity: 0.8;
+            cursor: pointer;
+            transition: all 0.15s;
+          }
+
+          a:hover {
+            /* text-decoration: underline !important; */
+            text-decoration: none !important;
+            opacity: 1;
+          }
+        `}</style>
       </div>
     );
   }

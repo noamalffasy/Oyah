@@ -4,7 +4,7 @@ import { Head, Main, NextScript } from "next/document";
 import flush from "styled-jsx/server";
 
 class MyDocument extends Document {
-  static getInitialProps({ renderPage }) {
+  static getInitialProps({ renderPage }: any) {
     const { html, head, errorHtml, chunks } = renderPage();
     const styles = flush();
     return { html, head, errorHtml, chunks, styles };
@@ -130,77 +130,12 @@ class MyDocument extends Document {
           <script src="/js/bootstrap.bundle.min.js" />
         </body>
         <style jsx global>{`
-          @keyframes openCard {
-            0% {
-              top: -1rem;
-            }
-
-            100% {
-              top: 0;
-            }
-          }
-
-          @keyframes imageLoad {
-            0% {
-              background: #c0c0c0;
-            }
-
-            50% {
-              background: #aaa;
-            }
-
-            100% {
-              background: #c0c0c0;
-            }
-          }
-
-          @keyframes loading {
-            0% {
-              opacity: 0.6;
-            }
-
-            50% {
-              opacity: 1;
-            }
-
-            100% {
-              opacity: 0.6;
-            }
-          }
-
-          @keyframes like {
-            0% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.5);
-            }
-            100% {
-              transform: scale(1);
-            }
-          }
-          
           html,
           body,
           body > div:first-child,
           body > div > #__next,
           body > div > #__next > div {
             height: 100%;
-          }
-
-          a {
-            color: #cc0000 !important;
-            font-weight: 600;
-            outline: 0;
-            opacity: 0.8;
-            cursor: pointer;
-            transition: all 0.15s;
-          }
-
-          a:hover {
-            /* text-decoration: underline !important; */
-            text-decoration: none !important;
-            opacity: 1;
           }
         `}</style>
       </html>
