@@ -59,6 +59,7 @@
     "react-markdown": "^3.1.4",
     "react-placeholder": "^2.0.0",
     "react-redux": "^5.0.6",
+    "react-share": "^2.0.0",
     "react-simplemde-editor": "^3.6.11",
     "react-textarea-autosize": "^5.2.1",
     "react-transition-group": "^2.2.1",

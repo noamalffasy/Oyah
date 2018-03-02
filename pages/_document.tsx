@@ -104,7 +104,6 @@ class MyDocument extends Document {
           />
           <title>Oyah</title>
           <link rel="stylesheet" href="/css/bootstrap.min.css" />
-          {/* <link rel="stylesheet" href="/css/App.css" /> */}
 
           <script
             async
@@ -117,10 +116,6 @@ class MyDocument extends Document {
               enable_page_level_ads: true
             });`}
           </script>
-          <script
-            type="text/javascript"
-            src="//platform-api.sharethis.com/js/sharethis.js#property=5a4e76fc9982360012942ace&product=custom-share-buttons"
-          />
         </Head>
         <body>
           <Main />

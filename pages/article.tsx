@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Component } from "react";
+import { findDOMNode } from "react-dom";
 
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
@@ -17,6 +18,11 @@ import * as Markdown from "react-markdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
 import { RoundShape, TextRow } from "react-placeholder/lib/placeholders";
+import {
+  RedditShareButton,
+  TwitterShareButton,
+  FacebookShareButton
+} from "react-share";
 import * as moment from "moment";
 
 import App from "../components/App";
@@ -593,6 +599,7 @@ class ArticlePage extends Component<Props, State> {
                   />
 
                   <Responses
+                    url={this.props.url}
                     user={this.props.user}
                     openSignInModal={this.openSignInModal}
                     articleID={this.state.id}
@@ -853,7 +860,9 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
       case "article":
         if (
           (this.props.user && this.props.user.likes) ||
-          this.state.likes !== this.props.likes
+          (this.props.user &&
+            this.props.user.likes &&
+            this.state.likes !== this.props.likes)
         ) {
           this.setState(prevState => ({
             ...prevState,
@@ -866,7 +875,9 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
       case "comment":
         if (
           (this.props.user && this.props.user.comment_likes) ||
-          nextProps.likes !== this.props.likes
+          (this.props.user &&
+            this.props.user.likes &&
+            this.state.likes !== this.props.likes)
         ) {
           this.setState(prevState => ({
             ...prevState,
@@ -898,7 +909,9 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
       case "article":
         if (
           (nextProps.user !== this.props.user && nextProps.user.likes) ||
-          nextProps.likes !== this.props.likes
+          (nextProps.user &&
+            nextProps.user.likes &&
+            nextProps.likes !== this.props.likes)
         ) {
           this.setState(prevState => ({
             ...prevState,
@@ -912,7 +925,9 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         if (
           (nextProps.user !== this.props.user &&
             nextProps.user.comment_likes) ||
-          nextProps.likes !== this.props.likes
+          (nextProps.user &&
+            nextProps.user.likes &&
+            nextProps.likes !== this.props.likes)
         ) {
           this.setState(prevState => ({
             ...prevState,
@@ -1084,7 +1099,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
             />
           </button>
         </div>
-        <button className="st-custom-button" data-network="reddit">
+        {/* <button className="st-custom-button" data-network="reddit">
           <FontAwesomeIcon icon={["fab", "reddit-alien"]} />
         </button>
         <button className="st-custom-button" data-network="twitter">
@@ -1092,11 +1107,47 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         </button>
         <button className="st-custom-button" data-network="facebook">
           <FontAwesomeIcon icon={["fab", "facebook-f"]} />
-        </button>
+        </button> */}
+        <RedditShareButton
+          url={
+            this.props.where === "article"
+              ? "https://www.oyah.xyz/articles/" + this.props.id
+              : "https://www.oyah.xyz/articles/" +
+                this.props.articleID +
+                "?comment=" +
+                this.props.id
+          }
+        >
+          <FontAwesomeIcon icon={["fab", "reddit-alien"]} />
+        </RedditShareButton>
+        <TwitterShareButton
+          url={
+            this.props.where === "article"
+              ? "https://www.oyah.xyz/articles/" + this.props.id
+              : "https://www.oyah.xyz/articles/" +
+                this.props.articleID +
+                "?comment=" +
+                this.props.id
+          }
+        >
+          <FontAwesomeIcon icon={["fab", "twitter"]} />
+        </TwitterShareButton>
+        <FacebookShareButton
+          url={
+            this.props.where === "article"
+              ? "https://www.oyah.xyz/articles/" + this.props.id
+              : "https://www.oyah.xyz/articles/" +
+                this.props.articleID +
+                "?comment=" +
+                this.props.id
+          }
+        >
+          <FontAwesomeIcon icon={["fab", "facebook-f"]} />
+        </FacebookShareButton>
         {/* <button>
           <FontAwesomeIcon icon="share-square" style={{ opacity: 1 }} />
         </button> */}
-        <style jsx>{`
+        <style jsx global>{`
           .Bottombar {
             display: flex;
             align-items: center;
@@ -1110,7 +1161,8 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           }
 
           .Bottombar div,
-          .Bottombar button {
+          .Bottombar button,
+          .Bottombar .SocialMediaShareButton {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1119,15 +1171,16 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
             margin: 0 0.5rem;
             background: none;
             border: 0;
+            outline: 0;
             cursor: pointer;
           }
 
           .Bottombar button.like {
             position: relative;
           }
-        `}</style>
-        <style jsx global>{`
-          .Bottombar button svg {
+
+          .Bottombar button svg,
+          .Bottombar .SocialMediaShareButton svg {
             /* width: 100%; */
             width: 2rem !important;
             height: 100%;
@@ -1150,6 +1203,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
 }
 
 interface ResponsesProps {
+  url: any;
   user: User;
   openSignInModal: any;
   articleID: any;
@@ -1264,7 +1318,14 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
       this.setState((prevState: ResponsesState) => ({
         ...prevState,
         comments
-      }));
+      }), () => {
+        if(this.props.url.query.comment) {
+          const comment = findDOMNode(this["comment_" + this.props.url.query.comment]);
+          if(comment !== null) {
+            comment.scrollIntoView();
+          }
+        }
+      });
     }
     if (nextProps.removeComments !== this.props.removeComments) {
       const comments = this.state.comments.filter((comment: any) => {
@@ -1422,8 +1483,14 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
             </div>
           )}
           {this.state.comments.map((elem, i) => {
+            if(this.props.url.query.comment === elem.id) {
+              setTimeout(() => {
+                const comment = findDOMNode(this["comment_" + elem.id]);
+                comment.scrollIntoView();
+              }, 10)
+            }
             return (
-              <div className="response" key={i}>
+              <div className="response" key={i} ref={comment => this["comment_" + elem.id] = comment}>
                 <div className="top">
                   <div className="author">
                     <a
