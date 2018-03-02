@@ -3,14 +3,21 @@ import { Component } from "react";
 
 import { connect } from "react-redux";
 
+import Head from "next/head";
+
 import * as Markdown from "react-markdown";
 
 import App from "../components/App";
 
 import withData from "../lib/withData";
 
+String.prototype.capitalize = function() {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
 interface Props {
   policy?: any;
+  url?: any;
   signInModal?: any;
   user?: any;
   error?: any;
@@ -29,6 +36,13 @@ class Policy extends Component<Props, any> {
     return (
       <App {...this.props}>
         <div className="Policy Content">
+          <Head>
+            <title>{this.props.url.query.name.capitalize() + " | Oyah"}</title>
+            <meta
+              name="description"
+              content={this.props.url.query.name.capitalize() + "policy on Oyah"}
+            />
+          </Head>
           <Markdown source={this.props.policy} />
         </div>
         <style jsx>{`
@@ -60,13 +74,13 @@ class Policy extends Component<Props, any> {
           }
         `}</style>
         <style jsx global>{`
-          .Policy h1, 
+          .Policy h1,
           .Policy h2 {
             font-weight: 600;
           }
 
           .Policy p {
-            font-family: Georgia,Cambria,"Times New Roman",Times,serif;
+            font-family: Georgia, Cambria, "Times New Roman", Times, serif;
             font-size: 1.25rem;
           }
         `}</style>
