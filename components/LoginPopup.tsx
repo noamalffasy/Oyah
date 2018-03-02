@@ -117,16 +117,7 @@ class LoginPopup extends Component<Props, State> {
       }));
 
       if (nextProps.signInModal.state === "open") {
-        const url =
-          this.props.url.pathname +
-          Object.keys(this.props.url.query)
-            .map((key: any, i: number) => {
-              if (i === 0) {
-                return `?${key}=${this.props.url.query[key]}`;
-              }
-              return `${key}=${this.props.url.query[key]}`;
-            })
-            .join("&");
+        const url = this.props.url;
 
         this.setState(prevState => ({
           ...prevState,
@@ -136,8 +127,14 @@ class LoginPopup extends Component<Props, State> {
 
         Router.push(
           nextProps.signInModal.whatToOpen === "login"
-            ? nextProps.url.pathname + "?login"
-            : nextProps.url.pathname + "?signup",
+            ? {
+                pathname: nextProps.url.pathname,
+                query: { ...nextProps.url.query, login: "" }
+              }
+            : {
+                pathname: nextProps.url.pathname,
+                query: { ...nextProps.url.query, signup: "" }
+              },
           nextProps.signInModal.whatToOpen === "login" ? "/login" : "/signup"
         );
       }
@@ -182,7 +179,7 @@ class LoginPopup extends Component<Props, State> {
               this.signin.password.reset();
               this.signin.remember.reset();
 
-              Router.push(this.state.url + "?", this.state.urlAs);
+              Router.push(this.state.url, this.state.urlAs);
               this.props.closeSignInModal();
 
               this.setState(prevState => ({
@@ -257,7 +254,7 @@ class LoginPopup extends Component<Props, State> {
                     this.createAccount.password.reset();
                     this.createAccount.confirmPassword.reset();
 
-                    Router.push(this.state.url + "?", this.state.urlAs);
+                    Router.push(this.state.url, this.state.urlAs);
                     this.props.closeSignInModal();
 
                     this.setState(prevState => ({
@@ -343,7 +340,7 @@ class LoginPopup extends Component<Props, State> {
 
   closeDialog(e: any) {
     if (!this.popup.contains(e.target)) {
-      Router.push(this.state.url + "?", this.state.urlAs);
+      Router.push(this.state.url, this.state.urlAs);
       this.props.closeSignInModal();
     }
   }
@@ -494,11 +491,23 @@ class LoginPopup extends Component<Props, State> {
                   Router.push(
                     !this.state.reset
                       ? !this.state.login
-                        ? this.props.url.pathname + "?login"
-                        : this.props.url.pathname + "?signup"
+                        ? {
+                            pathname: this.props.url.pathname,
+                            query: { ...this.props.url.query, login: "" }
+                          }
+                        : {
+                            pathname: this.props.url.pathname,
+                            query: { ...this.props.url.query, signup: "" }
+                          }
                       : this.state.login
-                        ? this.props.url.pathname + "?login"
-                        : this.props.url.pathname + "?signup",
+                        ? {
+                            pathname: this.props.url.pathname,
+                            query: { ...this.props.url.query, login: "" }
+                          }
+                        : {
+                            pathname: this.props.url.pathname,
+                            query: { ...this.props.url.query, signup: "" }
+                          },
                     !this.state.reset
                       ? !this.state.login ? "/login" : "/signup"
                       : this.state.login ? "/login" : "/signup"
