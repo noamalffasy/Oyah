@@ -156,6 +156,7 @@ interface State {
         user {
           id
           likes
+          comment_likes
         }
       }
     }
