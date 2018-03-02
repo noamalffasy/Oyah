@@ -849,51 +849,60 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
   }
 
   componentDidMount() {
-      switch (this.props.where) {
-        case "article":
-          if (this.props.user && this.props.user.likes) {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: this.props.user.likes.split(", "),
-              isLiked: this.props.user.likes.split(", ").includes(this.props.id)
-            }));
-          }
-          break;
-        case "comment":
-          if (
-            this.props.user &&
-            this.props.user.comment_likes
-          ) {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: this.props.user.comment_likes.split(", "),
-              isLiked: this.props.user.comment_likes.split(", ").includes(
-                JSON.stringify({
-                  articleID: this.props.articleID,
-                  id: this.props.id
-                })
-              )
-            }));
-          }
-          break;
-        default:
-          if (this.props.user && this.props.user.likes) {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: this.props.user.likes.split(", "),
-              isLiked: this.props.user.likes.split(", ").includes(this.props.id)
-            }));
-          }
-          break;
-      }
+    switch (this.props.where) {
+      case "article":
+        if (
+          (this.props.user && this.props.user.likes) ||
+          this.state.likes !== this.props.likes
+        ) {
+          this.setState(prevState => ({
+            ...prevState,
+            likes: this.props.likes,
+            liked: this.props.user.likes.split(", "),
+            isLiked: this.props.user.likes.split(", ").includes(this.props.id)
+          }));
+        }
+        break;
+      case "comment":
+        if (
+          (this.props.user && this.props.user.comment_likes) ||
+          nextProps.likes !== this.props.likes
+        ) {
+          this.setState(prevState => ({
+            ...prevState,
+            likes: this.props.likes,
+            liked: this.props.user.comment_likes.split(", "),
+            isLiked: this.props.user.comment_likes.split(", ").includes(
+              JSON.stringify({
+                articleID: this.props.articleID,
+                id: this.props.id
+              })
+            )
+          }));
+        }
+        break;
+      default:
+        if (this.props.user && this.props.user.likes) {
+          this.setState(prevState => ({
+            ...prevState,
+            liked: this.props.user.likes.split(", "),
+            isLiked: this.props.user.likes.split(", ").includes(this.props.id)
+          }));
+        }
+        break;
+    }
   }
 
   componentWillReceiveProps(nextProps: BottombarProps) {
     switch (nextProps.where) {
       case "article":
-        if (nextProps.user !== this.props.user && nextProps.user.likes) {
+        if (
+          (nextProps.user !== this.props.user && nextProps.user.likes) ||
+          nextProps.likes !== this.props.likes
+        ) {
           this.setState(prevState => ({
             ...prevState,
+            likes: nextProps.likes,
             liked: nextProps.user.likes.split(", "),
             isLiked: nextProps.user.likes.split(", ").includes(this.props.id)
           }));
@@ -901,11 +910,13 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         break;
       case "comment":
         if (
-          nextProps.user !== this.props.user &&
-          nextProps.user.comment_likes
+          (nextProps.user !== this.props.user &&
+            nextProps.user.comment_likes) ||
+          nextProps.likes !== this.props.likes
         ) {
           this.setState(prevState => ({
             ...prevState,
+            likes: this.props.likes,
             liked: nextProps.user.comment_likes.split(", "),
             isLiked: nextProps.user.comment_likes.split(", ").includes(
               JSON.stringify({
