@@ -1361,7 +1361,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
   render() {
     if (this.state.comments) {
       return (
-        <div className="Responses">`
+        <div className="Responses">
           <h2>Responses</h2>
           {Object.keys(this.props.user).length > 0 && (
             <div className="input">
