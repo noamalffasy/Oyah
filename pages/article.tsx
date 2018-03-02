@@ -193,7 +193,6 @@ interface State {
         id
         nametag
         image
-        comment_likes
       }
     }
   `,
@@ -674,11 +673,12 @@ class ArticlePage extends Component<Props, State> {
             .ArticlePage .top .more .menu {
               position: absolute;
               top: 4rem;
-              border-radius: 8px;
+              border-radius: 0;
               padding: 0.2rem 2rem;
               max-height: calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem);
               background: #fff;
-              box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+              /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
+              box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
               overflow: hidden;
               transition: all 0.3s;
             }
@@ -848,6 +848,46 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
     this.toggleLike = this.toggleLike.bind(this);
   }
 
+  componentDidMount() {
+      switch (this.props.where) {
+        case "article":
+          if (this.props.user && this.props.user.likes) {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: this.props.user.likes.split(", "),
+              isLiked: this.props.user.likes.split(", ").includes(this.props.id)
+            }));
+          }
+          break;
+        case "comment":
+          if (
+            this.props.user &&
+            this.props.user.comment_likes
+          ) {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: this.props.user.comment_likes.split(", "),
+              isLiked: this.props.user.comment_likes.split(", ").includes(
+                JSON.stringify({
+                  articleID: this.props.articleID,
+                  id: this.props.id
+                })
+              )
+            }));
+          }
+          break;
+        default:
+          if (this.props.user && this.props.user.likes) {
+            this.setState(prevState => ({
+              ...prevState,
+              liked: this.props.user.likes.split(", "),
+              isLiked: this.props.user.likes.split(", ").includes(this.props.id)
+            }));
+          }
+          break;
+      }
+  }
+
   componentWillReceiveProps(nextProps: BottombarProps) {
     switch (nextProps.where) {
       case "article":
@@ -855,7 +895,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           this.setState(prevState => ({
             ...prevState,
             liked: nextProps.user.likes.split(", "),
-            isLiked: this.state.liked.includes(this.props.id)
+            isLiked: nextProps.user.likes.split(", ").includes(this.props.id)
           }));
         }
         break;
@@ -867,10 +907,10 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           this.setState(prevState => ({
             ...prevState,
             liked: nextProps.user.comment_likes.split(", "),
-            isLiked: this.state.liked.includes(
+            isLiked: nextProps.user.comment_likes.split(", ").includes(
               JSON.stringify({
-                id: this.props.id,
-                articleID: this.props.articleID
+                articleID: this.props.articleID,
+                id: this.props.id
               })
             )
           }));
@@ -881,7 +921,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           this.setState(prevState => ({
             ...prevState,
             liked: nextProps.user.likes.split(", "),
-            isLiked: this.state.liked.includes(this.props.id)
+            isLiked: nextProps.user.likes.split(", ").includes(this.props.id)
           }));
         }
         break;
@@ -1321,7 +1361,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
   render() {
     if (this.state.comments) {
       return (
-        <div className="Responses">
+        <div className="Responses">`
           <h2>Responses</h2>
           {Object.keys(this.props.user).length > 0 && (
             <div className="input">
@@ -1803,11 +1843,12 @@ class MoreMenu extends Component<MenuProps, MenuState> {
               Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
               sans-serif;
             font-size: 1rem;
-            border-radius: 8px;
+            border-radius: 0;
             padding: 0.2rem 2rem;
             max-height: calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem);
             background: #fff;
-            box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+            /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
+            box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
             overflow: hidden;
             z-index: 1000;
             transition: all 0.3s;

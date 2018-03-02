@@ -415,6 +415,7 @@ class Account extends Component<any, any> {
         infoOpen: false,
         loggedIn: Object.keys(nextProps.user).length !== 0 ? true : false,
         user: {
+          ...nextProps.user,
           nametag:
             Object.keys(nextProps.user).length !== 0
               ? nextProps.user.nametag
@@ -502,11 +503,11 @@ class Account extends Component<any, any> {
               onClick={this.openInfo}
               className="user"
               src={
-                this.props.user.image !== null
-                  ? "/img/users/" + encodeURIComponent(this.props.user.image)
+                this.state.user.image !== null
+                  ? "/img/users/" + encodeURIComponent(this.state.user.image)
                   : "/img/User.png"
               }
-              alt={this.props.user.nametag}
+              alt={this.state.user.nametag}
               style={
                 this.state.infoOpen
                   ? {
@@ -547,9 +548,7 @@ class Account extends Component<any, any> {
                   Settings
                 </a>
               </Link>
-              <Link href="/signout">
-                <a>Sign out</a>
-              </Link>
+              <a href="/signout">Sign out</a>
             </div>
             <img
               className="arrow"
@@ -566,7 +565,7 @@ class Account extends Component<any, any> {
           </div>
           <style jsx>{`
             .Account {
-              --border-radius: 8px;
+              --border-radius: 0;
               position: relative;
               text-align: center;
               margin-bottom: 1rem;
@@ -705,7 +704,8 @@ class Account extends Component<any, any> {
                 width: 15rem;
               }
               .Account.active .User {
-                box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+                /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
+                box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
               }
               .Account.active .User::after {
                 content: "";
@@ -722,7 +722,8 @@ class Account extends Component<any, any> {
               }
               .Account.active .Info {
                 background: #fff;
-                box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2);
+                /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
+                box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
                 height: auto;
                 padding-bottom: 3rem;
               }
