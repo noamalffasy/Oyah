@@ -46,7 +46,12 @@ class Index extends Component<Props> {
           </Head>
           <Highlights url={this.props.url} />
           <Other />
-          {!loading && <Quote author={getRandomQuote.author} quote={getRandomQuote.quote} />}
+          {!loading && (
+            <Quote
+              author={getRandomQuote.author}
+              quote={getRandomQuote.quote}
+            />
+          )}
         </div>
         <style jsx global>{`
           .Content {
@@ -79,6 +84,10 @@ class Index extends Component<Props> {
             min-height: 15rem;
             margin: 0;
             margin-bottom: 1rem;
+          }
+
+          .Home .Highlights > .Article .image {
+            min-height: 15rem;
           }
 
           .Home .Highlights .other {
@@ -120,7 +129,7 @@ class Index extends Component<Props> {
             /* margin: 0.5rem; */
             margin: 0 0.5rem 0.5rem 0;
             /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
-            width: calc(1/2*100% - 1/2*0.5rem);
+            width: calc(1 / 2 * 100% - 1 / 2 * 0.5rem);
             height: 7rem;
           }
 
@@ -215,7 +224,7 @@ class Index extends Component<Props> {
             }
             .Home .Other .Article {
               height: 7rem;
-              width: calc(1/3*100% - 0.7rem);
+              width: calc(1 / 3 * 100% - 0.7rem);
               margin: 0 1rem 0.5rem 0;
             }
             .Home .Other .Article:nth-child(2) {
