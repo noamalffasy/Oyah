@@ -561,7 +561,7 @@ class LoginPopup extends Component<Props, State> {
           .LoginPopup {
             display: block !important;
             opacity: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
           }
 
@@ -573,6 +573,11 @@ class LoginPopup extends Component<Props, State> {
           .LoginPopup .modal-content .modal-header,
           .LoginPopup .modal-content .modal-footer {
             border: 0;
+          }
+
+          .LoginPopup .modal-content {
+            border-radius: 0;
+            box-shadow: 0 0.3125rem 1rem 0 rgba(0, 0, 0, 0.24);
           }
 
           .LoginPopup .modal-content .modal-header button.close {
