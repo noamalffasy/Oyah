@@ -79,7 +79,8 @@ class Policy extends Component<Props, any> {
             font-weight: 600;
           }
 
-          .Policy p {
+          .Policy p,
+          .Policy ul li {
             font-family: Georgia, Cambria, "Times New Roman", Times, serif;
             font-size: 1.25rem;
           }
