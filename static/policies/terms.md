@@ -3,18 +3,18 @@
 Thanks for using Oyah.
 By using our services, you are agreeing to these terms, so please read them carefully so there will be no misunderstandings.
 
-These terms will be updated from time to time so make sure to check this page to check for updates.
+These terms will be updated from time to time so make sure to check this page for updates.
 If we do happen to update the terms, we will notify you a month in advance.
 
 ## Using the Site
 
-Don’t try to access parts of our site without the interface we provide for surfing our site.
+Don’t try to access parts of our site without the interface we provide for surfing it.
 Using our services does NOT give you any ownership of the property and the content, unless with a permission from the original creators. Same goes for content that belongs to an outsider person which does not belong to our team.
 Violation of these rules might lead to an IP ban.
 
 ## Your Oyah Account
 
-To use some of our services, you need to use an Oyah account.
+To use some of our services, you need to use an Oyah Account.
 
 You can choose to display your real name in your profile. We are not responsible for anything which might happen from displaying this info in your profile.
 
