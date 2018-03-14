@@ -7,6 +7,7 @@ import Router from "next/router";
 import Link from "next/link";
 
 import Input from "./Input";
+import ActionButtons from "./ActionButtons";
 
 // GraphQL
 import graphql from "../utils/graphql";
@@ -141,12 +142,14 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  login() {
+  login(e: any, triggerLoading: any) {
     if (
       this.signin.email.input.value !== "" &&
       this.signin.password.input.value !== ""
     ) {
       if (validate(this.signin.email.input.value)) {
+        triggerLoading();
+
         this.props
           .signinUser({
             variables: {
@@ -157,6 +160,8 @@ class LoginPopup extends Component<Props, State> {
             }
           })
           .then((res: any) => {
+            this.ActionButtons.reset();
+
             if (res.errors) {
               let errors: any[] = [];
               res.errors.forEach((error: Error) => {
@@ -208,7 +213,7 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  signup() {
+  signup(e: any, triggerLoading: any) {
     if (
       this.createAccount.nametag.input.value !== "" &&
       this.createAccount.email.input.value !== "" &&
@@ -221,6 +226,8 @@ class LoginPopup extends Component<Props, State> {
         ) {
           if (this.createAccount.age.isChecked()) {
             if (this.createAccount.terms.isChecked()) {
+              triggerLoading();
+
               this.props
                 .createUser({
                   variables: {
@@ -234,6 +241,8 @@ class LoginPopup extends Component<Props, State> {
                   }
                 })
                 .then((res: any) => {
+                  this.ActionButtons.reset();
+
                   if (res.errors) {
                     let errors: any[] = [];
                     res.errors.forEach((error: Error) => {
@@ -301,22 +310,27 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  sendMail(e: any) {
+  sendMail(e: any, triggerLoading: any) {
     if (e) {
       e.preventDefault();
     }
 
     if (this.forgotPassword.email.input.value !== "") {
       if (validate(this.forgotPassword.email.input.value)) {
+        triggerLoading();
+
         this.props
           .forgetPassword({
             variables: { email: this.forgotPassword.email.input.value }
           })
           .then((res: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              resetStatus: res.data.forgetPassword.status
-            }));
+            this.setState(
+              prevState => ({
+                ...prevState,
+                resetStatus: res.data.forgetPassword.status
+              }),
+              () => this.ActionButtons.reset()
+            );
           })
           .catch((err: any) => {
             this.setState(prevState => ({
@@ -469,23 +483,25 @@ class LoginPopup extends Component<Props, State> {
               ref={div => (this.forgotPassword = div)}
             />
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={
+              <ActionButtons
+                primaryText={
+                  !this.state.reset
+                    ? this.state.login ? "Login" : "Create an account"
+                    : "Continue"
+                }
+                primaryAction={
                   !this.state.reset
                     ? this.state.login ? this.login : this.signup
                     : this.sendMail
                 }
-              >
-                {!this.state.reset
-                  ? this.state.login ? "Login" : "Create an account"
-                  : "Continue"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={e => {
+                secondaryText={
+                  !this.state.reset
+                    ? this.state.login
+                      ? "Create an account"
+                      : "Already have an account?"
+                    : "Remember the password?"
+                }
+                secondaryAction={e => {
                   e.preventDefault();
 
                   Router.push(
@@ -522,13 +538,9 @@ class LoginPopup extends Component<Props, State> {
                     error: false
                   }));
                 }}
-              >
-                {!this.state.reset
-                  ? this.state.login
-                    ? "Create an account"
-                    : "Already have an account?"
-                  : "Remember the password?"}
-              </button>
+                style={{ margin: "0 auto" }}
+                ref={btns => (this.ActionButtons = btns)}
+              />
             </div>
           </div>
         </div>
@@ -582,58 +594,6 @@ class LoginPopup extends Component<Props, State> {
 
           .LoginPopup .modal-content .modal-header button.close {
             outline: 0;
-          }
-
-          .LoginPopup .modal-content .modal-footer {
-            padding-top: 0;
-            flex-flow: wrap;
-            justify-content: center;
-            flex-flow: column;
-          }
-
-          .LoginPopup .modal-content .modal-footer button {
-            border: 0;
-            background: none;
-            cursor: pointer;
-            box-shadow: none;
-            outline: 0;
-            opacity: 0.8;
-            transition: all 0.15s;
-          }
-
-          .LoginPopup .modal-content .modal-footer button:hover {
-            /* text-decoration: underline; */
-            opacity: 1;
-          }
-
-          .LoginPopup .modal-content .modal-footer button:focus {
-            box-shadow: none;
-            outline: 0;
-            background: none;
-          }
-
-          .LoginPopup .modal-content .modal-footer button:active {
-            border: 0;
-            background: none;
-            box-shadow: none;
-          }
-
-          .LoginPopup .modal-content .modal-footer button.btn-primary {
-            color: #cc0017;
-            order: 1;
-            font-weight: 600;
-          }
-
-          .LoginPopup .modal-content .modal-footer button.btn-secondary {
-            color: #7f7f7f;
-            font-weight: 400;
-          }
-          @media (min-width: 576px),
-            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
-            .LoginPopup .modal-content .modal-footer {
-              justify-content: flex-end;
-              flex-flow: row;
-            }
           }
         `}</style>
         <style jsx global>{`

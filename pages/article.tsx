@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 
 import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
+import * as errorActionCreators from "../actions/error";
 
 import * as uuid from "uuid/v4";
 
@@ -29,6 +30,7 @@ import App from "../components/App";
 
 import Image from "../components/Image";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 import Error from "./_error";
 
@@ -122,12 +124,20 @@ interface User {
   editor?: boolean;
 }
 
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  comments: object[];
+  likes: number;
+}
+
 interface Props extends React.Props<ArticlePage> {
   match: any;
   user: User;
-  data?: any;
-  getArticle?: any;
-  getUser?: any;
+  author: User;
+  article: Article;
+  profile?: User;
   url?: any;
   dispatch?: any;
   deleteArticle?: any;
@@ -136,76 +146,13 @@ interface Props extends React.Props<ArticlePage> {
 }
 
 interface State {
-  id: string | any;
   datePublished: string | undefined;
-  title: string | undefined;
-  content: string | undefined;
-  comments: object[];
-  likes: number;
   menuOpen: boolean;
   deletePopup: any;
   removeComments?: string[] | undefined;
-  author?: User;
   notFound?: boolean;
 }
 
-@graphql(
-  gql`
-    {
-      currentUser {
-        ok
-        jwt
-        errors {
-          field
-          message
-        }
-        user {
-          id
-          likes
-          comment_likes
-        }
-      }
-    }
-  `
-)
-@graphql(
-  gql`
-    mutation getArticle($id: String!) {
-      getArticle(id: $id) {
-        id
-        title
-        content
-        authorID
-        likes
-        comments {
-          id
-          authorID
-          message
-          likes
-          createdAt
-        }
-        createdAt
-      }
-    }
-  `,
-  {
-    name: "getArticle"
-  }
-)
-@graphql(
-  gql`
-    mutation getUser($id: ID!) {
-      getUser(id: $id) {
-        id
-        nametag
-        image
-      }
-    }
-  `,
-  {
-    name: "getUser"
-  }
-)
 @graphql(
   gql`
     mutation deleteArticle($id: String!) {
@@ -223,12 +170,7 @@ class ArticlePage extends Component<Props, State> {
     super(props);
 
     this.state = {
-      id: props.url.query.id,
       datePublished: undefined,
-      title: undefined,
-      content: undefined,
-      comments: [],
-      likes: 0,
       menuOpen: false,
       deletePopup: false,
       removeComments: []
@@ -239,94 +181,181 @@ class ArticlePage extends Component<Props, State> {
     this.deleteComment = this.deleteComment.bind(this);
   }
 
-  componentDidMount() {
-    this.props
-      .getArticle({
-        variables: { id: this.state.id }
+  static async getInitialProps(
+    { query: { id } }: any,
+    apolloClient: any,
+    user: User
+  ) {
+    return await apolloClient
+      .mutate({
+        mutation: gql`
+          mutation getArticle($id: String!) {
+            getArticle(id: $id) {
+              id
+              title
+              content
+              author {
+                id
+                nametag
+                small_image
+                image
+              }
+              likes
+              comments {
+                id
+                author {
+                  id
+                  nametag
+                  small_image
+                  image
+                }
+                message
+                likes
+                createdAt
+              }
+              createdAt
+            }
+          }
+        `,
+        variables: {
+          id:
+            id.indexOf("_small.jpeg") > -1 ? id.replace("_small.jpeg", "") : id
+        }
       })
-      .then((getArticle: any) => {
+      .then(async (getArticle: any) => {
         if (getArticle.error) {
           if (
             getArticle.error[0].message === "Cannot read property 'get' of null"
           ) {
-            this.setState((prevState: any) => ({
-              ...prevState,
-              notFound: true,
-              title: "Not Found"
-            }));
-          } else {
-            console.error(getArticle.error.message);
+            return {
+              error: getArticle.error
+            };
           }
-        } else if (getArticle.data.getArticle.id !== null) {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            ...getArticle.data.getArticle,
-            datePublished:
-              new Date(getArticle.data.getArticle.createdAt).getFullYear() ===
-              new Date().getFullYear()
-                ? moment(getArticle.data.getArticle.createdAt).format("MMM D")
-                : moment(getArticle.data.getArticle.createdAt).format(
-                    "MMM D, YYYY"
-                  )
-          }));
+        } else if (getArticle.data.getArticle.id === null) {
+          return {
+            error: "Not found"
+          };
+        }
 
-          this.props
-            .getUser({
-              variables: {
-                id: getArticle.data.getArticle.authorID
-              }
-            })
-            .then((getUser: any) => {
-              if (getUser.error) {
-                console.error(getUser.error.message);
-              } else {
-                this.setState((prevState: any) => ({
-                  ...prevState,
-                  author: {
-                    ...getUser.data.getUser,
-                    image:
-                      "/img/users/" +
-                      encodeURIComponent(getUser.data.getUser.image)
-                  }
-                }));
-              }
-            });
+        if (user) {
+          return {
+            profile: user,
+            article: getArticle.data.getArticle,
+            author: {
+              ...getArticle.data.getArticle.author,
+              image:
+                "/static/img/users/" +
+                encodeURIComponent(getArticle.data.getArticle.author.image)
+            }
+          };
         } else {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            notFound: true,
-            title: "Not Found"
-          }));
+          return {
+            article: getArticle.data.getArticle,
+            author: {
+              ...getArticle.data.getArticle.author,
+              image:
+                "/static/img/users/" +
+                encodeURIComponent(getArticle.data.getArticle.author.image)
+            }
+          };
         }
       })
-      .catch((err: any) => {
+      .catch((err: Error) => {
         console.error(err);
+        return { error: err };
       });
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const { dispatch, user } = nextProps;
-    const login = bindActionCreators(userActionCreators.login, dispatch);
-    if (
-      nextProps.data &&
-      !nextProps.data.loading &&
-      nextProps.data.currentUser &&
-      nextProps.data.currentUser.user !== null &&
-      (!this.props.data.currentUser ||
-        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
-    ) {
-      const data = nextProps.data.currentUser;
-      if (data.error) {
-        if (
-          data.error[0].message !== "User is not logged in (or authenticated)."
-        ) {
-          console.error(data.error);
-        }
+  // componentDidMount() {
+  //   this.props
+  //     .getArticle({
+  //       variables: { id: this.state.id }
+  //     })
+  //     .then((getArticle: any) => {
+  //       if (getArticle.error) {
+  //         if (
+  //           getArticle.error[0].message === "Cannot read property 'get' of null"
+  //         ) {
+  //           this.setState((prevState: any) => ({
+  //             ...prevState,
+  //             notFound: true,
+  //             title: "Not Found"
+  //           }));
+  //         } else {
+  //           console.error(getArticle.error.message);
+  //         }
+  //       } else if (getArticle.data.getArticle.id !== null) {
+  //         this.setState((prevState: any) => ({
+  //           ...prevState,
+  //           ...getArticle.data.getArticle,
+  //           datePublished:
+  //             new Date(getArticle.data.getArticle.createdAt).getFullYear() ===
+  //             new Date().getFullYear()
+  //               ? moment(getArticle.data.getArticle.createdAt).format("MMM D")
+  //               : moment(getArticle.data.getArticle.createdAt).format(
+  //                   "MMM D, YYYY"
+  //                 )
+  //         }));
+
+  //         this.props
+  //           .getUser({
+  //             variables: {
+  //               id: getArticle.data.getArticle.authorID
+  //             }
+  //           })
+  //           .then((getUser: any) => {
+  //             if (getUser.error) {
+  //               console.error(getUser.error.message);
+  //             } else {
+  //               this.setState((prevState: any) => ({
+  //                 ...prevState,
+  //                 author: {
+  //                   ...getUser.data.getUser,
+  //                   image:
+  //                     "/img/users/" +
+  //                     encodeURIComponent(getUser.data.getUser.image)
+  //                 }
+  //               }));
+  //             }
+  //           });
+  //       } else {
+  //         this.setState((prevState: any) => ({
+  //           ...prevState,
+  //           notFound: true,
+  //           title: "Not Found"
+  //         }));
+  //       }
+  //     })
+  //     .catch((err: any) => {
+  //       console.error(err);
+  //     });
+  // }
+
+  componentDidMount() {
+    const { error, article } = this.props;
+    if (error) {
+      if (error !== "User is not logged in (or authenticated).") {
+        console.error(error);
+      }
+    }
+    if (article) {
+      this.setState(prevState => ({
+        ...prevState,
+        datePublished:
+          new Date(article.createdAt).getFullYear() === new Date().getFullYear()
+            ? moment(article.createdAt).format("MMM D")
+            : moment(article.createdAt).format("MMM D, YYYY")
+      }));
+    }
+    if (error !== false) {
+      if (error === "Not found") {
+        this.setState(prevState => ({
+          ...prevState,
+          notFound: true,
+          title: "Not Found"
+        }));
       } else {
-        login({
-          ...user,
-          ...data.user
-        });
+        this.setError(error);
       }
     }
   }
@@ -336,15 +365,16 @@ class ArticlePage extends Component<Props, State> {
       (this.menu && nextState.menuOpen !== this.state.menuOpen) ||
       (this.deletePopup && nextState.deletePopup !== false) ||
       // (this.more && this.more.contains(nextProps.clicked)) ||
-      !this.state.content ||
-      !this.state.author ||
+      !this.props.article ||
+      !this.props.article.content ||
+      !this.props.author ||
       !this.state.datePublished ||
       this.props.user !== nextProps.user ||
       this.props.signInModal !== nextProps.signInModal
       // (nextProps.clicked === this.props.clicked &&
       //   !this.state.menuOpen &&
       //   this.state.content &&
-      //   this.state.author)
+      //   this.props.author)
     ) {
       return true;
     }
@@ -364,21 +394,23 @@ class ArticlePage extends Component<Props, State> {
   //   }
   // }
 
-  openDeletePopup(what = "article", id = this.state.id) {
+  openDeletePopup(what = "article", id = this.props.article.id) {
     this.setState(prevState => ({
       ...prevState,
       deletePopup: { what, id }
     }));
   }
 
-  deleteArticle() {
+  deleteArticle(actionButtons) {
     this.props
       .deleteArticle({
         variables: {
-          id: this.state.id
+          id: this.props.article.id
         }
       })
       .then((res: any) => {
+        actionButtons.reset();
+
         if (res.error) {
           console.error(res.error.message);
         } else {
@@ -402,42 +434,49 @@ class ArticlePage extends Component<Props, State> {
     this.props.dispatch
   );
 
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
+
   render() {
-    if (!this.state.notFound) {
+    if (this.props.article) {
       return (
         <App {...this.props}>
           <div className="ArticlePage">
             <Head>
-              <title>{(this.state.title || "Article") + ` | Oyah`}</title>
-              <meta name="description" content={this.state.title} />
+              <title>
+                {(this.props.article.title || "Article") + ` | Oyah`}
+              </title>
+              <meta name="description" content={this.props.article.title} />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>
               <div className="Content" style={{ paddingBottom: "2rem" }}>
                 <div className="top">
                   <ReactPlaceholder
                     customPlaceholder={<AuthorPlaceholder />}
-                    ready={this.state.author !== undefined}
+                    ready={this.props.author !== undefined}
                   >
                     <div className="author">
                       <a
                         href={
                           "/users/" +
-                          (this.state.author ? this.state.author.nametag : "")
+                          (this.props.author ? this.props.author.nametag : "")
                         }
                         style={{ opacity: 1 }}
                       >
                         <Image
                           src={
-                            this.state.author
-                              ? this.state.author.image !== null &&
-                                this.state.author.image !== undefined
-                                ? this.state.author.image
+                            this.props.author
+                              ? this.props.author.image !== null &&
+                                this.props.author.image !== undefined
+                                ? this.props.author.image
                                 : ""
                               : ""
                           }
                           alt={
-                            this.state.author
-                              ? this.state.author.nametag
+                            this.props.author
+                              ? this.props.author.nametag
                               : "Loading"
                           }
                           style={{
@@ -458,7 +497,7 @@ class ArticlePage extends Component<Props, State> {
                         <a
                           href={
                             "/users/" +
-                            (this.state.author ? this.state.author.nametag : "")
+                            (this.props.author ? this.props.author.nametag : "")
                           }
                           style={{ opacity: 1 }}
                         >
@@ -469,8 +508,8 @@ class ArticlePage extends Component<Props, State> {
                               cursor: "pointer"
                             }}
                           >
-                            {this.state.author
-                              ? this.state.author.nametag
+                            {this.props.author
+                              ? this.props.author.nametag
                               : "Loading"}
                           </h3>
                         </a>
@@ -480,9 +519,10 @@ class ArticlePage extends Component<Props, State> {
                       </div>
                     </div>
                   </ReactPlaceholder>
-                  {Object.keys(this.props.user).length > 0 &&
-                    this.state.author &&
-                    this.state.author.id === this.props.user.id && (
+                  {(Object.keys(this.props.user).length > 0 ||
+                    this.props.profile) &&
+                    this.props.author &&
+                    this.props.author.id === this.props.user.id && (
                       <div
                         className="more"
                         tabIndex={0}
@@ -517,8 +557,8 @@ class ArticlePage extends Component<Props, State> {
                         >
                           <li>
                             <Link
-                              href={"/WriteArticle?id=" + this.state.id}
-                              as={"/articles/new/" + this.state.id}
+                              href={"/WriteArticle?id=" + this.props.article.id}
+                              as={"/articles/new/" + this.props.article.id}
                             >
                               <a>Edit</a>
                             </Link>
@@ -540,17 +580,17 @@ class ArticlePage extends Component<Props, State> {
                   className="title"
                   type="text"
                   rows={2}
-                  ready={this.state.title !== undefined}
+                  ready={this.props.article.title !== undefined}
                   style={{ animation: "loading 1.5s infinite", width: "80%" }}
                 >
-                  <h1>{this.state.title}</h1>
+                  <h1>{this.props.article.title}</h1>
                 </ReactPlaceholder>
               </div>
             </div>
 
             <Image
               className="article-image"
-              src={`/articles/${this.state.id}.jpeg`}
+              src={`/articles/${this.props.article.id}/main.jpeg`}
               fixed
               style={{
                 position: "relative",
@@ -567,7 +607,7 @@ class ArticlePage extends Component<Props, State> {
             {/* <div
             className="article-image"
             style={{
-              backgroundImage: `url("/articles/img/${this.state.id}.jpeg")`
+              backgroundImage: `url("/articles/img/${this.props.article.id}.jpeg")`
             }}
           /> */}
 
@@ -576,7 +616,7 @@ class ArticlePage extends Component<Props, State> {
                 <div className="Content">
                   <Markdown
                     className="body"
-                    source={this.state.content || ""}
+                    source={this.props.article.content || ""}
                     renderers={{
                       image: ({ src, alt }) => {
                         return (
@@ -592,19 +632,19 @@ class ArticlePage extends Component<Props, State> {
 
                   <Bottombar
                     where="article"
-                    contentLoaded={this.state.content !== undefined}
+                    contentLoaded={this.props.article.content !== undefined}
                     user={this.props.user}
-                    id={this.state.id}
-                    likes={this.state.likes}
+                    id={this.props.article.id}
+                    likes={this.props.article.likes}
                   />
 
                   <Responses
                     url={this.props.url}
                     user={this.props.user}
                     openSignInModal={this.openSignInModal}
-                    articleID={this.state.id}
-                    author={this.state.author}
-                    comments={this.state.comments}
+                    articleID={this.props.article.id}
+                    author={this.props.author}
+                    comments={this.props.article.comments}
                     removeComments={this.state.removeComments}
                     openDeletePopup={this.openDeletePopup}
                   />
@@ -615,7 +655,7 @@ class ArticlePage extends Component<Props, State> {
               isOpen={this.state.deletePopup}
               deleteArticle={this.deleteArticle}
               deleteCommentFromDOM={this.deleteComment}
-              id={this.state.id}
+              id={this.props.article.id}
               ref={popup => (this.deletePopup = popup)}
             />
           </div>
@@ -1224,25 +1264,15 @@ interface ResponsesState {
 
 @graphql(
   gql`
-    mutation getUser($id: ID!) {
-      getUser(id: $id) {
-        id
-        nametag
-        image
-      }
-    }
-  `,
-  {
-    name: "getUser"
-  }
-)
-@graphql(
-  gql`
     mutation sendComment($id: String!, $articleID: String!, $message: String!) {
       sendComment(id: $id, articleID: $articleID, message: $message) {
         id
         articleID
-        authorID
+        author {
+          id
+          nametag
+          image
+        }
         message
       }
     }
@@ -1261,7 +1291,11 @@ interface ResponsesState {
       updateComment(id: $id, articleID: $articleID, message: $message) {
         id
         articleID
-        authorID
+        author {
+          id
+          nametag
+          image
+        }
         message
       }
     }
@@ -1274,59 +1308,52 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
   constructor(props: ResponsesProps) {
     super(props);
 
-    this.state = { comments: undefined, menuOpen: false, edit: false };
+    this.state = { comments: [], menuOpen: false, edit: false };
 
     this.sendComment = this.sendComment.bind(this);
   }
 
-  componentWillReceiveProps(nextProps: ResponsesProps) {
-    if (
-      nextProps.comments &&
-      (nextProps.comments !== this.props.comments ||
-        (nextProps.comments.length > 0 && !this.state.comments))
-    ) {
-      let comments: any[] = [];
-      nextProps.comments.forEach((elem, i) => {
-        this.props
-          .getUser({
-            variables: {
-              id: elem.authorID
+  componentDidMount() {
+    if (this.props.comments && this.props.comments.length > 0) {
+      this.setState(
+        prevState => ({
+          ...prevState,
+          comments: this.props.comments
+        }),
+        () => {
+          if (this.props.url.query.comment) {
+            const comment = findDOMNode(
+              this["comment_" + this.props.url.query.comment]
+            );
+            if (comment !== null) {
+              comment.scrollIntoView();
             }
-          })
-          .then((res: any) => {
-            if (res.errors) {
-              res.errors.forEach((error: Error) => {
-                console.error(error.message);
-              });
-            } else {
-              const comment = {
-                ...elem,
-                author: {
-                  ...res.data.getUser,
-                  image:
-                    "/img/users/" + encodeURIComponent(res.data.getUser.image)
-                }
-              };
-              comments.push(comment);
-            }
-          })
-          .catch((err: Error) => {
-            console.error(err);
-          });
-      });
-
-      this.setState((prevState: ResponsesState) => ({
-        ...prevState,
-        comments
-      }), () => {
-        if(this.props.url.query.comment) {
-          const comment = findDOMNode(this["comment_" + this.props.url.query.comment]);
-          if(comment !== null) {
-            comment.scrollIntoView();
           }
         }
-      });
+      );
     }
+  }
+
+  componentWillReceiveProps(nextProps: ResponsesProps) {
+    if (nextProps.comments.length > this.state.comments.length) {
+      this.setState(
+        prevState => ({
+          ...prevState,
+          comments: nextProps.comments
+        }),
+        () => {
+          if (this.props.url.query.comment) {
+            const comment = findDOMNode(
+              this["comment_" + this.props.url.query.comment]
+            );
+            if (comment !== null) {
+              comment.scrollIntoView();
+            }
+          }
+        }
+      );
+    }
+
     if (nextProps.removeComments !== this.props.removeComments) {
       const comments = this.state.comments.filter((comment: any) => {
         if (nextProps.removeComments.indexOf(comment.id) !== -1) {
@@ -1342,8 +1369,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
     }
   }
 
-  sendComment() {
-    if (this.input.input.value.trim() !== "" && this.input.input.value) {
+  sendComment(e: any, triggerLoading: any) {
+    if (this.input.input.value && this.input.input.value.trim() !== "") {
+      triggerLoading();
+
       this.props
         .sendComment({
           variables: {
@@ -1353,10 +1382,13 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           }
         })
         .then((res: any) => {
+          this.inputActionButtons.reset();
+
           if (res.error) {
             console.error(res.error.message);
           } else {
             this.input.reset();
+
             this.setState(prevState => ({
               ...prevState,
               comments: [
@@ -1367,9 +1399,9 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                     image:
                       this.props.user.image !== null &&
                       this.props.user.image !== undefined
-                        ? "/img/users/" +
+                        ? "/static/img/users/" +
                           encodeURIComponent(this.props.user.image)
-                        : "/img/User.png"
+                        : "/static/img/User.png"
                   }
                 },
                 ...this.state.comments
@@ -1383,11 +1415,13 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
     }
   }
 
-  updateComment(id: string, authorID: string) {
+  updateComment(id: string, authorID: string, triggerLoading: any) {
     if (
       this["edit_" + id].input.value.trim() !== "" &&
       this["edit_" + id].input.value
     ) {
+      triggerLoading();
+
       this.props
         .updateComment({
           variables: {
@@ -1397,6 +1431,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           }
         })
         .then(res => {
+          this["edit_" + id + "ActionButtons"].reset();
+
           if (res.error) {
             console.error(res.error.message);
           } else {
@@ -1431,382 +1467,391 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
   }
 
   render() {
-    if (this.state.comments) {
-      return (
-        <div className="Responses">
-          <h2>Responses</h2>
-          {Object.keys(this.props.user).length > 0 && (
-            <div className="input">
-              <div className="message">
-                <Image
-                  src={
-                    this.props.user
-                      ? this.props.user.image !== null &&
-                        this.props.user.image !== undefined
-                        ? "/img/users/" +
-                          encodeURIComponent(this.props.user.image)
-                        : "/img/User.png"
-                      : "/img/User.png"
-                  }
-                  style={{
-                    width: "3rem",
-                    height: "3rem",
-                    borderRadius: "50%",
-                    background: "none",
-                    margin: "1rem 1rem 0 0"
-                  }}
-                  alt={this.props.user ? this.props.user.nametag : "Loading"}
-                />
-                <Input
-                  label="Message"
-                  type="textarea"
-                  style={{
-                    margin: "1.5rem 0 0",
-                    flex: "1 1 0"
-                  }}
-                  ref={input => (this.input = input)}
-                />
-              </div>
-              <div className="action-buttons">
-                <button className="primary" onClick={this.sendComment}>
-                  Send
-                </button>
-              </div>
+    return (
+      <div className="Responses">
+        <h2>Responses</h2>
+        {Object.keys(this.props.user).length > 0 && (
+          <div className="input">
+            <div className="message">
+              <Image
+                src={
+                  this.props.user
+                    ? this.props.user.image !== null &&
+                      this.props.user.image !== undefined
+                      ? "/static/img/users/" +
+                        encodeURIComponent(this.props.user.image)
+                      : "/static/img/User.png"
+                    : "/static/img/User.png"
+                }
+                style={{
+                  width: "3rem",
+                  height: "3rem",
+                  borderRadius: "50%",
+                  background: "none",
+                  margin: "1rem 1rem 0 0"
+                }}
+                alt={this.props.user ? this.props.user.nametag : "Loading"}
+              />
+              <Input
+                label="Message"
+                type="textarea"
+                style={{
+                  margin: "1.5rem 0 0",
+                  flex: "1 1 0"
+                }}
+                ref={input => (this.input = input)}
+              />
             </div>
-          )}
-          {Object.keys(this.props.user).length === 0 && (
-            <div className="login">
-              <p>You need an account to write a response</p>
-              <a onClick={() => this.props.openSignInModal("signUp")}>
-                Sign up
-              </a>
-            </div>
-          )}
-          {this.state.comments.map((elem, i) => {
-            if(this.props.url.query.comment === elem.id) {
-              setTimeout(() => {
-                const comment = findDOMNode(this["comment_" + elem.id]);
-                comment.scrollIntoView();
-              }, 10)
-            }
-            return (
-              <div className="response" key={i} ref={comment => this["comment_" + elem.id] = comment}>
-                <div className="top">
-                  <div className="author">
+            <ActionButtons
+              primaryText="Send"
+              primaryAction={this.sendComment}
+              style={{
+                fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                        "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+                        "Segoe UI Emoji", "Segoe UI Symbol"`,
+                margin: "0.5rem 0 0.5rem auto"
+              }}
+              ref={btns => (this.inputActionButtons = btns)}
+            />
+          </div>
+        )}
+        {Object.keys(this.props.user).length === 0 && (
+          <div className="login">
+            <p>You need an account to write a response</p>
+            <a onClick={() => this.props.openSignInModal("signUp")}>Sign up</a>
+          </div>
+        )}
+        {this.state.comments.map((elem, i) => {
+          if (this.props.url.query.comment === elem.id) {
+            setTimeout(() => {
+              const comment = findDOMNode(this["comment_" + elem.id]);
+              comment.scrollIntoView();
+            }, 10);
+          }
+          return (
+            <div
+              className="response"
+              key={i}
+              ref={comment => (this["comment_" + elem.id] = comment)}
+            >
+              <div className="top">
+                <div className="author">
+                  <a
+                    href={"/users/" + (elem.author ? elem.author.nametag : "")}
+                    style={{ opacity: 1 }}
+                  >
+                    <Image
+                      src={
+                        elem.author
+                          ? elem.author.image !== null &&
+                            elem.author.image !== undefined
+                            ? "/static/img/users/" +
+                              encodeURIComponent(elem.author.image)
+                            : "/static/img/User.png"
+                          : "/static/img/User.png"
+                      }
+                      alt={elem.author ? elem.author.nametag : "Loading"}
+                      style={{
+                        display: "inline-block",
+                        width: "3rem",
+                        height: "3rem",
+                        borderRadius: "50%",
+                        margin: "0 0.5rem 0 0",
+                        background: "none"
+                      }}
+                    />
+                  </a>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                  >
                     <a
                       href={
                         "/users/" + (elem.author ? elem.author.nametag : "")
                       }
                       style={{ opacity: 1 }}
                     >
-                      <Image
-                        src={
-                          elem.author
-                            ? elem.author.image !== null &&
-                              elem.author.image !== undefined
-                              ? elem.author.image
-                              : "/img/User.png"
-                            : "/img/User.png"
-                        }
-                        alt={elem.author ? elem.author.nametag : "Loading"}
+                      <h3
                         style={{
-                          display: "inline-block",
-                          width: "3rem",
-                          height: "3rem",
-                          borderRadius: "50%",
-                          margin: "0 0.5rem 0 0",
-                          background: "none"
+                          display: "inherit",
+                          color: "#212529",
+                          cursor: "pointer"
                         }}
-                      />
+                      >
+                        {elem.author ? elem.author.nametag : "Loading"}
+                      </h3>
                     </a>
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        flexDirection: "column"
+                        color: "rgba(0,0,0,.5)",
+                        fontFamily:
+                          '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
+                        fontSize: "1rem"
                       }}
                     >
-                      <a
-                        href={
-                          "/users/" + (elem.author ? elem.author.nametag : "")
-                        }
-                        style={{ opacity: 1 }}
-                      >
-                        <h3
-                          style={{
-                            display: "inherit",
-                            color: "#212529",
-                            cursor: "pointer"
-                          }}
-                        >
-                          {elem.author ? elem.author.nametag : "Loading"}
-                        </h3>
-                      </a>
-                      <span
-                        style={{
-                          color: "rgba(0,0,0,.5)",
-                          fontFamily:
-                            '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
-                          fontSize: "1rem"
-                        }}
-                      >
-                        {new Date(elem.createdAt).getFullYear() ===
-                        new Date().getFullYear()
-                          ? moment(elem.createdAt).format("MMM D")
-                          : moment(elem.createdAt).format("MMM D, YYYY")}
-                      </span>
-                    </div>
+                      {new Date(elem.createdAt).getFullYear() ===
+                      new Date().getFullYear()
+                        ? moment(elem.createdAt).format("MMM D")
+                        : moment(elem.createdAt).format("MMM D, YYYY")}
+                    </span>
                   </div>
-                  {Object.keys(this.props.user).length > 0 &&
-                    elem.author &&
-                    elem.author.id === this.props.user.id && (
-                      <MoreMenu
-                        id={elem.id}
-                        edit={this.state["edit_" + elem.id]}
-                        updateEdit={() => {
-                          this.setState(prevState => {
-                            let state: any = prevState;
-                            state["edit_" + elem.id] = true;
-
-                            return state;
-                          });
-                        }}
-                        openDeletePopup={this.props.openDeletePopup}
-                      />
-                    )}
                 </div>
-                <div
-                  className="message-outer clearfix"
-                  style={{ padding: "0 0 1rem 0" }}
-                >
-                  {this.state["edit_" + elem.id] ? (
-                    <div>
-                      <Input
-                        label="Message"
-                        type="textarea"
-                        value={elem.message}
-                        style={{
-                          margin: "2rem 0.5rem 0",
-                          flex: "1 1 0",
-                          whiteSpace: "normal"
-                        }}
-                        ref={input => (this["edit_" + elem.id] = input)}
-                      />
-                      <div className="action-buttons">
-                        <button
-                          className="primary"
-                          onClick={() =>
-                            this.updateComment(elem.id, elem.author.id)
-                          }
-                        >
-                          Update
-                        </button>
-                        <button
-                          className="secondary"
-                          onClick={() => {
-                            this.setState(prevState => {
-                              let state: any = prevState;
-                              state["edit_" + elem.id] = false;
+                {Object.keys(this.props.user).length > 0 &&
+                  elem.author &&
+                  elem.author.id === this.props.user.id && (
+                    <MoreMenu
+                      id={elem.id}
+                      edit={this.state["edit_" + elem.id]}
+                      updateEdit={() => {
+                        this.setState(prevState => {
+                          let state: any = prevState;
+                          state["edit_" + elem.id] = true;
 
-                              return state;
-                            });
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Markdown className="message" source={elem.message} />
+                          return state;
+                        });
+                      }}
+                      openDeletePopup={this.props.openDeletePopup}
+                    />
                   )}
-                  <Bottombar
-                    where="comment"
-                    id={elem.id}
-                    articleID={this.props.articleID}
-                    user={this.props.user}
-                    likes={elem.likes}
-                    contentLoaded={true}
-                  />
-                </div>
               </div>
-            );
-          })}
-          <style jsx>{`
-            .Responses {
-              margin: 5rem 0 0;
-            }
+              <div
+                className="message-outer clearfix"
+                style={{ padding: "0 0 1rem 0" }}
+              >
+                {this.state["edit_" + elem.id] ? (
+                  <div>
+                    <Input
+                      label="Message"
+                      type="textarea"
+                      value={elem.message}
+                      style={{
+                        margin: "2rem 0.5rem 0",
+                        flex: "1 1 0",
+                        whiteSpace: "normal"
+                      }}
+                      ref={input => (this["edit_" + elem.id] = input)}
+                    />
 
-            .Responses h2 {
-              color: #cc0000;
-              text-align: center;
-              margin: 0 0 2rem;
-            }
+                    <ActionButtons
+                      primaryText="Update"
+                      primaryAction={(e: any, triggerLoading: any) =>
+                        this.updateComment(
+                          elem.id,
+                          elem.author.id,
+                          triggerLoading
+                        )
+                      }
+                      secondaryText="Cancel"
+                      secondaryAction={() => {
+                        this.setState(prevState => {
+                          let state: any = prevState;
+                          state["edit_" + elem.id] = false;
 
-            .Responses .login,
-            .Responses .input,
-            .Responses .response {
-              border-radius: 2px;
-              background: #fff;
-              font-family: Georgia, Cambria, "Times New Roman", Times, serif;
-              font-size: 1.25rem;
-              white-space: pre-wrap;
-              /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
-              padding: 0.3rem 0.6rem;
-              margin: 1rem 0;
-              border: 1px solid rgba(0, 0, 0, 0.2);
-            }
+                          return state;
+                        });
+                      }}
+                      style={{
+                        fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                        "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+                        "Segoe UI Emoji", "Segoe UI Symbol"`,
+                        margin: ".5rem 0 1rem auto"
+                      }}
+                      ref={btns =>
+                        (this["edit_" + elem.id + "ActionButtons"] = btns)
+                      }
+                    />
+                  </div>
+                ) : (
+                  <Markdown className="message" source={elem.message} />
+                )}
+                <Bottombar
+                  where="comment"
+                  id={elem.id}
+                  articleID={this.props.articleID}
+                  user={this.props.user}
+                  likes={elem.likes}
+                  contentLoaded={true}
+                />
+              </div>
+            </div>
+          );
+        })}
+        <style jsx>{`
+          .Responses {
+            margin: 5rem 0 0;
+          }
 
-            .Responses .login {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-                sans-serif;
-              text-align: center;
-              padding: 0.3rem 0.6rem;
-              cursor: default;
-            }
+          .Responses h2 {
+            color: #cc0000;
+            text-align: center;
+            margin: 0 0 2rem;
+          }
 
-            .Responses .input {
-              display: flex;
-              flex-direction: column;
-            }
+          .Responses .login,
+          .Responses .input,
+          .Responses .response {
+            border-radius: 2px;
+            background: #fff;
+            font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+            font-size: 1.25rem;
+            white-space: pre-wrap;
+            /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
+            padding: 0.3rem 0.6rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+          }
 
-            .Responses .input .message {
-              display: flex;
-              align-items: self-start;
-              white-space: normal;
-            }
+          .Responses .login {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+              sans-serif;
+            text-align: center;
+            padding: 0.3rem 0.6rem;
+            cursor: default;
+          }
 
-            .Responses .input .action-buttons {
-              display: flex;
-              flex-direction: row;
-              float: right;
-              margin: 0.5rem 0 0.5rem auto;
-            }
+          .Responses .input {
+            display: flex;
+            flex-direction: column;
+          }
 
-            .Responses .input .action-buttons button {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
-                "Segoe UI Emoji", "Segoe UI Symbol";
-              background: none;
-              border: 0;
-              outline: 0;
-              opacity: 0.8;
-              box-shadow: none;
-              transition: all 0.15s;
-            }
+          .Responses .input .message {
+            display: flex;
+            align-items: self-start;
+            white-space: normal;
+          }
 
-            .Responses .input .action-buttons button:hover {
-              /* text-decoration: underline; */
-              opacity: 1;
-            }
+          .Responses .input .action-buttons {
+            display: flex;
+            flex-direction: row;
+            float: right;
+            margin: 0.5rem 0 0.5rem auto;
+          }
 
-            .Responses .input .action-buttons button.primary {
-              margin: 1rem 0 1rem 1rem;
-              cursor: pointer;
-              color: #cc0000;
-            }
+          .Responses .input .action-buttons button {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+              "Segoe UI Emoji", "Segoe UI Symbol";
+            background: none;
+            border: 0;
+            outline: 0;
+            opacity: 0.8;
+            box-shadow: none;
+            transition: all 0.15s;
+          }
 
-            .Responses .input .action-buttons button.secondary {
-              margin: 1rem;
-              cursor: pointer;
-              color: #7f7f7f;
-            }
+          .Responses .input .action-buttons button:hover {
+            /* text-decoration: underline; */
+            opacity: 1;
+          }
 
-            .Responses .input .action-buttons button.primary {
-              margin: 0;
-            }
+          .Responses .input .action-buttons button.primary {
+            margin: 1rem 0 1rem 1rem;
+            cursor: pointer;
+            color: #cc0000;
+          }
 
-            .Responses .response .top {
-              display: flex;
-            }
+          .Responses .input .action-buttons button.secondary {
+            margin: 1rem;
+            cursor: pointer;
+            color: #7f7f7f;
+          }
 
-            .Responses .response .top .author {
-              display: flex;
-              flex-direction: row;
-              flex-flow: row;
-              align-items: center;
-              flex: 1 1 0;
-              margin: 0.5rem 0 0;
-            }
+          .Responses .input .action-buttons button.primary {
+            margin: 0;
+          }
 
-            .Responses .response .top .author h3 {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-                sans-serif;
-              display: inline;
-              font-size: 1rem;
-              font-weight: 500;
-              margin: 0;
-              cursor: default;
-            }
+          .Responses .response .top {
+            display: flex;
+          }
 
-            .Responses .response .message-outer.clearfix::after {
-              height: 0;
-            }
+          .Responses .response .top .author {
+            display: flex;
+            flex-direction: row;
+            flex-flow: row;
+            align-items: center;
+            flex: 1 1 0;
+            margin: 0.5rem 0 0;
+          }
 
-            .Responses .response .action-buttons {
-              display: flex;
-              flex-direction: row-reverse;
-              margin: 0 0 1rem 0;
-            }
+          .Responses .response .top .author h3 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+              sans-serif;
+            display: inline;
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+            cursor: default;
+          }
 
-            .Responses .response .action-buttons button {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
-                "Segoe UI Emoji", "Segoe UI Symbol";
-              background: none;
-              border: 0;
-              outline: 0;
-              opacity: 0.8;
-              box-shadow: none;
-              transition: all 0.15s;
-            }
+          .Responses .response .message-outer.clearfix::after {
+            height: 0;
+          }
 
-            .Responses .response .action-buttons button:hover {
-              /* text-decoration: underline; */
-              opacity: 1;
-            }
+          .Responses .response .action-buttons {
+            display: flex;
+            flex-direction: row-reverse;
+            margin: 0 0 1rem 0;
+          }
 
-            .Responses .response .action-buttons button.primary {
-              margin: 1rem 0 1rem 1rem;
-              cursor: pointer;
-              color: #cc0000;
-            }
+          .Responses .response .action-buttons button {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+              "Segoe UI Emoji", "Segoe UI Symbol";
+            background: none;
+            border: 0;
+            outline: 0;
+            opacity: 0.8;
+            box-shadow: none;
+            transition: all 0.15s;
+          }
 
-            .Responses .response .action-buttons button.secondary {
-              margin: 1rem;
-              cursor: pointer;
-              color: #7f7f7f;
-            }
+          .Responses .response .action-buttons button:hover {
+            /* text-decoration: underline; */
+            opacity: 1;
+          }
 
-            .Responses .response .action-buttons button.primary {
-              margin: 0;
-            }
+          .Responses .response .action-buttons button.primary {
+            margin: 1rem 0 1rem 1rem;
+            cursor: pointer;
+            color: #cc0000;
+          }
 
-            .Responses .response .action-buttons button.primary {
-              margin-left: 0;
-            }
-          `}</style>
-          <style jsx global>{`
-            .Responses .input .message p.Input label,
-            .Responses .response p.Input label {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-                sans-serif;
-            }
+          .Responses .response .action-buttons button.secondary {
+            margin: 1rem;
+            cursor: pointer;
+            color: #7f7f7f;
+          }
 
-            .Responses .input .message p.Input span::after {
-              margin: -0.1rem 0 0 0;
-            }
+          .Responses .response .action-buttons button.primary {
+            margin: 0;
+          }
 
-            .Responses .response .message {
-              margin: 1rem 0.5rem;
-            }
-          `}</style>
-        </div>
-      );
-    } else {
-      return <div />;
-    }
+          .Responses .response .action-buttons button.primary {
+            margin-left: 0;
+          }
+        `}</style>
+        <style jsx global>{`
+          .Responses .input .message p.Input label,
+          .Responses .response p.Input label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+              sans-serif;
+          }
+
+          .Responses .input .message p.Input span::after {
+            margin: -0.1rem 0 0 0;
+          }
+
+          .Responses .response .message {
+            margin: 1rem 0.5rem;
+          }
+        `}</style>
+      </div>
+    );
   }
 }
 
@@ -2008,16 +2053,19 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
     }
   }
 
-  delete() {
+  delete(e: any, triggerLoading: any) {
+    triggerLoading();
+
     switch (this.state.what) {
       case "article":
-        this.props.deleteArticle();
+        this.props.deleteArticle(this.ActionButtons);
       case "comment":
         this.props
           .deleteComment({
             variables: { id: this.state.id, articleID: this.props.id }
           })
           .then((res: any) => {
+            this.ActionButtons.reset();
             this.props.deleteCommentFromDOM(this.state.id);
           })
           .catch((err: any) => {
@@ -2083,26 +2131,19 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
               {this.props.isOpen.what || "article"}?
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={this.delete}
-              >
-                Delete
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={e => {
+              <ActionButtons
+                primaryText="Delete"
+                primaryAction={this.delete}
+                secondaryText="Cancel"
+                secondaryAction={e => {
                   e.preventDefault();
                   this.setState(prevState => ({
                     ...prevState,
                     popup: false
                   }));
                 }}
-              >
-                Cancel
-              </button>
+                ref={btns => (this.ActionButtons = btns)}
+              />
             </div>
           </div>
         </div>
@@ -2110,7 +2151,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           .deletePopup {
             display: block !important;
             opacity: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
           }
 
@@ -2122,6 +2163,11 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           .deletePopup .modal-content .modal-header,
           .deletePopup .modal-content .modal-footer {
             border: 0;
+          }
+
+          .deletePopup .modal-content {
+            border-radius: 0;
+            box-shadow: 0 0.3125rem 1rem 0 rgba(0, 0, 0, 0.24);
           }
 
           .deletePopup .modal-content .modal-header button.close {
@@ -2138,60 +2184,6 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
 
           .deletePopup .modal-content .modal-body {
             padding: 15px;
-          }
-
-          .deletePopup .modal-content .modal-footer {
-            padding-top: 0;
-            flex-flow: wrap;
-            justify-content: center;
-            flex-flow: column;
-          }
-
-          .deletePopup .modal-content .modal-footer button {
-            border: 0;
-            background: none;
-            cursor: pointer;
-            box-shadow: none;
-            margin: 0;
-            outline: 0;
-            opacity: 0.8;
-            transition: all 0.15s;
-          }
-
-          .deletePopup .modal-content .modal-footer button:hover {
-            /* text-decoration: underline; */
-            opacity: 1;
-          }
-
-          .deletePopup .modal-content .modal-footer button:focus {
-            box-shadow: none;
-            outline: 0;
-            background: none;
-          }
-
-          .deletePopup .modal-content .modal-footer button:active {
-            border: 0;
-            background: none;
-            box-shadow: none;
-          }
-
-          .deletePopup .modal-content .modal-footer button.btn-primary {
-            color: #cc0017;
-            order: 1;
-            font-weight: 600;
-          }
-
-          .deletePopup .modal-content .modal-footer button.btn-secondary {
-            color: #7f7f7f;
-            font-weight: 400;
-          }
-
-          @media (min-width: 576px),
-            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
-            .deletePopup .modal-content .modal-footer {
-              justify-content: flex-end;
-              flex-flow: row;
-            }
           }
         `}</style>
       </div>

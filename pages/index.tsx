@@ -18,40 +18,67 @@ import { graphql } from "../utils/graphql";
 import gql from "graphql-tag";
 
 interface Props {
-  data?: any;
+  quote: any;
+  articles: any;
   url?: any;
   user?: any;
   signInModal?: any;
   error?: any;
 }
 
-@graphql(gql`
-  {
-    getRandomQuote {
-      quote
-      author
-    }
-  }
-`)
 class Index extends Component<Props> {
+  static async getInitialProps(ctx: any, apolloClient: any, user: any) {
+    return await apolloClient
+      .query({
+        query: gql`
+          {
+            allArticles {
+              id
+              title
+            }
+          }
+        `
+      })
+      .then(async (allArticles: any) => {
+        return await apolloClient
+          .query({
+            query: gql`
+              {
+                getRandomQuote {
+                  quote
+                  author
+                }
+              }
+            `
+          })
+          .then((getRandomQuote: any) => {
+            return {
+              articles: allArticles.data.allArticles,
+              quote: getRandomQuote.data.getRandomQuote,
+              user
+            };
+          })
+          .catch((err: Error) => {
+            return { error: err, user };
+          });
+      })
+      .catch((err: Error) => {
+        return { error: err, user };
+      });
+  }
+
   render() {
-    const { data: { loading, getRandomQuote } } = this.props;
+    const { quote: { quote, author }, articles } = this.props;
     return (
       <App {...this.props}>
         <div className="Home Content">
           <Head>
             <title>Home | Oyah</title>
             <meta name="description" content="Homepage of Oyah" />
-            {/* <base href="http://localhost:8081/" /> */}
           </Head>
-          <Highlights url={this.props.url} />
-          <Other />
-          {!loading && (
-            <Quote
-              author={getRandomQuote.author}
-              quote={getRandomQuote.quote}
-            />
-          )}
+          <Highlights articles={articles} />
+          <Other articles={articles} />
+          <Quote author={author} quote={quote} />
         </div>
         <style jsx global>{`
           .Content {

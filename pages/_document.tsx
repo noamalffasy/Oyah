@@ -102,7 +102,7 @@ class MyDocument extends Document {
             name="msapplication-TileImage"
             content="/favicons/ms-icon-144x144.png"
           />
-          <title>Oyah</title>
+          <title></title>
           <link rel="stylesheet" href="/css/bootstrap.min.css" />
 
           <script
@@ -116,6 +116,7 @@ class MyDocument extends Document {
               enable_page_level_ads: true
             });`}
           </script>
+          <link rel="stylesheet" href="/_next/static/style.css" />
         </Head>
         <body>
           <Main />

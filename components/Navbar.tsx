@@ -1,9 +1,10 @@
 import * as React from "react";
 import { Component } from "react";
+import { findDOMNode } from "react-dom";
 
 import Link from "next/link";
-import { withRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/fontawesome-free-solid";
 
 import { Collapse, NavbarToggler } from "reactstrap";
 
@@ -11,21 +12,19 @@ import Image from "./Image";
 import Input from "./Input";
 
 // GraphQL
-import graphql from "../utils/graphql";
-import gql from "graphql-tag";
+import { withApollo } from "react-apollo";
 
-import { faSearch } from "@fortawesome/fontawesome-free-solid";
-import { findDOMNode } from "react-dom";
+import { remove as removeCookie } from "../utils/cookie";
 
 interface Props {
+  client?: any;
   url: any;
   container: any;
-  logout: any;
   login: any;
   user: any;
+  searchTerm: any;
   openSignInModal: any;
   closeSignInModal: any;
-  searchArticle?: any;
 }
 
 interface State {
@@ -35,19 +34,6 @@ interface State {
   searchTerm: any;
 }
 
-@graphql(
-  gql`
-    mutation searchArticle($searchTerm: String!) {
-      searchArticle(searchTerm: $searchTerm) {
-        id
-        title
-      }
-    }
-  `,
-  {
-    name: "searchArticle"
-  }
-)
 class Navbar extends Component<Props, State> {
   constructor(props: Props, context: any) {
     super(props, context);
@@ -70,9 +56,10 @@ class Navbar extends Component<Props, State> {
     this.addContainer(this.props);
 
     if (this.props.url.pathname === "/Search") {
+      const { searchTerm } = this.props;
       this.setState((prevState: any) => ({
         ...prevState,
-        searchTerm: this.props.url.query.q
+        searchTerm
       }));
     }
   }
@@ -163,7 +150,8 @@ class Navbar extends Component<Props, State> {
             <ul className="navbar-nav mr-auto">
               <li
                 className={
-                  this.props.url.pathname === "/"
+                  this.props.url.pathname === "/" ||
+                  this.props.url.pathname === "/index"
                     ? "nav-item active"
                     : "nav-item"
                 }
@@ -219,7 +207,7 @@ class Navbar extends Component<Props, State> {
               />
             </form>
             <Account
-              logout={this.props.logout}
+              client={this.props.client}
               login={this.props.login}
               user={this.props.user}
               openSignInModal={this.props.openSignInModal}
@@ -316,38 +304,6 @@ class Navbar extends Component<Props, State> {
   }
 }
 
-@graphql(gql`
-  {
-    currentUser {
-      ok
-      jwt
-      errors {
-        field
-        message
-      }
-      user {
-        id
-        nametag
-        email
-        small_image
-        image
-        editor
-      }
-    }
-  }
-`)
-@graphql(
-  gql`
-    mutation signoutUser {
-      signoutUser {
-        status
-      }
-    }
-  `,
-  {
-    name: "signoutUser"
-  }
-)
 class Account extends Component<any, any> {
   constructor(props: any) {
     super(props);
@@ -368,33 +324,43 @@ class Account extends Component<any, any> {
     this.toggleInfo = this.toggleInfo.bind(this);
   }
 
-  componentWillReceiveProps(nextProps: any) {
-    if (
-      nextProps.data &&
-      nextProps.data.currentUser &&
-      nextProps.data.currentUser.user !== null &&
-      Object.keys(this.props.user).length === 0
-    ) {
-      const data = nextProps.data.currentUser;
-      if (data.error) {
-        if (
-          data.error[0].message !== "User is not logged in (or authenticated)."
-        ) {
-          console.error(data.error);
-        }
-      } else {
-        this.props.login({
-          ...data.user
-          // mains: data.user.mains !== null ? data.user.mains.split(", ") : null
-        });
-
-        this.setState((prevState: any) => ({
-          ...prevState,
-          loggedIn: true,
-          user: data.user
-        }));
-      }
+  componentWillMount() {
+    if (Object.keys(this.props.user).length > 0) {
+      this.setState((prevState: any) => ({
+        ...prevState,
+        loggedIn: true,
+        user: this.props.user
+      }));
     }
+  }
+
+  componentWillReceiveProps(nextProps: any) {
+    // if (
+    //   nextProps.data &&
+    //   nextProps.data.currentUser &&
+    //   nextProps.data.currentUser.user !== null &&
+    //   Object.keys(this.props.user).length === 0
+    // ) {
+    //   const data = nextProps.data.currentUser;
+    //   if (data.error) {
+    //     if (
+    //       data.error[0].message !== "User is not logged in (or authenticated)."
+    //     ) {
+    //       console.error(data.error);
+    //     }
+    //   } else {
+    //     this.props.login({
+    //       ...data.user
+    //       // mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+    //     });
+
+    //     this.setState((prevState: any) => ({
+    //       ...prevState,
+    //       loggedIn: true,
+    //       user: data.user
+    //     }));
+    //   }
+    // }
     // if (this.Account) {
     //   if (
     //     nextProps.clicked !== null &&
@@ -548,7 +514,22 @@ class Account extends Component<any, any> {
                   Settings
                 </a>
               </Link>
-              <a href="/signout">Sign out</a>
+              <a
+                href="/signout"
+                onClick={e => {
+                  e.preventDefault();
+
+                  removeCookie(document.cookie, "token");
+
+                  this.props.client.cache.reset().then(() => {
+                    window.location.href = `${window.location.protocol}//${
+                      window.location.host
+                    }/signout`;
+                  });
+                }}
+              >
+                Sign out
+              </a>
             </div>
             <img
               className="arrow"
@@ -751,4 +732,4 @@ class Account extends Component<any, any> {
   }
 }
 
-export default Navbar;
+export default withApollo(Navbar);

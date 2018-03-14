@@ -48,7 +48,7 @@ class Article extends Component<Props, any> {
         >
           <div className={this.props.main ? "Article main" : "Article"}>
             <Image
-              src={"/img/articles/" + this.props.id + ".jpeg"}
+              src={"/static/img/articles/" + this.props.id + "/main.jpeg"}
               alt={this.props.alt || ""}
               onError={(e: any) => {
                 e.target.src = "";

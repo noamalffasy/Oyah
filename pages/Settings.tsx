@@ -12,6 +12,7 @@ import App from "../components/App";
 
 import Image from "../components/Image";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 import Head from "next/head";
 import Router from "next/router";
@@ -22,7 +23,8 @@ import gql from "graphql-tag";
 import withData from "../lib/withData";
 
 interface Props {
-  data?: any;
+  profile: any;
+  error: any;
   user?: any;
   login?: any;
   dispatch?: any;
@@ -36,26 +38,6 @@ interface State {
   userImg?: any;
 }
 
-@graphql(gql`
-  {
-    currentUser {
-      ok
-      jwt
-      errors {
-        field
-        message
-      }
-      user {
-        id
-        name
-        bio
-        mains
-        reddit
-        twitter
-      }
-    }
-  }
-`)
 @graphql(
   gql`
     mutation updateUser(
@@ -152,35 +134,25 @@ class Settings extends Component<Props, State> {
     this.update = this.update.bind(this);
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const { user } = nextProps;
-    if (
-      nextProps.data &&
-      !nextProps.data.loading &&
-      nextProps.data.currentUser &&
-      nextProps.data.currentUser.user !== null &&
-      (!this.props.data.currentUser ||
-        nextProps.data.currentUser.user !== this.props.data.currentUser.user)
-    ) {
-      const data = nextProps.data.currentUser;
-      if (data.error) {
-        if (
-          data.error[0].message === "User is not logged in (or authenticated)."
-        ) {
-          this.setState((prevState: any) => ({
-            ...prevState,
-            loggedIn: false
-          }));
-        } else {
-          // console.error(data.error);
-          this.setError(data.error);
-        }
+  static async getInitialProps(ctx: any, apolloClient: any, user: any) {
+    if (user === undefined || user.id === null || user.id === undefined) {
+      return {
+        error: "Not logged in"
+      };
+    }
+  }
+
+  componentDidMount() {
+    const { user, error } = this.props;
+    if (error) {
+      if (error === "Not logged in") {
+        this.setState((prevState: any) => ({
+          ...prevState,
+          loggedIn: false
+        }));
       } else {
-        this.login({
-          ...user,
-          ...data.user,
-          mains: data.user.mains !== null ? data.user.mains.split(", ") : null
-        });
+        // console.error(error);
+        this.setError(error);
       }
     }
   }
@@ -230,7 +202,7 @@ class Settings extends Component<Props, State> {
     fr.readAsDataURL(imageDialog.files[0]);
   }
 
-  update() {
+  update(e: any, triggerLoading: any) {
     const image = this.image.src.startsWith("data:image")
       ? findDOMNode(this.imageDialog).files[0]
       : null;
@@ -245,6 +217,8 @@ class Settings extends Component<Props, State> {
     const confirmPassword = this.confirmPassword.input.value;
 
     if (image !== null) {
+      triggerLoading();
+
       this.props
         .uploadFile({
           variables: {
@@ -258,7 +232,6 @@ class Settings extends Component<Props, State> {
             this.setError(res.error);
           } else {
             const data = res.data.uploadFile;
-            console.log(res);
 
             this.login({ ...this.props.user, image: data.path });
           }
@@ -267,6 +240,8 @@ class Settings extends Component<Props, State> {
 
     if (password !== "" && password !== undefined) {
       if (password === confirmPassword) {
+        triggerLoading();
+
         this.props
           .updateUserPassword({
             variables: {
@@ -281,6 +256,8 @@ class Settings extends Component<Props, State> {
             }
           })
           .then((res: any) => {
+            this.ActionButtons.reset();
+
             if (res.error) {
               // console.error(res.error);
               this.setError(res.error);
@@ -292,6 +269,8 @@ class Settings extends Component<Props, State> {
           });
       }
     } else {
+      triggerLoading();
+
       this.props
         .updateUser({
           variables: {
@@ -305,13 +284,20 @@ class Settings extends Component<Props, State> {
           }
         })
         .then((res: any) => {
+          this.ActionButtons.reset();
+
           if (res.error) {
             // console.error(res.error);
             this.setError(res.error);
           } else {
             const data = res.data.updateUser;
 
-            this.login({ ...data.user, token: data.token });
+            this.login({
+              ...data.user,
+              mains:
+                data.user.mains !== null ? data.user.mains.split(", ") : null,
+              token: data.token
+            });
           }
         });
     }
@@ -348,9 +334,9 @@ class Settings extends Component<Props, State> {
                       this.state.userImg
                         ? this.state.userImg
                         : this.props.user.image !== null
-                          ? "/img/users/" +
+                          ? "/static/img/users/" +
                             encodeURIComponent(this.props.user.image)
-                          : "/img/User.png"
+                          : "/static/img/User.png"
                     }
                     ref={img => (this.image = img)}
                   />
@@ -408,7 +394,7 @@ class Settings extends Component<Props, State> {
                       className="mains"
                       label="Your main characters"
                       type="select-dropdown"
-                      selections={this.props.user.mains || ""}
+                      selections={this.props.user.mains || []}
                       maxSelections={10000}
                       list={[
                         "Bowser",
@@ -518,11 +504,11 @@ class Settings extends Component<Props, State> {
                 </tr>
               </tbody>
             </table>
-            <div className="action-buttons">
-              <button className="primary" onClick={this.update}>
-                Update
-              </button>
-            </div>
+            <ActionButtons
+              primaryText="Update"
+              primaryAction={this.update}
+              ref={btns => (this.ActionButtons = btns)}
+            />
           </div>
           <style jsx>{`
             .Content {

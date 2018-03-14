@@ -21,7 +21,8 @@ import gql from "graphql-tag";
 
 interface Props {
   data?: any;
-  getUser?: any;
+  profileUser?: any;
+  articles: any;
   getArticlesByUser?: any;
   dispatch?: any;
   user?: any;
@@ -35,235 +36,248 @@ interface State {
   user: any;
 }
 
-@graphql(gql`
-  {
-    currentUser {
-      ok
-      jwt
-      errors {
-        field
-        message
-      }
-      user {
-        id
-        small_image
-        image
-        name
-        nametag
-        email
-        bio
-        mains
-        reddit
-        twitter
-      }
-    }
-  }
-`)
-@graphql(
-  gql`
-    mutation getUser($nametag: String) {
-      getUser(nametag: $nametag) {
-        id
-        small_image
-        image
-        nametag
-        name
-        email
-        bio
-        mains
-        reddit
-        twitter
-      }
-    }
-  `,
-  {
-    name: "getUser"
-  }
-)
-@graphql(
-  gql`
-    mutation getArticlesByUser($authorID: ID) {
-      getArticlesByUser(authorID: $authorID) {
-        id
-        title
-      }
-    }
-  `,
-  {
-    name: "getArticlesByUser"
-  }
-)
 class Profile extends Component<Props, State> {
   state = { articles: [1, 2, 3], user: {} };
 
-  componentDidMount() {
-    if (this.props.url.query.nametag !== undefined) {
-      this.props
-        .getUser({
+  static async getInitialProps(
+    { query: { nametag } }: any,
+    apolloClient: any,
+    user: any
+  ) {
+    if (nametag !== undefined) {
+      return await apolloClient
+        .mutate({
+          mutation: gql`
+            mutation getUser($nametag: String) {
+              getUser(nametag: $nametag) {
+                id
+                small_image
+                image
+                nametag
+                name
+                email
+                bio
+                mains
+                reddit
+                twitter
+              }
+            }
+          `,
           variables: {
-            nametag: this.props.url.query.nametag
+            nametag
           }
         })
-        .then((res: any) => {
-          this.setState(prevState => ({
-            ...prevState,
-            user: {
-              ...res.data.getUser,
-              mains:
-                res.data.getUser.mains !== null
-                  ? res.data.getUser.mains.split(", ")
-                  : null
-            }
-          }));
-          this.props
-            .getArticlesByUser({
-              variables: {
-                authorID: res.data.getUser.id
-              }
+        .then(async (getUser: any) => {
+          return await apolloClient
+            .mutate({
+              mutation: gql`
+                mutation getArticlesByUser($authorID: ID) {
+                  getArticlesByUser(authorID: $authorID) {
+                    id
+                    title
+                  }
+                }
+              `,
+              variables: { authorID: getUser.data.getUser.id }
             })
-            .then((res: any) => {
-              this.setState(prevState => ({
-                ...prevState,
-                articles: res.data.getArticlesByUser
-              }));
+            .then((getArticlesByUser: any) => {
+              return {
+                profileUser: {
+                  ...getUser.data.getUser,
+                  mains:
+                    getUser.data.getUser.mains !== null
+                      ? getUser.data.getUser.mains.split(", ")
+                      : null
+                },
+                articles: getArticlesByUser.data.getArticlesByUser
+              };
+            })
+            .catch((err: Error) => {
+              return {
+                error: err
+              };
             });
+        })
+        .catch((err: Error) => {
+          return {
+            error: err
+          };
         });
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url.query.nametag === undefined) {
-      const { dispatch, user } = nextProps;
-      const login = bindActionCreators(userActionCreators.login, dispatch);
-      if (
-        nextProps.data &&
-        !nextProps.data.loading &&
-        nextProps.data.currentUser &&
-        nextProps.data.currentUser.user !== null &&
-        (Object.keys(this.state.user).length === 0 ||
-          nextProps.data.currentUser.user !== this.props.data.currentUser.user)
-      ) {
-        const data = nextProps.data.currentUser;
-        if (data.error) {
-          if (
-            data.error[0].message !==
-            "User is not logged in (or authenticated)."
-          ) {
-            console.error(data.error);
-          }
-        } else {
-          login({
-            ...user,
-            ...data.user,
-            mains: data.user.mains !== null ? data.user.mains.split(", ") : null
-          });
-
-          this.setState(prevState => ({
-            ...prevState,
-            user: {
-              ...user,
-              ...data.user,
-              mains:
-                data.user.mains !== null ? data.user.mains.split(", ") : null
-            }
-          }));
-
-          this.props
-            .getArticlesByUser({
-              variables: {
-                authorID: data.user.id
+    } else {
+      if (user !== undefined && user.id !== null && user.id !== undefined) {
+        return await apolloClient
+          .mutate({
+            mutation: gql`
+              mutation getArticlesByUser($authorID: ID) {
+                getArticlesByUser(authorID: $authorID) {
+                  id
+                  title
+                }
               }
-            })
-            .then((res: any) => {
-              this.setState(prevState => ({
-                ...prevState,
-                articles: res.data.getArticlesByUser
-              }));
-            });
-        }
+            `,
+            variables: { authorID: user.id }
+          })
+          .then((getArticlesByUser: any) => {
+            return {
+              profileUser: user,
+              articles: getArticlesByUser.data.getArticlesByUser
+            };
+          })
+          .catch((err: Error) => {
+            return {
+              error: err
+            };
+          });
+      } else {
+        return {
+          error: "Not logged in"
+        };
       }
     }
   }
 
+  componentDidMount() {
+    const { profileUser, articles } = this.props;
+    this.setState(prevState => ({
+      ...prevState,
+      user: profileUser,
+      articles: articles
+    }));
+  }
+
+  // componentWillReceiveProps(nextProps: Props) {
+  //   if (nextProps.url.query.nametag === undefined) {
+  //     const { dispatch, user } = nextProps;
+  //     const login = bindActionCreators(userActionCreators.login, dispatch);
+  //     if (
+  //       nextProps.data &&
+  //       !nextProps.data.loading &&
+  //       nextProps.data.currentUser &&
+  //       nextProps.data.currentUser.user !== null &&
+  //       (Object.keys(this.state.user).length === 0 ||
+  //         nextProps.data.currentUser.user !== this.props.data.currentUser.user)
+  //     ) {
+  //       const data = nextProps.data.currentUser;
+  //       if (data.error) {
+  //         if (
+  //           data.error[0].message !==
+  //           "User is not logged in (or authenticated)."
+  //         ) {
+  //           console.error(data.error);
+  //         }
+  //       } else {
+  //         login({
+  //           ...user,
+  //           ...data.user,
+  //           mains: data.user.mains !== null ? data.user.mains.split(", ") : null
+  //         });
+
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           user: {
+  //             ...user,
+  //             ...data.user,
+  //             mains:
+  //               data.user.mains !== null ? data.user.mains.split(", ") : null
+  //           }
+  //         }));
+
+  //         this.props
+  //           .getArticlesByUser({
+  //             variables: {
+  //               authorID: data.user.id
+  //             }
+  //           })
+  //           .then((res: any) => {
+  //             this.setState(prevState => ({
+  //               ...prevState,
+  //               articles: res.data.getArticlesByUser
+  //             }));
+  //           });
+  //       }
+  //     }
+  //   }
+  // }
+
   render() {
-    if (Object.keys(this.state.user).length !== 0) {
+    if (Object.keys(this.props.profileUser).length !== 0) {
       return (
         <App {...this.props}>
           <div className="Profile Content">
             <Head>
-              <title>{this.state.user.nametag + " | Oyah"}</title>
+              <title>{this.props.profileUser.nametag + " | Oyah"}</title>
               <meta
                 name="description"
-                content={this.state.user.nametag + " profile"}
+                content={this.props.profileUser.nametag + " profile"}
               />
             </Head>
             <div className="user">
               <div className="info">
                 <Image
                   src={
-                    this.state.user.image !== null
-                      ? "/img/users/" +
-                        encodeURIComponent(this.state.user.image)
-                      : "/img/User.png"
+                    this.props.profileUser.image !== null
+                      ? "/static/img/users/" +
+                        encodeURIComponent(this.props.profileUser.image)
+                      : "/static/img/User.png"
                   }
-                  alt={this.state.user.nametag}
+                  alt={this.props.profileUser.nametag}
                 />
-                <h2>{this.state.user.nametag}</h2>
+                <h2>{this.props.profileUser.nametag}</h2>
               </div>
-              {this.state.user.bio !== null && <p>{this.state.user.bio}</p>}
+              {this.props.profileUser.bio !== null && <p>{this.props.profileUser.bio}</p>}
             </div>
             <table className="other-info">
               <tbody>
-                {this.state.user.name !== null &&
-                  this.state.user.name !== "" && (
+                {this.props.profileUser.name !== null &&
+                  this.props.profileUser.name !== "" && (
                     <tr>
                       <td>Full Name</td>
-                      <td>{this.state.user.name}</td>
+                      <td>{this.props.profileUser.name}</td>
                     </tr>
                   )}
-                {this.state.user.mains !== null &&
-                  this.state.user.mains !== "" && (
+                {this.props.profileUser.mains !== null &&
+                  this.props.profileUser.mains !== "" && (
                     <tr>
                       <td>Mains</td>
-                      <td>{this.state.user.mains.join(", ")}</td>
+                      <td>{this.props.profileUser.mains.join(", ")}</td>
                     </tr>
                   )}
-                {this.state.user.reddit !== null &&
-                  this.state.user.reddit !== "" && (
+                {this.props.profileUser.reddit !== null &&
+                  this.props.profileUser.reddit !== "" && (
                     <tr>
                       <td>Reddit</td>
                       <td>
                         <a
                           href={
-                            "https://reddit.com/u/" + this.state.user.reddit
+                            "https://reddit.com/u/" + this.props.profileUser.reddit
                           }
                         >
                           <b>u/</b>
-                          {this.state.user.reddit}
+                          {this.props.profileUser.reddit}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.state.user.twitter !== null &&
-                  this.state.user.twitter !== "" && (
+                {this.props.profileUser.twitter !== null &&
+                  this.props.profileUser.twitter !== "" && (
                     <tr>
                       <td>Twitter</td>
                       <td>
                         <a
                           href={
-                            "https://twitter.com/" + this.state.user.twitter
+                            "https://twitter.com/" + this.props.profileUser.twitter
                           }
                         >
                           <b>@</b>
-                          {this.state.user.twitter}
+                          {this.props.profileUser.twitter}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.state.user.name === null &&
-                  this.state.user.mains === null &&
-                  this.state.user.reddit === null &&
-                  this.state.user.twitter === null && (
+                {this.props.profileUser.name === null &&
+                  this.props.profileUser.mains === null &&
+                  this.props.profileUser.reddit === null &&
+                  this.props.profileUser.twitter === null && (
                     <tr>
                       <td>No info has been provided yet by the user</td>
                     </tr>
@@ -271,13 +285,13 @@ class Profile extends Component<Props, State> {
               </tbody>
             </table>
             <div className="articles">
-              {this.state.articles.map((elem: any, i: any) => {
+              {this.props.articles.map((elem: any, i: any) => {
                 return (
                   <Article
                     id={elem.id}
                     title={elem.title}
                     alt={elem.title}
-                    loading={this.state.articles[0].id === undefined}
+                    loading={this.props.articles[0].id === undefined}
                     key={i}
                   />
                 );
@@ -412,7 +426,7 @@ class Profile extends Component<Props, State> {
             @media (min-width: 768px),
               @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .articles .Article {
-                width: calc(1/2*100% - 1/2*2.5rem);
+                width: calc(1 / 2 * 100% - 1 / 2 * 2.5rem);
               }
               .Profile .articles .Article .image {
                 min-height: 15rem;
@@ -421,7 +435,7 @@ class Profile extends Component<Props, State> {
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .articles .Article {
-                width: calc(1/3*100% - (1 - 1/3)*1rem);
+                width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
                 height: 15rem;
                 overflow: hidden;
               }

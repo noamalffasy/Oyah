@@ -10,6 +10,7 @@ import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 // GraphQL
 import graphql from "../utils/graphql";
@@ -73,7 +74,7 @@ class Contact extends Component<Props, State> {
     this.message.reset();
   }
 
-  send(e: any) {
+  send(e: any, triggerLoading: any) {
     e.preventDefault();
 
     if (
@@ -86,6 +87,9 @@ class Contact extends Component<Props, State> {
         ...prevState,
         error: false
       }));
+
+      triggerLoading();
+
       this.props
         .sendMail({
           variables: {
@@ -96,10 +100,11 @@ class Contact extends Component<Props, State> {
           }
         })
         .then((res: any) => {
+          this.ActionButtons.reset();
+
           if (res.error) {
             console.error(res.error);
           } else {
-            console.log(res);
             const data = res.data.sendMail;
             // this.props.cookies.set("token", data.token);
 
@@ -166,14 +171,13 @@ class Contact extends Component<Props, State> {
                   this.message = input;
                 }}
               />
-              <div className="action-buttons">
-                <button className="secondary" onClick={this.reset}>
-                  Reset
-                </button>
-                <button className="primary" onClick={this.send}>
-                  Send
-                </button>
-              </div>
+              <ActionButtons
+                primaryText="Send"
+                primaryAction={this.send}
+                secondaryText="Reset"
+                secondaryAction={this.reset}
+                ref={btns => (this.ActionButtons = btns)}
+              />
             </form>
           </div>
           <style jsx>{`
@@ -197,38 +201,6 @@ class Contact extends Component<Props, State> {
 
             .Contact p:last-of-type {
               margin-bottom: 0.5rem;
-            }
-
-            .Contact .action-buttons {
-              display: flex;
-              flex-direction: row;
-              float: right;
-            }
-
-            .Contact .action-buttons button {
-              background: none;
-              border: 0;
-              outline: 0;
-              box-shadow: none;
-              opacity: 0.8;
-              transition: all 0.15s;
-            }
-
-            .Contact .action-buttons button:hover {
-              /* text-decoration: underline; */
-              opacity: 1;
-            }
-
-            .Contact .action-buttons button.primary {
-              margin: 0 0 1rem 1rem;
-              cursor: pointer;
-              color: #cc0000;
-            }
-
-            .Contact .action-buttons button.secondary {
-              margin: 0 1rem 1rem;
-              cursor: pointer;
-              color: #7f7f7f;
             }
             @media (min-width: 576px),
               @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {

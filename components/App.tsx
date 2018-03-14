@@ -3,22 +3,15 @@ import { Component } from "react";
 // import { spring, AnimatedSwitch } from "react-router-transition";
 
 import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-
-import Head from "next/head";
 
 import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
-import Article from "./Article";
-
 import Navbar from "./Navbar";
 
 import Footer from "./Footer";
 import LoginPopup from "./LoginPopup";
-
-import withData from "../lib/withData";
 
 import * as fontawesome from "@fortawesome/fontawesome";
 import {
@@ -31,7 +24,7 @@ import {
   faHeart as faHeartFill,
   faShareSquare
 } from "@fortawesome/fontawesome-free-solid";
-import { faHeart } from "@fortawesome/fontawesome-free-regular";
+import { faHeart, faImage } from "@fortawesome/fontawesome-free-regular";
 import {
   faRedditAlien,
   faTwitter,
@@ -51,7 +44,8 @@ fontawesome.library.add(
   faShareSquare,
   faRedditAlien,
   faTwitter,
-  faFacebookF
+  faFacebookF,
+  faImage
 );
 
 class App extends Component<any, any> {
@@ -81,8 +75,8 @@ class App extends Component<any, any> {
   addContainer(props: any) {
     const url = props.url;
     if (
-      (props.url.pathname === "/article" ||
-        props.url.pathname === "/WriteArticle") &&
+      (url.pathname === "/article" ||
+        url.pathname === "/WriteArticle") &&
       this.state.container === true
     ) {
       this.setState((prevState: any) => ({
@@ -90,8 +84,8 @@ class App extends Component<any, any> {
         container: false
       }));
     } else if (
-      props.url.pathname !== "/article" &&
-      props.url.pathname !== "/WriteArticle" &&
+      url.pathname !== "/article" &&
+      url.pathname !== "/WriteArticle" &&
       this.state.container === false
     ) {
       this.setState((prevState: any) => ({
@@ -131,7 +125,7 @@ class App extends Component<any, any> {
   //   };
 
   render() {
-    const { dispatch, signInModal, user, error, url } = this.props;
+    const { dispatch, signInModal, user, error, url, searchTerm } = this.props;
     const openSignInModal = bindActionCreators(
       signInModalActionCreators.open,
       dispatch
@@ -147,11 +141,12 @@ class App extends Component<any, any> {
       <div className={this.state.container ? "App container" : "App"}>
         <ErrorAlert error={error} setError={setError} />
         <Navbar
-          url={this.props.url}
+          url={url}
           container={this.state.container}
           logout={logout}
           login={login}
           user={user}
+          searchTerm={searchTerm}
           openSignInModal={openSignInModal}
           closeSignInModal={closeSignInModal}
         />
@@ -246,10 +241,10 @@ class App extends Component<any, any> {
   }
 }
 
-const mapStateToProps = (state: any) => ({
-  signInModal: state.signInModal,
-  user: state.user,
-  error: state.error
-});
+// const mapStateToProps = (state: any) => ({
+//   signInModal: state.signInModal,
+//   user: state.user,
+//   error: state.error
+// });
 
 export default App;

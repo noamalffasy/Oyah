@@ -15,42 +15,47 @@ import gql from "graphql-tag";
 import withData from "../lib/withData";
 
 interface Props {
-  data?: any;
+  articles: any;
   user?: any;
   signInModal?: any;
   error?: any;
 }
 
-interface State {
-  articles: any[];
-}
-
-@graphql(gql`
-  {
-    allArticles {
-      id
-      title
-    }
-  }
-`)
-class Articles extends Component<Props, State> {
-  componentWillReceiveProps(nextProps: Props) {
-    const allArticles = nextProps.data;
-    if (allArticles.allArticles !== this.state.articles) {
-      if (!allArticles.loading) {
-        if (allArticles.error) {
-          console.error(allArticles.error);
-        } else {
-          this.setState(prevState => ({
-            ...prevState,
-            articles: allArticles.allArticles
-          }));
+class Articles extends Component<Props> {
+  static async getInitialProps(ctx: any, apolloClient: any) {
+    return await apolloClient.query({
+      query: gql`
+        {
+          allArticles {
+            id
+            title
+          }
         }
+      `
+    }).then((res: any) => {
+      return {
+        articles: res.data.allArticles
       }
-    }
+    }).catch((err: Error) => {
+      return { error: err }
+    })
   }
 
-  state = { articles: [0, 1, 2, 3, 4, 5] };
+  // componentWillReceiveProps(nextProps: Props) {
+  //   const allArticles = nextProps.data;
+  //   if (allArticles.allArticles !== this.state.articles) {
+  //     if (!allArticles.loading) {
+  //       if (allArticles.error) {
+  //         console.error(allArticles.error);
+  //       } else {
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           articles: allArticles.allArticles
+  //         }));
+  //       }
+  //     }
+  //   }
+  // }
 
   render() {
     return (
@@ -60,14 +65,14 @@ class Articles extends Component<Props, State> {
             <title>Articles | Oyah</title>
             <meta name="description" content="Articles of Oyah" />
           </Head>
-          {this.state.articles &&
-            this.state.articles.map((elem: any, i) => {
+          {this.props.articles &&
+            this.props.articles.map((elem: any, i) => {
               return (
                 <Article
                   title={elem.title}
                   alt={elem.alt}
                   id={elem.id}
-                  loading={this.props.data.loading}
+                  loading={false}
                   key={i}
                 />
               );
@@ -107,7 +112,7 @@ class Articles extends Component<Props, State> {
             min-height: 15rem;
           }
           @media (min-width: 576px),
-          @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles {
               width: 85%;
               margin: 0 auto;
@@ -121,9 +126,9 @@ class Articles extends Component<Props, State> {
             }
           }
           @media (min-width: 768px),
-          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles .Article {
-              width: calc(1/2*100% - 1/2*2.5rem);
+              width: calc(1 / 2 * 100% - 1 / 2 * 2.5rem);
               height: 15rem;
             }
             .Articles .Article .image {
@@ -131,9 +136,9 @@ class Articles extends Component<Props, State> {
             }
           }
           @media (min-width: 992px),
-          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Articles .Article {
-              width: calc(1/3*100% - (1 - 1/3)*1rem);
+              width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
               overflow: hidden;
             }
           }

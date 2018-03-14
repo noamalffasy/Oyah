@@ -54,7 +54,7 @@ class Error extends Component<Props, any> {
             font-size: 2rem;
           }
         `}</style>
-      </App>
+        </App>
     );
   }
 }

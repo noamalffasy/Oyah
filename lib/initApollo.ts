@@ -5,7 +5,7 @@ import { onError } from "apollo-link-error";
 import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { createUploadLink } from "apollo-upload-client";
-import fetch from "isomorphic-unfetch";
+import * as fetch from "isomorphic-unfetch";
 
 let apolloClient: any = null;
 
@@ -14,7 +14,15 @@ if (!process.browser) {
   global.fetch = fetch;
 }
 
-function create(initialState: any) {
+// function parseCookie(cookie: string) {
+//   const cookies: any = {};
+//   cookie.split("; ").map(cookie => {
+//     cookies[cookie.split("=")[0]] = cookie.split("=")[1];
+//   });
+//   return cookies;
+// }
+
+function create(initialState: any, ctx: any = {}, jwt: any = "") {
   const domain =
     process.env.NODE_ENV === "production"
       ? "https://www.oyah.xyz"
@@ -22,7 +30,11 @@ function create(initialState: any) {
   const uri = domain + "/graphql";
 
   const authMiddleware = new ApolloLink((operation: any, forward: any) => {
-    const jwt = localStorage.getItem("reactQLJWT");
+    // const jwt = process.browser
+    //   ? localStorage.getItem("token")
+    //   : ctx.req && ctx.req.headers.cookie
+    //     ? parseCookie(ctx.req.headers.cookie).token
+    //     : parseCookie(document.cookie).token;
     operation.setContext({
       headers: {
         authorization: jwt || null
@@ -43,12 +55,13 @@ function create(initialState: any) {
   });
 
   return new ApolloClient({
-    connectToDevTools: process.browser,
+    connectToDevTools:
+      process.env.NODE_ENV !== "production" ? process.browser : false,
     ssrMode: !process.browser, // Disables forceFetch on the server (so queries are only run once),
     link: ApolloLink.from([
       errorLink,
       authMiddleware,
-      createUploadLink({ uri, credentials: "include" })
+      createUploadLink({ uri, credentials: "include", fetch })
       // new HttpLink({ uri, credentials: "include" })
     ]),
     // link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),
@@ -67,16 +80,20 @@ function create(initialState: any) {
   });
 }
 
-export default function initApollo(initialState: any) {
+export default function initApollo(
+  initialState: any,
+  ctx: any = {},
+  jwt: any = ""
+) {
   // Make sure to create a new client for every server-side request so that data
   // isn't shared between connections (which would be bad)
   if (!process.browser) {
-    return create(initialState);
+    return create(initialState, ctx, jwt);
   }
 
   // Reuse client on the client-side
   if (!apolloClient) {
-    apolloClient = create(initialState);
+    apolloClient = create(initialState, ctx, jwt);
   }
 
   return apolloClient;

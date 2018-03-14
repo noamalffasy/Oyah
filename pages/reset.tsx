@@ -8,11 +8,13 @@ import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
 import Router from "next/router";
+import Head from "next/head";
 
 import * as Hashids from "hashids";
 
 import App from "../components/App";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 import withData from "../lib/withData";
 
@@ -33,18 +35,6 @@ interface State {
   email?: any;
 }
 
-@graphql(
-  gql`
-    mutation getResetEmail($id: ID) {
-      getResetEmail(id: $id) {
-        email
-      }
-    }
-  `,
-  {
-    name: "getResetEmail"
-  }
-)
 @graphql(
   gql`
     mutation resetPassword($email: String, $password: String) {
@@ -73,28 +63,45 @@ class Reset extends Component<Props, State> {
     this.clickResetPassword = this.clickResetPassword.bind(this);
   }
 
-  componentDidMount() {
+  static async getInitialProps(
+    { query: { id: __id } }: any,
+    apolloClient: any
+  ) {
     const hashids = new Hashids("oyah.xyz", 8);
-    const _id = hashids.decode(this.props.url.query.id);
+    const _id = hashids.decode(__id);
     const id = _id[0];
-    this.props
-      .getResetEmail({
+    return await apolloClient
+      .mutate({
+        mutation: gql`
+          mutation getResetEmail($id: ID) {
+            getResetEmail(id: $id) {
+              email
+            }
+          }
+        `,
         variables: {
           id
         }
       })
       .then((res: any) => {
-        this.setState(prevState => ({
-          ...prevState,
+        return {
           email: res.data.getResetEmail.email
-        }));
+        };
       })
       .catch((err: Error) => {
-        console.error(err);
+        return {
+          error: err
+        };
       });
   }
 
-  clickResetPassword(e: any) {
+  componentDidMount() {
+    if (this.props.error) {
+      this.setError(this.props.error);
+    }
+  }
+
+  clickResetPassword(e: any, triggerLoading: any) {
     if (e) {
       e.preventDefault();
     }
@@ -104,6 +111,8 @@ class Reset extends Component<Props, State> {
       this.confirmPassword.input.value !== ""
     ) {
       if (this.password.input.value === this.confirmPassword.input.value) {
+        triggerLoading();
+
         this.props
           .resetPassword({
             variables: {
@@ -112,7 +121,12 @@ class Reset extends Component<Props, State> {
             }
           })
           .then((res: any) => {
-            this.login({ ...res.data.resetPassword.user, token: res.data.resetPassword.token });
+            this.ActionButtons.reset();
+            
+            this.login({
+              ...res.data.resetPassword.user,
+              token: res.data.resetPassword.token
+            });
 
             Router.push("/");
           })
@@ -138,6 +152,10 @@ class Reset extends Component<Props, State> {
     return (
       <App {...this.props}>
         <div className="Reset">
+          <Head>
+            <title>Reset password | Oyah</title>
+            <meta name="description" content="Reset you password on Oyah" />
+          </Head>
           <h2 className="title">Reset password</h2>
           <Input
             label="New password"
@@ -149,11 +167,11 @@ class Reset extends Component<Props, State> {
             type="password"
             ref={input => (this.confirmPassword = input)}
           />
-          <div className="action-buttons">
-            <button className="primary" onClick={this.clickResetPassword}>
-              Reset password
-            </button>
-          </div>
+          <ActionButtons
+            primaryText="Reset password"
+            primaryAction={this.clickResetPassword}
+            ref={btns => this.ActionButtons = btns}
+          />
         </div>
         <style jsx>{`
           .Reset {
@@ -164,32 +182,6 @@ class Reset extends Component<Props, State> {
 
           .Reset h2 {
             margin: 0 0 2rem 0;
-          }
-
-          .Reset .action-buttons {
-            display: flex;
-            flex-direction: row;
-            float: right;
-          }
-
-          .Reset .action-buttons button {
-            background: none;
-            border: 0;
-            outline: 0;
-            box-shadow: none;
-            opacity: 0.8;
-            transition: all 0.15s;
-          }
-
-          .Reset .action-buttons button:hover {
-            /* text-decoration: underline; */
-            opacity: 1;
-          }
-
-          .Reset .action-buttons button.primary {
-            margin: 0 0 1rem 1rem;
-            cursor: pointer;
-            color: #cc0000;
           }
         `}</style>
       </App>

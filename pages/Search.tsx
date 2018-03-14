@@ -4,80 +4,88 @@ import { Component } from "react";
 import { connect } from "react-redux";
 
 import Head from "next/head";
+import Error from "./_error";
 
 import App from "../components/App";
 import Article from "../components/Article";
 
 // GraphQL
-import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 
 interface Props {
-  searchArticle?: any;
+  searchTerm: any;
+  articles: any;
   url?: any;
 }
 interface State {
   articles: any[];
 }
 
-@graphql(
-  gql`
-    mutation searchArticle($searchTerm: String!) {
-      searchArticle(searchTerm: $searchTerm) {
-        id
-        title
-      }
-    }
-  `,
-  {
-    name: "searchArticle"
-  }
-)
 class Search extends Component<Props, State> {
-  componentWillMount() {
-    this.props
-      .searchArticle({
+  static async getInitialProps(
+    { query: { q: searchTerm } }: any,
+    apolloCilent: any
+  ) {
+    return await apolloCilent
+      .mutate({
+        mutation: gql`
+          mutation searchArticle($searchTerm: String!) {
+            searchArticle(searchTerm: $searchTerm) {
+              id
+              title
+            }
+          }
+        `,
         variables: {
-          searchTerm: this.props.url.query.q
+          searchTerm
         }
       })
       .then((res: any) => {
         if (res.error) {
-          console.error(res.error);
+          return {
+            searchTerm,
+            error: res.error
+          };
         } else {
           const articles = res.data.searchArticle;
 
-          this.setState(prevState => ({
-            ...prevState,
+          return {
+            searchTerm,
             articles
-          }));
+          };
         }
+      })
+      .catch((err: Error) => {
+        return {
+          searchTerm,
+          error: err
+        };
       });
   }
 
   render() {
-    if (this.state && this.state.articles) {
-      if (this.state.articles.length > 0) {
+    const { searchTerm, articles } = this.props;
+    if (articles) {
+      if (articles.length > 0) {
         return (
           <App {...this.props}>
             <div className="Search Content">
               <Head>
-                <title>Search '{this.props.url.query.q}' | Oyah</title>
+                <title>Search '{searchTerm}' | Oyah</title>
                 <meta
                   name="description"
-                  content={`Searching '${this.props.url.q}' on Oyah`}
+                  content={`Searching '${searchTerm}' on Oyah`}
                 />
               </Head>
-              {this.state.articles.map((elem: any, i: any) => {
+              {this.props.articles.map((elem: any, i: any) => {
                 return (
                   <Article
                     title={elem.title}
-                    image={process.env.PUBLIC_URL + elem.image}
                     alt={elem.alt}
                     id={elem.id}
-                    style={{ order: i }}
+                    loading={false}
                     key={i}
                   />
                 );
@@ -124,13 +132,13 @@ class Search extends Component<Props, State> {
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
                 .Search .Article {
-                  width: calc(1/2*100% - 1/2*2.5rem);
+                  width: calc(1 / 2 * 100% - 1 / 2 * 2.5rem);
                 }
               }
               @media (min-width: 992px),
                 @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
                 .Search .Article {
-                  width: calc(1/3*100% - (1 - 1/3)*1rem);
+                  width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
                   height: 15rem;
                   overflow: hidden;
                 }
@@ -143,9 +151,7 @@ class Search extends Component<Props, State> {
           <App {...this.props}>
             <div className="NotFound Content">
               <h2>No Results</h2>
-              <p>
-                Your search '{this.props.url.query.q}' didn't match any article
-              </p>
+              <p>Your search '{searchTerm}' didn't match any article</p>
             </div>
             <style jsx>{`
               .NotFound {
@@ -165,87 +171,7 @@ class Search extends Component<Props, State> {
         );
       }
     } else {
-      return (
-        <App {...this.props}>
-          <div className="Search Content">
-            <Head>
-              <title>Search '{this.props.url.query.q}' | Oyah</title>
-              <meta
-                name="description"
-                content={`Searching '${this.props.url.q}' on Oyah`}
-              />
-            </Head>
-            {[0, 1, 2].map((elem: any, i: any) => {
-              return (
-                <Article
-                  title={elem.title}
-                  image={process.env.PUBLIC_URL + elem.image}
-                  alt={elem.alt}
-                  id={elem.id}
-                  loading={true}
-                  style={{ order: i }}
-                  key={i}
-                />
-              );
-            })}
-          </div>
-          <style jsx>{`
-            .Content {
-              padding-bottom: 4.5rem;
-            }
-
-            .Content::after {
-              content: "";
-              clear: both;
-              display: block;
-            }
-
-            .Search {
-              margin: 0 0 4rem;
-              display: flex;
-              flex-direction: row;
-              flex-wrap: wrap;
-            }
-            @media (min-width: 576px),
-              @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
-              .Search {
-                width: 85%;
-                margin: 0 auto;
-              }
-            }
-          `}</style>
-          <style jsx global>{`
-            .Search .Article {
-              display: flex;
-              /* flex: 1 1; */
-              position: relative;
-              /* margin: 0 0.5rem; */
-              /* margin: 0.5rem; */
-              /* margin: 0 0.5rem 0.5rem 0; */
-              margin: 0 auto 0.7rem;
-              /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
-              /* width: calc(1/2*100% - 1/2*2.5rem); */
-              border-radius: 8px;
-              transition: all 0.3s;
-            }
-
-            @media (min-width: 768px),
-              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-              .Search .Article {
-                width: calc(1/2*100% - 1/2*2.5rem);
-              }
-            }
-            @media (min-width: 992px),
-              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
-              .Search .Article {
-                width: calc(1/3*100% - (1 - 1/3)*1rem);
-                height: 15rem;
-                overflow: hidden;
-              }
-            }
-          `}</style>
-        </App>
-      );
+      return <Error {...this.props} statusCode={501} />;
     }
   }
 }
