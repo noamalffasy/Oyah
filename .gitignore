@@ -1,5 +1,4 @@
 node_modules/
 .next/
-**/*.js
-!static/js/*.js
-**/*.map
+static/img
+server/db/config.js
