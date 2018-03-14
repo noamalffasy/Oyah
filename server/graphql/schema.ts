@@ -153,17 +153,26 @@ const Article = new GraphQLObjectType({
       title: {
         type: GraphQLString
       },
+      path: {
+        type: GraphQLString
+      },
       content: {
         type: GraphQLString
       },
-      authorID: {
-        type: GraphQLString
+      author: {
+        type: User,
+        resolve(obj) {
+          return obj && obj.getAuthor();
+        }
       },
       likes: {
         type: GraphQLInt
       },
       comments: {
-        type: new GraphQLList(comment)
+        type: new GraphQLList(comment),
+        resolve: async obj => {
+          return obj && obj.getComments();
+        }
       },
       createdAt: {
         type: GraphQLDate
@@ -201,8 +210,11 @@ const comment = new GraphQLObjectType({
       articleID: {
         type: GraphQLString
       },
-      authorID: {
-        type: GraphQLString
+      author: {
+        type: User,
+        resolve(obj) {
+          return obj && obj.getAuthor();
+        }
       },
       message: {
         type: GraphQLString
@@ -570,6 +582,9 @@ const Mutation = new GraphQLObjectType({
           },
           articleID: {
             type: GraphQLString
+          },
+          main: {
+            type: GraphQLBoolean
           },
           image: {
             type: GraphQLString

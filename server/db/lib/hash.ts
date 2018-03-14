@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 
-import { JWT_SECRET } from "../config.json";
+import { JWT_SECRET } from "../config";
 
 export function encodeJWT(data) {
   return jwt.sign(data, JWT_SECRET);

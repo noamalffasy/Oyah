@@ -13,6 +13,7 @@ import { createSession, getSessionOnJWT } from "../db/models/Session";
 const MAGIC_NUMBERS = {
   jpg: "ffd8ffe0",
   jpg1: "ffd8ffe1",
+  jpeg: "ffd8ffdb",
   png: "89504e47",
   gif: "47494638"
 };
@@ -35,6 +36,7 @@ function checkMagicNumbers(magic: any) {
   if (
     magic == MAGIC_NUMBERS.jpg ||
     magic == MAGIC_NUMBERS.jpg1 ||
+    magic == MAGIC_NUMBERS.jpeg ||
     magic == MAGIC_NUMBERS.png ||
     magic == MAGIC_NUMBERS.gif
   )
@@ -57,7 +59,6 @@ function writeFile(filename: any, data: any, encoding: any) {
 
 function saveResizedImages(data: any, _filename: any) {
   const filename = _filename.replace(".jpeg", "");
-
   sharp(data)
     .resize(40, undefined)
     .withoutEnlargement()
@@ -158,7 +159,7 @@ export default {
     return await Article.findAll().then((articles: any) => {
       let Articles: any[] = [];
       articles.forEach((article: any) => {
-        Articles.push(article.dataValues);
+        Articles.push(article);
       });
       return Articles;
     });
@@ -242,7 +243,7 @@ export default {
             password: email.password
           });
 
-          ctx.cookies.set("reactQLJWT", token.jwt(), {
+          ctx.cookies.set("token", token.jwt(), {
             expires: token.expiresAt
           });
 
@@ -300,7 +301,7 @@ export default {
         password: authProvider.email.password
       });
 
-      ctx.cookies.set("reactQLJWT", token.jwt(), {
+      ctx.cookies.set("token", token.jwt(), {
         expires: token.expiresAt
       });
 
@@ -391,7 +392,7 @@ export default {
       .then(async (result: any) => {
         const token = await createSession({ ...oldUser, password });
 
-        ctx.cookies.set("reactQLJWT", token.jwt(), {
+        ctx.cookies.set("token", token.jwt(), {
           expires: token.expiresAt
         });
 
@@ -410,7 +411,7 @@ export default {
   updateUser: async (_: any, info: any, ctx: any) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
-        const oldUser = res.user;
+        const oldUser = res.user.dataValues;
         const bcrypt = require("bcrypt");
         const saltRounds = 10;
 
@@ -532,21 +533,16 @@ export default {
     }).then((articles: any) => {
       let Articles: any[] = [];
       articles.forEach((article: any) => {
-        Articles.push(article.dataValues);
+        Articles.push(article);
       });
       return Articles;
     });
   },
   getArticle: async (_: any, { id }: any) => {
     return await Article.findOne({ where: { id } }).then(
-      async (_article: any) => {
-        if (_article !== null) {
-          const article = _article.get({ plain: true });
-          return await Comment.findAll({ where: { articleID: id } }).then(
-            async (comments: any) => {
-              return { ...article, comments };
-            }
-          );
+      async (article: any) => {
+        if (article !== null) {
+          return article;
         } else {
           return {
             errors: ["Article doesn't exist"]
@@ -560,7 +556,7 @@ export default {
       (articles: any) => {
         let Articles: any[] = [];
         articles.forEach((article: any) => {
-          Articles.push(article.get({ plain: true }));
+          Articles.push(article);
         });
         return Articles;
       }
@@ -579,23 +575,22 @@ export default {
               .concat(likedArticles.slice(indexOfArticle + 1))
               .join(", ");
         return await Article.findOne({ where: { id: articleID } }).then(
-          async (_article: any) => {
-            const article = _article.get({ plain: true });
+          async (article: any) => {
             return await Article.update(
               { likes: liked ? article.likes + 1 : article.likes - 1 },
               { where: { id: articleID } }
             )
-              .then(async (_article: any) => {
+              .then(async (article: any) => {
                 return await User.update({ likes }, { where: { id: user.id } })
                   .then((user: any) => {
                     return article;
                   })
                   .catch((err: Error) => {
-                    console.error(err);
+                    throw err;
                   });
               })
               .catch((err: any) => {
-                console.error(err);
+                throw err;
               });
           }
         );
@@ -608,11 +603,12 @@ export default {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
         const user = res.user;
-        await Comment.findOrCreate({
+        return await Comment.findOrCreate({
           where: { id },
           defaults: { articleID, authorID: user.id, message }
+        }).then(async (comments: any) => {
+          return comments[0];
         });
-        return { id, articleID, authorID: user.id, message };
       })
       .catch(err => {
         throw err;
@@ -632,13 +628,12 @@ export default {
               .concat(likedComments.slice(indexOfComment + 1))
               .join(", ");
         return await Comment.findOne({ where: { id, articleID } }).then(
-          async (_comment: any) => {
-            const comment = _comment.get({ plain: true });
+          async (comment: any) => {
             return await Comment.update(
               { likes: liked ? comment.likes + 1 : comment.likes - 1 },
               { where: { id, articleID } }
             )
-              .then(async (_comment: any) => {
+              .then(async (comment: any) => {
                 return await User.update(
                   { comment_likes: commentLikes },
                   { where: { id: user.id } }
@@ -647,11 +642,11 @@ export default {
                     return comment;
                   })
                   .catch((err: Error) => {
-                    console.error(err);
+                    throw err;
                   });
               })
               .catch((err: any) => {
-                console.error(err);
+                throw err;
               });
           }
         );
@@ -666,8 +661,10 @@ export default {
         const user = res.user.dataValues;
         const comment = await Comment.find({ where: { id, articleID } });
         if (comment.dataValues.authorID === user.id) {
-          await Comment.update({ message }, { where: { id, articleID } });
-          return { id, articleID, authorID: user.id, message };
+          return await Comment.update(
+            { message },
+            { where: { id, articleID } }
+          );
         } else {
           throw new Error(
             "This user is not the author of the selected comment"
@@ -711,6 +708,7 @@ export default {
         const newArticle = {
           id,
           title,
+          path: `/img/articles/${id}/main.jpeg`,
           content,
           authorID
         };
@@ -732,11 +730,18 @@ export default {
         const user = res.user.dataValues;
         const article = await Article.find({ where: { id } });
         if (article.dataValues.authorID.toString() === user.id) {
-          await Article.update({ title, content }, { where: { id } })
+          const path = article.dataValues.path
+            ? article.dataValues.path
+            : `/img/articles/${id}/main.jpeg`;
+          return await Article.update(
+            { title, path, content },
+            { where: { id } }
+          )
             .then((result: any) => {
               return {
                 id,
                 title,
+                path,
                 content
               };
             })
@@ -778,7 +783,7 @@ export default {
   },
   uploadFile: async (
     _: any,
-    { file, where, articleID, image }: any,
+    { file, where, articleID, main, image }: any,
     ctx: any
   ) => {
     // uploadFile: async (_: any, args: any, ctx: any) => {
@@ -788,6 +793,7 @@ export default {
         const path = require("path");
         const fs = require("fs");
         const util = require("util");
+        const shortid = require("shortid");
         const _file = await file;
 
         if (res) {
@@ -807,18 +813,36 @@ export default {
                 "base64"
               );
           const magic = buffer.toString("hex", 0, 4);
+          if (where === "article") {
+            const mkdir = require("mkdirp");
+
+            mkdir(
+              path.join(
+                __dirname,
+                "../../static/img/articles/",
+                "./" + articleID
+              ),
+              (err: Error) => {
+                if (err) throw err;
+              }
+            );
+          }
           const filename = !image
             ? where === "user"
               ? "user-#" + user.id + ".jpeg"
-              : articleID + ".jpeg"
+              : articleID +
+                (main ? "/main" : "/" + shortid.generate()) +
+                ".jpeg"
             : where === "user"
               ? "user-#" + user.id + ".jpeg"
-              : articleID + ".jpeg";
+              : articleID +
+                (main ? "/main" : "/" + shortid.generate()) +
+                ".jpeg";
           if (checkMagicNumbers(magic)) {
             return await writeFile(
               where === "user"
-                ? path.join(__dirname, "../static/img/users/") + filename
-                : path.join(__dirname, "../static/img/articles/") + filename,
+                ? path.join(__dirname, "../../static/img/users/") + filename
+                : path.join(__dirname, "../../static/img/articles/") + filename,
               buffer,
               "binary"
             )
@@ -831,9 +855,9 @@ export default {
                     .then(async (result: any) => {
                       saveResizedImages(
                         buffer,
-                        path.join(__dirname, "../static/img/users/") + filename
+                        path.join(__dirname, "../../static/img/users/") +
+                          filename
                       );
-                      return { path: filename };
                     })
                     .catch((err: any) => {
                       throw err;
@@ -841,10 +865,16 @@ export default {
                 } else {
                   saveResizedImages(
                     buffer,
-                    path.join(__dirname, "../static/img/articles/") + filename
+                    path.join(__dirname, "../../static/img/articles/") +
+                      filename
                   );
-                  return { path: filename };
                 }
+                return {
+                  path:
+                    where === "user"
+                      ? "/static/img/users/" + filename
+                      : "/static/img/articles/" + filename
+                };
               })
               .catch((err: Error) => {
                 throw err;

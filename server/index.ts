@@ -28,20 +28,14 @@ app.prepare().then(() => {
   server.use(async (ctx, next) => {
     const authHeader =
       ctx.get("authorization") === "" || ctx.get("authorization") === "null"
-        ? ctx.cookies.get("reactQLJWT")
+        ? ctx.cookies.get("token")
         : ctx.get("authorization");
     if (authHeader) {
       ctx.state.jwt = authHeader;
     }
-    if (ctx.request.is("multipart/form-data") !== null) {
-      console.log(
-        "Is multipart/form-data",
-        ctx.request.is("multipart/form-data")
-      );
-    }
     return next();
   });
-
+  
   router.post(
     "/graphql",
     koaBody(),
@@ -120,7 +114,7 @@ app.prepare().then(() => {
 
 
   router.get("/signout", async ctx => {
-    ctx.cookies.set("reactQLJWT", "");
+    ctx.cookies.set("token", "");
     ctx.redirect("/");
   });
 
