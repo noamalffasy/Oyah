@@ -1,0 +1,44 @@
+.buttonWrapper {
+  display: inline-block;
+}
+
+.button {
+  background: none;
+  color: #212529;
+  font-size: 18px;
+  border: 0;
+  padding-top: 5px;
+  vertical-align: bottom;
+  height: 34px;
+  width: 36px;
+  opacity: 0.6;
+  transition: all 0.15s;
+}
+
+.button svg {
+  fill: #212529;
+}
+
+.button:hover,
+.button:focus {
+  background: none;
+  outline: 0; /* reset for :focus */
+  opacity: 1;
+}
+
+.active {
+  background: #efefef;
+  color: #444;
+  opacity: 1;
+}
+
+.active svg {
+  fill: #cc0000;
+}
+
+.separator {
+  display: inline-block;
+  border-right: 1px solid #ddd;
+  height: 24px;
+  margin: 0 0.5em;
+}
