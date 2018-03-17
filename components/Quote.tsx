@@ -30,6 +30,7 @@ class Quote extends Component<Props> {
           .Quote .blockquote::before,
           .Quote .blockquote::after {
             display: none;
+            quotes: "“" "”" "‘" "’";
             font-family: Times;
             font-size: 8rem;
             position: absolute;
