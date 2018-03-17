@@ -102,28 +102,15 @@ class MyDocument extends Document {
             name="msapplication-TileImage"
             content="/favicons/ms-icon-144x144.png"
           />
-          <title></title>
-          <link rel="stylesheet" href="/css/bootstrap.min.css" />
-
-          <script
-            async
-            src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
-          />
-          <script>
-            {`
-            (adsbygoogle = window.adsbygoogle || []).push({
-              google_ad_client: "ca-pub-3759936513100574",
-              enable_page_level_ads: true
-            });`}
-          </script>
           <link rel="stylesheet" href="/_next/static/style.css" />
+          <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
         </Head>
         <body>
           <Main />
           <NextScript />
-          <script src="/js/jquery.min.js" />
-          <script src="/js/popper.min.js" />
-          <script src="/js/bootstrap.bundle.min.js" />
+          <script src="/static/js/jquery.min.js" />
+          <script src="/static/js/popper.min.js" />
+          <script src="/static/js/bootstrap.bundle.min.js" />
         </body>
         <style jsx global>{`
           html,
