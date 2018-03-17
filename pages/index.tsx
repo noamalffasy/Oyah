@@ -170,36 +170,6 @@ class Index extends Component<Props> {
             margin: 0 0.5rem;
           }
 
-          .Home .blockquote {
-            font-size: 2.25rem;
-            position: relative;
-            max-width: 20rem;
-            border: 0;
-            margin: 0 auto;
-            margin-bottom: 3rem;
-          }
-
-          .Home .blockquote::before,
-          .Home .blockquote::after {
-            display: none;
-            font-family: Times;
-            font-size: 8rem;
-            position: absolute;
-            color: #c0c0c0;
-          }
-
-          .Home .blockquote::before {
-            content: open-quote;
-            left: -5rem;
-            top: -3.5rem;
-          }
-
-          .Home .blockquote::after {
-            content: close-quote;
-            right: -5rem;
-            bottom: -4.5rem;
-          }
-
           @media (min-width: 480px),
             @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
             .Home .Highlights {
@@ -216,10 +186,6 @@ class Index extends Component<Props> {
             }
             .Home .Other .Article {
               height: 10rem;
-            }
-            .Home .blockquote::before,
-            .Home .blockquote::after {
-              display: block;
             }
           }
 
