@@ -103,7 +103,7 @@ class MyDocument extends Document {
             content="/favicons/ms-icon-144x144.png"
           />
           <link rel="stylesheet" href="/_next/static/style.css" />
-          <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+          <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
         </Head>
         <body>
           <Main />
