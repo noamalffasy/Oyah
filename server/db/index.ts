@@ -8,7 +8,7 @@ const sequelize =
         host: config.host,
         operatorsAliases: Sequelize.Op
       })
-    : new Sequelize("oyah", "admin", "admin", {
+    : new Sequelize("oyah", "root", "admin", {
         dialect: "mysql",
         host: "localhost",
         operatorsAliases: Sequelize.Op
