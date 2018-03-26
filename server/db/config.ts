@@ -4,7 +4,7 @@ const config = {
   password: "$EF5@37MgR?PUAwU",
   dialect: "mysql",
   host: "database.oyah.xyz",
-  JWT_SECRET: "7@zSgNXsY5rp)zL5"
+  JWT_SECRET: "7@zSgNXsY5rp)zL5",
 };
 
 export const {
@@ -13,7 +13,7 @@ export const {
   password,
   dialect,
   host,
-  JWT_SECRET
+  JWT_SECRET,
 } = config;
 
 export default config;
