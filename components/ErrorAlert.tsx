@@ -1,31 +1,42 @@
 import * as React from "react";
 import { Component } from "react";
 
-import { connect } from "react-redux";
-
-import Head from "next/head";
 import Router from "next/router";
-
-import App from "../components/App";
-
-import Input from "../components/Input";
-
-// GraphQL
-import graphql from "../utils/graphql";
-import gql from "graphql-tag";
-
-import withData from "../lib/withData";
 
 interface Props {
   error: any;
   setError: any;
 }
 
-class ErrorAlert extends Component<Props, any> {
+interface State {
+  multiErrors: Boolean;
+}
+
+class ErrorAlert extends Component<Props, State> {
+  state = { multiErrors: false };
+
   componentDidMount() {
     Router.onRouteChangeStart = (url: any) => {
       this.props.setError(false);
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (
+      (typeof this.props.error !== "boolean" &&
+        typeof nextProps.error !== "boolean" &&
+        this.props.error.split("\n• ").length !==
+          nextProps.error.split("\n• ").length) ||
+      typeof this.props.error !== typeof nextProps.error
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        multiErrors:
+          typeof nextProps.error !== "boolean"
+            ? nextProps.error.split("\n• ").length > 1
+            : false
+      }));
+    }
   }
 
   render() {
@@ -44,10 +55,15 @@ class ErrorAlert extends Component<Props, any> {
                 padding: 0,
                 margin: 0
               }
-            : { maxHeight: "5rem" }
+            : { maxHeight: "9999rem" }
         }
+        ref={err => (this.error = err)}
       >
-        <strong>An error occured!</strong>
+        <strong>
+          {this.state.multiErrors
+            ? "Some errors occured: \n• "
+            : "An error occured!"}
+        </strong>
         {typeof this.props.error === "string" ? " " + this.props.error : null}
         <button
           type="button"
@@ -68,6 +84,7 @@ class ErrorAlert extends Component<Props, any> {
             background-color: rgb(204, 84, 84);
             color: #fff;
             text-align: center;
+            white-space: pre-line;
             top: -4rem;
             left: 0;
             right: 0;

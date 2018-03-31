@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Component } from "react";
 
-import { validate } from "email-validator";
-
 import Router from "next/router";
 import Link from "next/link";
 
@@ -11,7 +9,6 @@ import ActionButtons from "./ActionButtons";
 
 // GraphQL
 import graphql from "../utils/graphql";
-import { compose } from "react-apollo";
 import gql from "graphql-tag";
 
 interface Props {
@@ -31,7 +28,9 @@ interface State {
   login?: any;
   reset?: any;
   resetStatus?: any;
-  error?: any;
+  error: any;
+  multiErrors: Boolean;
+  errorHeight: number;
 }
 
 @graphql(
@@ -41,12 +40,18 @@ interface State {
         token
         user {
           id
-          name
           nametag
           email
-          editor
           small_image
           image
+          likes
+          comment_likes
+          bio
+          name
+          mains
+          reddit
+          twitter
+          editor
         }
       }
     }
@@ -60,8 +65,15 @@ interface State {
     mutation createUser(
       $nametag: String
       $authProvider: AuthProviderSignupData
+      $isOver13: Boolean
+      $didAgree: Boolean
     ) {
-      createUser(nametag: $nametag, authProvider: $authProvider) {
+      createUser(
+        nametag: $nametag
+        authProvider: $authProvider
+        isOver13: $isOver13
+        didAgree: $didAgree
+      ) {
         token
         user {
           id
@@ -100,7 +112,9 @@ class LoginPopup extends Component<Props, State> {
       login: true,
       reset: false,
       resetStatus: undefined,
-      error: false
+      error: false,
+      multiErrors: false,
+      errorHeight: 0
     };
 
     this.login = this.login.bind(this);
@@ -142,172 +156,145 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  login(e: any, triggerLoading: any) {
+  componentDidUpdate(prevProps, prevState) {
     if (
-      this.signin.email.input.value !== "" &&
-      this.signin.password.input.value !== ""
+      (typeof this.state.error !== "boolean" &&
+        typeof prevState.error !== "boolean" &&
+        this.state.error.split("\n• ").length !==
+          prevState.error.split("\n• ").length) ||
+      typeof this.state.error !== typeof prevState.error
     ) {
-      if (validate(this.signin.email.input.value)) {
-        triggerLoading();
-
-        this.props
-          .signinUser({
-            variables: {
-              email: {
-                email: this.signin.email.input.value,
-                password: this.signin.password.input.value
-              }
-            }
-          })
-          .then((res: any) => {
-            this.ActionButtons.reset();
-
-            if (res.errors) {
-              let errors: any[] = [];
-              res.errors.forEach((error: Error) => {
-                errors.push(error.message);
-                console.error(error);
-              });
-              this.setState(prevState => ({
-                ...prevState,
-                error: errors.join("\n\u2022 ")
-              }));
-            } else {
-              const data = res.data.signinUser;
-              if (this.signin.remember.isChecked()) {
-                // TODO: Set cookies
-              }
-
-              this.props.login({ ...data.user, token: data.token });
-
-              this.signin.email.reset();
-              this.signin.password.reset();
-              this.signin.remember.reset();
-
-              Router.push(this.state.url, this.state.urlAs);
-              this.props.closeSignInModal();
-
-              this.setState(prevState => ({
-                ...prevState,
-                error: false
-              }));
-            }
-          })
-          .catch((err: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              error: err.graphQLErrors[0].message
-            }));
-          });
-      } else {
-        this.setState(prevState => ({
-          ...prevState,
-          error: "Email isn't valid"
-        }));
-      }
-    } else {
+      const defaultMinHeight = 0;
+      const errorHeight = this.state.error
+        ? this.error.scrollHeight
+        : defaultMinHeight;
       this.setState(prevState => ({
         ...prevState,
-        error: "You must fill all the fields"
+        errorHeight,
+        multiErrors:
+          typeof this.state.error !== "boolean"
+            ? this.state.error.split("\n• ").length > 1
+            : false
+      }));
+    }
+    if (this.state.open === false && this.state.open !== prevState.open) {
+      this.setState(prevState => ({
+        ...prevState,
+        error: false
       }));
     }
   }
 
-  signup(e: any, triggerLoading: any) {
-    if (
-      this.createAccount.nametag.input.value !== "" &&
-      this.createAccount.email.input.value !== "" &&
-      this.createAccount.password.input.value !== ""
-    ) {
-      if (validate(this.createAccount.email.input.value)) {
-        if (
-          this.createAccount.password.input.value ===
-          this.createAccount.confirmPassword.input.value
-        ) {
-          if (this.createAccount.age.isChecked()) {
-            if (this.createAccount.terms.isChecked()) {
-              triggerLoading();
+  login(e: any, triggerLoading: any) {
+    triggerLoading();
 
-              this.props
-                .createUser({
-                  variables: {
-                    nametag: this.createAccount.nametag.input.value,
-                    authProvider: {
-                      email: {
-                        email: this.createAccount.email.input.value,
-                        password: this.createAccount.password.input.value
-                      }
-                    }
-                  }
-                })
-                .then((res: any) => {
-                  this.ActionButtons.reset();
-
-                  if (res.errors) {
-                    let errors: any[] = [];
-                    res.errors.forEach((error: Error) => {
-                      errors.push(error.message);
-                      console.error(error);
-                    });
-                    this.setState(prevState => ({
-                      ...prevState,
-                      error: errors.join("\n\u2022 ")
-                    }));
-                  } else {
-                    const data = res.data.createUser;
-                    // this.props.cookies.set("token", data.token);
-                    this.props.login({ ...data.user, token: data.token });
-
-                    this.createAccount.nametag.reset();
-                    this.createAccount.email.reset();
-                    this.createAccount.password.reset();
-                    this.createAccount.confirmPassword.reset();
-
-                    Router.push(this.state.url, this.state.urlAs);
-                    this.props.closeSignInModal();
-
-                    this.setState(prevState => ({
-                      ...prevState,
-                      error: false
-                    }));
-                  }
-                })
-                .catch((err: any) => {
-                  this.setState(prevState => ({
-                    ...prevState,
-                    error: err.graphQLErrors[0].message
-                  }));
-                });
-            } else {
-              this.setState(prevState => ({
-                ...prevState,
-                error: "You must agree to the terms"
-              }));
-            }
-          } else {
-            this.setState(prevState => ({
-              ...prevState,
-              error: "You must be 13 or over to create an account"
-            }));
+    this.props
+      .signinUser({
+        variables: {
+          email: {
+            email: this.signin.email.input.value,
+            password: this.signin.password.input.value
           }
-        } else {
+          // isRememberChecked: this.signin.remember.isChecked()
+        }
+      })
+      .then((res: any) => {
+        this.ActionButtons.reset();
+
+        if (res.errors) {
+          let errors: any[] = [];
+          res.errors.forEach((error: Error) => {
+            errors.push(error.message);
+          });
           this.setState(prevState => ({
             ...prevState,
-            error: "Passwords don't match"
+            error: errors.join("\n• ")
+          }));
+        } else {
+          const data = res.data.signinUser;
+
+          this.props.login({ ...data.user, token: data.token });
+
+          this.signin.email.reset();
+          this.signin.password.reset();
+          // this.signin.remember.reset();
+
+          Router.push(this.state.url, this.state.urlAs);
+          this.props.closeSignInModal();
+
+          this.setState(prevState => ({
+            ...prevState,
+            error: false
           }));
         }
-      } else {
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
         this.setState(prevState => ({
           ...prevState,
-          error: "Email isn't valid"
+          error: err.graphQLErrors[0].message
         }));
-      }
-    } else {
-      this.setState(prevState => ({
-        ...prevState,
-        error: "You must fill all the fields"
-      }));
-    }
+      });
+  }
+
+  signup(e: any, triggerLoading: any) {
+    triggerLoading();
+
+    this.props
+      .createUser({
+        variables: {
+          nametag: this.createAccount.nametag.input.value,
+          authProvider: {
+            email: {
+              email: this.createAccount.email.input.value,
+              password: this.createAccount.password.input.value
+            },
+            confirmPassword: this.createAccount.confirmPassword.input.value
+          },
+          isOver13: this.createAccount.age.isChecked(),
+          didAgree: this.createAccount.terms.isChecked()
+        }
+      })
+      .then((res: any) => {
+        this.ActionButtons.reset();
+
+        if (res.errors) {
+          let errors: any[] = [];
+          res.errors.forEach((error: Error) => {
+            errors.push(error.message);
+          });
+          this.setState(prevState => ({
+            ...prevState,
+            error: errors.join("\n• ")
+          }));
+        } else {
+          const data = res.data.createUser;
+          // this.props.cookies.set("token", data.token);
+          this.props.login({ ...data.user, token: data.token });
+
+          this.createAccount.nametag.reset();
+          this.createAccount.email.reset();
+          this.createAccount.password.reset();
+          this.createAccount.confirmPassword.reset();
+
+          Router.push(this.state.url, this.state.urlAs);
+          this.props.closeSignInModal();
+
+          this.setState(prevState => ({
+            ...prevState,
+            error: false
+          }));
+        }
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
+        this.setState(prevState => ({
+          ...prevState,
+          error: err.graphQLErrors[0].message
+        }));
+      });
   }
 
   sendMail(e: any, triggerLoading: any) {
@@ -315,41 +302,29 @@ class LoginPopup extends Component<Props, State> {
       e.preventDefault();
     }
 
-    if (this.forgotPassword.email.input.value !== "") {
-      if (validate(this.forgotPassword.email.input.value)) {
-        triggerLoading();
+    triggerLoading();
 
-        this.props
-          .forgetPassword({
-            variables: { email: this.forgotPassword.email.input.value }
-          })
-          .then((res: any) => {
-            this.setState(
-              prevState => ({
-                ...prevState,
-                resetStatus: res.data.forgetPassword.status
-              }),
-              () => this.ActionButtons.reset()
-            );
-          })
-          .catch((err: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              error: err.graphQLErrors[0].message
-            }));
-          });
-      } else {
+    this.props
+      .forgetPassword({
+        variables: { email: this.forgotPassword.email.input.value }
+      })
+      .then((res: any) => {
+        this.setState(
+          prevState => ({
+            ...prevState,
+            resetStatus: res.data.forgetPassword.status
+          }),
+          () => this.ActionButtons.reset()
+        );
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
         this.setState(prevState => ({
           ...prevState,
-          error: "Email isn't valid"
+          error: err.graphQLErrors[0].message
         }));
-      }
-    } else {
-      this.setState(prevState => ({
-        ...prevState,
-        error: "You must fill all the fields"
-      }));
-    }
+      });
   }
 
   closeDialog(e: any) {
@@ -423,8 +398,14 @@ class LoginPopup extends Component<Props, State> {
                     }
                   : { maxHeight: "9999rem" }
               }
+              ref={div => (this.error = div)}
             >
-              <strong>An error occured!</strong> {this.state.error}
+              <strong>
+                {this.state.multiErrors
+                  ? "Some errors occured: \n• "
+                  : "An error occured!"}
+              </strong>{" "}
+              {this.state.error}
               <button
                 type="button"
                 className="close"
@@ -455,7 +436,9 @@ class LoginPopup extends Component<Props, State> {
                       opacity: 0,
                       display: "none"
                     }
-                  : {}
+                  : {
+                      marginTop: this.state.errorHeight
+                    }
               }
               ref={div => (this.signin = div)}
             />
@@ -466,7 +449,9 @@ class LoginPopup extends Component<Props, State> {
                       opacity: 0,
                       display: "none"
                     }
-                  : {}
+                  : {
+                      marginTop: this.state.errorHeight
+                    }
               }
               ref={div => (this.createAccount = div)}
             />
@@ -478,11 +463,13 @@ class LoginPopup extends Component<Props, State> {
                       opacity: 0,
                       display: "none"
                     }
-                  : {}
+                  : {
+                      marginTop: this.state.errorHeight
+                    }
               }
               ref={div => (this.forgotPassword = div)}
             />
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ padding: "0 2rem 1rem" }}>
               <ActionButtons
                 primaryText={
                   !this.state.reset
@@ -538,7 +525,6 @@ class LoginPopup extends Component<Props, State> {
                     error: false
                   }));
                 }}
-                style={{ margin: "0 auto" }}
                 ref={btns => (this.ActionButtons = btns)}
               />
             </div>
@@ -552,6 +538,7 @@ class LoginPopup extends Component<Props, State> {
             background-color: rgb(204, 84, 84);
             color: #fff;
             text-align: center;
+            white-space: pre-line;
             top: -4rem;
             width: 100%;
             opacity: 1;
@@ -590,6 +577,7 @@ class LoginPopup extends Component<Props, State> {
           .LoginPopup .modal-content {
             border-radius: 0;
             box-shadow: 0 0.3125rem 1rem 0 rgba(0, 0, 0, 0.24);
+            overflow: hidden;
           }
 
           .LoginPopup .modal-content .modal-header button.close {
@@ -656,7 +644,12 @@ class LoginPopup extends Component<Props, State> {
           .LoginPopup .modal-content .modal-body label[for="terms"] {
             color: #161616;
           }
-
+          @media (max-width: 576px),
+            @media(max-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
+            .LoginPopup .modal-content .modal-footer {
+              margin: 0 auto;
+            }
+          }
           @media (min-width: 768px),
             @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
             .LoginPopup .modal-content .modal-body p.Input.half {
@@ -677,7 +670,11 @@ interface LoginProps {
 class Login extends Component<LoginProps> {
   render() {
     return (
-      <div className="modal-body" style={this.props.style}>
+      <div
+        className="modal-body"
+        style={this.props.style}
+        ref={div => (this.main = div)}
+      >
         <Input
           label="Email"
           type="email"
@@ -701,13 +698,14 @@ class Login extends Component<LoginProps> {
             display: "inline-block",
             fontSize: ".9rem",
             textAlign: "center",
-            marginBottom: "1rem"
+            // marginBottom: "1rem"
+            marginBottom: ".5rem"
           }}
           onClick={this.props.forgotPassword}
         >
           Forgot password?
         </a>
-        <div className="remember-checkbox" style={{ marginBottom: ".5rem" }}>
+        {/* <div className="remember-checkbox" style={{ marginBottom: ".5rem" }}>
           <Input
             id="remember"
             type="checkbox"
@@ -722,7 +720,7 @@ class Login extends Component<LoginProps> {
           >
             Remember me
           </label>
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -735,7 +733,11 @@ interface CreateAccountProps {
 class CreateAccount extends Component<CreateAccountProps> {
   render() {
     return (
-      <div className="modal-body" style={this.props.style}>
+      <div
+        className="modal-body"
+        style={this.props.style}
+        ref={div => (this.main = div)}
+      >
         <Input
           label="Nametag"
           type="text"
@@ -819,7 +821,11 @@ class ForgotPassword extends Component<ForgotPasswordProps> {
   render() {
     if (this.props.status === undefined) {
       return (
-        <div className="modal-body" style={this.props.style}>
+        <div
+          className="modal-body"
+          style={this.props.style}
+          ref={div => (this.main = div)}
+        >
           <Input
             label="Your account's email"
             type="email"

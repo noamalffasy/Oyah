@@ -7,13 +7,12 @@ import { bindActionCreators } from "redux";
 import Router from "next/router";
 import Head from "next/head";
 
-import { validate } from "email-validator";
-
 import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 import withData from "../lib/withData";
 
@@ -85,50 +84,43 @@ class Login extends Component<Props, State> {
     }
   }
 
-  signin() {
-    if (this.email.input.value !== "" && this.password.input.value !== "") {
-      if (validate(this.email.input.value)) {
-        this.props
-          .signinUser({
-            variables: {
-              email: {
-                email: this.email.input.value,
-                password: this.password.input.value
-              }
-            }
-          })
-          .then((res: any) => {
-            if (res.errors) {
-              let errors: any[] = [];
-              res.errors.forEach((error: Error) => {
-                errors.push(error.message);
-                console.error(error);
-              });
-              this.setState(prevState => ({
-                ...prevState,
-                error: errors.join("\n\u2022 ")
-              }));
-            } else {
-              const data = res.data.signinUser;
-              if (this.remember.isChecked()) {
-                // TODO: Set cookies
-              }
+  signin(e: any, triggerLoading: any) {
+    triggerLoading();
 
-              this.login({ ...data.user, token: data.token });
-
-              this.email.reset();
-              this.password.reset();
-              this.remember.reset();
-
-              Router.push("/");
-            }
+    this.props
+      .signinUser({
+        variables: {
+          email: {
+            email: this.email.input.value,
+            password: this.password.input.value
+          }
+          // isRememberChecked: this.remember.isChecked()
+        }
+      })
+      .then((res: any) => {
+        if (res.errors) {
+          let errors: any[] = [];
+          res.errors.forEach((error: Error) => {
+            errors.push(error.message);
           });
-      } else {
-        this.setError("Email isn't valid");
-      }
-    } else {
-      this.setError("You must fill all the fields");
-    }
+          this.setError(errors.join("\n\u2022 "));
+        } else {
+          const data = res.data.signinUser;
+
+          this.login({ ...data.user, token: data.token });
+
+          this.email.reset();
+          this.password.reset();
+          // this.remember.reset();
+
+          Router.push("/");
+        }
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
+        this.setError(err.graphQLErrors[0].message);
+      });
   }
 
   login = bindActionCreators(userActionCreators.login, this.props.dispatch);
@@ -137,35 +129,30 @@ class Login extends Component<Props, State> {
     this.props.dispatch
   );
 
-  sendMail(e: any) {
+  sendMail(e: any, triggerLoading: any) {
     if (e) {
       e.preventDefault();
     }
 
-    if (this.forgotPasswordEmail.input.value !== "") {
-      if (validate(this.forgotPasswordEmail.input.value)) {
-        this.props
-          .forgetPassword({
-            variables: { email: this.forgotPasswordEmail.input.value }
-          })
-          .then((res: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              resetStatus: res.data.forgetPassword.status
-            }));
-          })
-          .catch((err: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              error: err.graphQLErrors[0].message
-            }));
-          });
-      } else {
-        this.setError("Email isn't valid");
-      }
-    } else {
-      this.setError("You must fill all the fields");
-    }
+    triggerLoading();
+
+    this.props
+      .forgetPassword({
+        variables: { email: this.forgotPasswordEmail.input.value }
+      })
+      .then((res: any) => {
+        this.ActionButtons.reset();
+
+        this.setState(prevState => ({
+          ...prevState,
+          resetStatus: res.data.forgetPassword.status
+        }));
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
+        this.setError(err.graphQLErrors[0].message);
+      });
   }
 
   render() {
@@ -202,7 +189,7 @@ class Login extends Component<Props, State> {
                 fontSize: ".9rem",
                 width: "100%",
                 textAlign: "left",
-                marginBottom: "1rem"
+                marginBottom: ".5rem"
               }}
               onClick={e => {
                 e.preventDefault();
@@ -215,7 +202,7 @@ class Login extends Component<Props, State> {
             >
               Forgot password?
             </a>
-            <div className="remember-checkbox">
+            {/* <div className="remember-checkbox">
               <Input
                 id="remember"
                 type="checkbox"
@@ -230,7 +217,7 @@ class Login extends Component<Props, State> {
               >
                 Remember me
               </label>
-            </div>
+            </div> */}
           </div>
           <div style={!this.state.reset ? { opacity: 0, display: "none" } : {}}>
             <h2 className="title">Reset</h2>
@@ -240,6 +227,7 @@ class Login extends Component<Props, State> {
                   label="Your account's email"
                   type="email"
                   autocomplete="email"
+                  style={{ marginBottom: "1rem" }}
                   ref={input => {
                     this.forgotPasswordEmail = input;
                   }}
@@ -262,24 +250,34 @@ class Login extends Component<Props, State> {
             )}
           </div>
           {this.state.resetStatus === undefined && (
-            <div className="action-buttons">
-              <button
-                className="primary"
-                onClick={!this.state.reset ? this.signin : this.sendMail}
-              >
-                {!this.state.reset ? "Login" : "Continue"}
-              </button>
-              {this.state.reset && (
-                <button
-                  className="secondary"
-                  onClick={() =>
-                    this.setState(prevState => ({ ...prevState, reset: false }))
-                  }
-                >
-                  Remember the password?
-                </button>
-              )}
-            </div>
+            <ActionButtons
+              primaryText={!this.state.reset ? "Login" : "Continue"}
+              primaryAction={!this.state.reset ? this.signin : this.sendMail}
+              secondaryText="Remember the password?"
+              secondaryAction={() =>
+                this.setState(prevState => ({ ...prevState, reset: false }))
+              }
+              secondaryShow={this.state.reset}
+              ref={btns => (this.ActionButtons = btns)}
+            />
+            // <div className="action-buttons">
+            //   <button
+            //     className="primary"
+            //     onClick={!this.state.reset ? this.signin : this.sendMail}
+            //   >
+            //     {!this.state.reset ? "Login" : "Continue"}
+            //   </button>
+            //   {this.state.reset && (
+            //     <button
+            //       className="secondary"
+            //       onClick={() =>
+            //         this.setState(prevState => ({ ...prevState, reset: false }))
+            //       }
+            //     >
+            //       Remember the password?
+            //     </button>
+            //   )}
+            // </div>
           )}
         </div>
         <style jsx>{`

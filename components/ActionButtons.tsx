@@ -25,6 +25,7 @@ interface Props {
   primaryAction: any;
   secondaryText?: any;
   secondaryAction?: any;
+  secondaryShow?: boolean;
   style?: any;
 }
 
@@ -85,6 +86,12 @@ class ActionButtons extends Component<Props, State> {
             type="button"
             className="btn btn-secondary"
             disabled={this.state.loading}
+            style={
+              this.props.secondaryShow === undefined ||
+              this.props.secondaryShow === true
+                ? {}
+                : { display: "none" }
+            }
             onClick={!this.state.loading ? this.props.secondaryAction : null}
           >
             {this.props.secondaryText}

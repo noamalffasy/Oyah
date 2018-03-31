@@ -10,8 +10,7 @@ import {
   GraphQLString,
   GraphQLSchema,
   GraphQLList,
-  GraphQLInputObjectType,
-  GraphQLScalarType
+  GraphQLInputObjectType
 } from "graphql";
 import { GraphQLID, GraphQLBoolean, GraphQLInt } from "graphql/type/scalars";
 import { GraphQLDate } from "graphql-iso-date";
@@ -274,6 +273,9 @@ const AuthProviderSignupData = new GraphQLInputObjectType({
     return {
       email: {
         type: AUTH_PROVIDER_EMAIL
+      },
+      confirmPassword: {
+        type: GraphQLString
       }
     };
   }
@@ -357,6 +359,12 @@ const Mutation = new GraphQLObjectType({
           },
           authProvider: {
             type: AuthProviderSignupData
+          },
+          isOver13: {
+            type: GraphQLBoolean
+          },
+          didAgree: {
+            type: GraphQLBoolean
           }
         },
         resolve: resolvers.createUser

@@ -8,13 +8,12 @@ import Router from "next/router";
 import Head from "next/head";
 import Link from "next/link";
 
-import { validate } from "email-validator";
-
 import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 import Input from "../components/Input";
+import ActionButtons from "../components/ActionButtons";
 
 import withData from "../lib/withData";
 
@@ -39,8 +38,15 @@ interface State {
     mutation createUser(
       $nametag: String
       $authProvider: AuthProviderSignupData
+      $isOver13: Boolean
+      $didAgree: Boolean
     ) {
-      createUser(nametag: $nametag, authProvider: $authProvider) {
+      createUser(
+        nametag: $nametag
+        authProvider: $authProvider
+        isOver13: $isOver13
+        didAgree: $didAgree
+      ) {
         token
         user {
           id
@@ -71,70 +77,51 @@ class Signup extends Component<Props, State> {
     }
   }
 
-  signup() {
-    if (
-      this.nametag.input.value !== "" &&
-      this.email.input.value !== "" &&
-      this.password.input.value !== ""
-    ) {
-      if (validate(this.email.input.value)) {
-        if (this.password.input.value === this.confirmPassword.input.value) {
-          if (this.age.isChecked()) {
-            if (this.terms.isChecked()) {
-              this.props
-                .createUser({
-                  variables: {
-                    nametag: this.nametag.input.value,
-                    authProvider: {
-                      email: {
-                        email: this.email.input.value,
-                        password: this.password.input.value
-                      }
-                    }
-                  }
-                })
-                .then((res: any) => {
-                  if (res.errors) {
-                    let errors: any[] = [];
-                    res.errors.forEach((error: Error) => {
-                      errors.push(error.message);
-                      console.error(error);
-                    });
-                    this.setState(prevState => ({
-                      ...prevState,
-                      error: errors.join("\n\u2022 ")
-                    }));
-                  } else {
-                    const data = res.data.createUser;
-                    // this.props.cookies.set("token", data.token);
-                    this.login({ ...data.user, token: data.token });
+  signup(e: any, triggerLoading: any) {
+    triggerLoading();
 
-                    this.nametag.reset();
-                    this.email.reset();
-                    this.password.reset();
-                    this.confirmPassword.reset();
-
-                    Router.push("/");
-                  }
-                })
-                .catch((err: Error) => {
-                  console.error(err);
-                });
-            } else {
-              this.setError("You must agree to the terms");
-            }
-          } else {
-            this.setError("You must be 13 or over to create an account");
-          }
-        } else {
-          this.setError("Passwords don't match");
+    this.props
+      .createUser({
+        variables: {
+          nametag: this.nametag.input.value,
+          authProvider: {
+            email: {
+              email: this.email.input.value,
+              password: this.password.input.value
+            },
+            confirmPassword: this.confirmPassword.input.value
+          },
+          isOver13: this.age.isChecked(),
+          didAgree: this.terms.isChecked()
         }
-      } else {
-        this.setError("Email isn't valid");
-      }
-    } else {
-      this.setError("You must fill all the fields");
-    }
+      })
+      .then((res: any) => {
+        this.ActionButtons.reset();
+
+        if (res.errors) {
+          let errors: any[] = [];
+          res.errors.forEach((error: Error) => {
+            console.error(error);
+          });
+          this.setError(errors.join("\n\u2022 "));
+        } else {
+          const data = res.data.createUser;
+          // this.props.cookies.set("token", data.token);
+          this.login({ ...data.user, token: data.token });
+
+          this.nametag.reset();
+          this.email.reset();
+          this.password.reset();
+          this.confirmPassword.reset();
+
+          Router.push("/");
+        }
+      })
+      .catch((err: any) => {
+        this.ActionButtons.reset();
+
+        this.setError(err.graphQLErrors[0].message);
+      });
   }
 
   login = bindActionCreators(userActionCreators.login, this.props.dispatch);
@@ -221,11 +208,11 @@ class Signup extends Component<Props, State> {
               </Link>
             </label>
           </div>
-          <div className="action-buttons">
-            <button className="primary" onClick={this.signup}>
-              Create an account
-            </button>
-          </div>
+          <ActionButtons
+            primaryText="Create an account"
+            primaryAction={this.signup}
+            ref={btns => (this.ActionButtons = btns)}
+          />
         </div>
         <style jsx>{`
           .Content {

@@ -9,6 +9,7 @@ import db from "../db";
 import { User, Article, Comment, ResetSession, Quote } from "../db/models";
 
 import { createSession, getSessionOnJWT } from "../db/models/Session";
+import { validate } from "email-validator";
 
 const MAGIC_NUMBERS = {
   jpg: "ffd8ffe0",
@@ -30,6 +31,35 @@ async function isLoggedIn(ctx: any) {
       reject("User is not logged in (or authenticated).");
     }
   });
+}
+
+function isEmpty(str: string | undefined) {
+  if (str !== "" && str !== undefined) {
+    return false;
+  }
+  return true;
+}
+
+async function checkIfUserExists(where: object) {
+  return await User.findOne({ where }).then(user => {
+    return user !== null && user.get({ plain: true }).id !== null;
+  });
+}
+
+interface ConditionObj {
+  condition: Boolean;
+  error: String;
+}
+
+function checkConditions(conditions: Array<ConditionObj>) {
+  let errors = [];
+  for (const obj of conditions) {
+    if (obj.condition === false) {
+      errors.push(obj.error);
+    }
+  }
+
+  return errors.length > 0 ? errors.join("\n• ") : true;
 }
 
 function checkMagicNumbers(magic: any) {
@@ -219,112 +249,170 @@ export default {
     const path = require("path");
     const fs = require("fs");
 
-    let user = await User.findOne({ where: { email: email.email } })
+    const user = await User.findOne({ where: { email: email.email } })
       .then((user: any) => {
         if (user !== null) {
           return user.get({ plain: true });
         }
-        throw "User not found";
       })
       .catch((err: Error) => {
         throw err;
       });
 
-    return await bcrypt
-      .compare(email.password, user.password)
-      .then(async (res: any) => {
-        if (res) {
-          // const cert = fs.readFileSync("private.key"); // get private key
-          const token = await createSession({
-            id: user.id,
-            nametag: user.nametag,
-            name: user.name,
-            email: user.email,
-            password: email.password
-          });
+    const comparePasswords =
+      user !== undefined &&
+      (await bcrypt.compare(email.password, user.password).then(res => res));
 
-          ctx.cookies.set("token", token.jwt(), {
-            expires: token.expiresAt
-          });
+    const check = checkConditions([
+      {
+        condition: !isEmpty(email.email) && !isEmpty(email.password),
+        error: "You must fill all the fields"
+      },
+      {
+        condition: user !== undefined && comparePasswords,
+        error: "Email or password are incorrect"
+      }
+    ]);
 
-          return { token: token.jwt(), user };
-        } else {
-          throw "Incorrect password";
-        }
-      });
-  },
-  createUser: async (
-    _: any,
-    { authProvider, nametag, name }: any,
-    ctx: any
-  ) => {
-    const bcrypt = require("bcrypt");
-    const jwt = require("jsonwebtoken");
-    const saltRounds = 10;
-
-    let password = await bcrypt
-      .hash(authProvider.email.password, saltRounds)
-      .then((hash: any) => {
-        return hash;
-      });
-
-    const newUser = {
-      nametag: nametag,
-      name: name ? name : null,
-      email: authProvider.email.email,
-      password: password,
-      likes: "",
-      comment_likes: ""
-    };
-
-    const response = User.findOrCreate({
-      where: { email: newUser.email },
-      defaults: newUser
-    });
-
-    const exists = await response.spread((user: any, created: any) => {
-      return !created;
-    });
-
-    if (!exists) {
-      const id = await response
-        .then(() => User.findOrCreate({ where: { email: newUser.email } }))
-        .spread((user: any, created: any) => {
-          return user.get({ plain: true }).id;
-        });
-
+    if (check === true) {
+      // const cert = fs.readFileSync("private.key"); // get private key
       const token = await createSession({
-        id,
-        nametag: newUser.nametag,
-        name: newUser.name,
-        email: newUser.email,
-        password: authProvider.email.password
+        id: user.id,
+        nametag: user.nametag,
+        name: user.name,
+        email: user.email,
+        password: email.password
       });
 
       ctx.cookies.set("token", token.jwt(), {
+        // expires: isRememberChecked ? token.expiresAt : "session"
         expires: token.expiresAt
       });
 
-      return {
-        user: {
+      return { token: token.jwt(), user };
+    } else {
+      throw check;
+    }
+  },
+  createUser: async (
+    _: any,
+    { authProvider, nametag, isOver13, didAgree }: any,
+    ctx: any
+  ) => {
+    const bcrypt = require("bcrypt");
+    const saltRounds = 10;
+
+    const check = checkConditions([
+      {
+        condition:
+          !isEmpty(nametag) &&
+          !isEmpty(authProvider.email.email) &&
+          !isEmpty(authProvider.email.password),
+        error: "You must fill all the fields"
+      },
+      {
+        condition: authProvider.email.password === authProvider.confirmPassword,
+        error: "Passwords don't match"
+      },
+      {
+        condition: validate(authProvider.email.email),
+        error: "Email isn't valid"
+      },
+      {
+        condition:
+          (await checkIfUserExists({ email: authProvider.email.email })) ===
+          false,
+        error: "User already exists"
+      },
+      {
+        condition: isOver13,
+        error: "You must be 13 or over to create an account"
+      },
+      {
+        condition: didAgree,
+        error: "You must agree to the terms"
+      }
+    ]);
+
+    if (check === true) {
+      let password = await bcrypt
+        .hash(authProvider.email.password, saltRounds)
+        .then((hash: any) => {
+          return hash;
+        });
+
+      const newUser = {
+        name: null,
+        email: authProvider.email.email,
+        nametag,
+        password,
+        likes: "",
+        comment_likes: ""
+      };
+
+      const response = User.findOrCreate({
+        where: { email: newUser.email },
+        defaults: newUser
+      });
+
+      const exists = await response.spread((user: any, created: any) => {
+        return !created;
+      });
+
+      if (!exists) {
+        const id = await response
+          .then(() => User.findOrCreate({ where: { email: newUser.email } }))
+          .spread((user: any, created: any) => {
+            return user.get({ plain: true }).id;
+          });
+
+        const token = await createSession({
           id,
           nametag: newUser.nametag,
-          name: newUser.name,
           email: newUser.email,
-          password: authProvider.email.password,
-          image: null,
-          small_image: null,
-          editor: false
-        },
-        token
-      };
+          password: authProvider.email.password
+        });
+
+        ctx.cookies.set("token", token.jwt(), {
+          expires: token.expiresAt
+        });
+
+        return {
+          user: {
+            ...newUser,
+            id,
+            name: null,
+            password: authProvider.email.password,
+            image: null,
+            small_image: null,
+            editor: false
+          },
+          token
+        };
+      } else {
+        throw new Error("User already exists");
+      }
     } else {
-      throw new Error("User already exists");
+      throw check;
     }
   },
   forgetPassword: async (_: any, { email }: any) => {
-    const user = await User.findOne({ where: { email } });
-    if (user !== null && user.get({ plain: true }).id !== null) {
+    const checked = checkConditions([
+      {
+        condition: !isEmpty(email),
+        error: "You must fill all the fields"
+      },
+      {
+        condition: validate(email),
+        error: "Email isn't valid"
+      },
+      {
+        condition: (await checkIfUserExists({ email })) === true,
+        error: "There's no user with this email"
+      }
+    ]);
+
+    if (checked === true) {
       let id: number;
       while (true) {
         id = Math.floor(Math.random() * 900000) + 100000;
@@ -357,7 +445,8 @@ export default {
 
       return await _sendMail(mailOptions);
     } else {
-      throw ["There's no user with this email"];
+      console.log(checked);
+      throw checked;
     }
   },
   getResetEmail: async (_: any, { id }: any) => {
