@@ -135,8 +135,8 @@ class Article extends Component<Props, any> {
 
             margin: 0.5rem auto;
 
-            font-size: 7vmin;
-            max-height: 17vmin;
+            font-size: 2rem;
+            max-height: 17vw;
             max-width: 90%;
             white-space: nowrap;
 
@@ -147,10 +147,23 @@ class Article extends Component<Props, any> {
             -moz-osx-font-smoothing: grayscale;
             backface-visibility: hidden;
           }
-          @media (min-width: 768px),
-          @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+          @media (min-width: 576px),
+            @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .text h2 {
-              font-size: 4vmin;
+              font-size: 1.5rem;
+            }
+          }
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Article .text h2 {
+                font-size: 2rem;
+              }
+            }
+          }
+          @media (min-width: 1200px),
+            @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Article .text h2 {
+              font-size: 2.5rem;
             }
           }
         `}</style>
@@ -164,7 +177,7 @@ class Article extends Component<Props, any> {
             transition: all 0.3s;
           }
           @media (min-width: 992px),
-          @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .image {
               height: 100%;
               min-height: 100%;
