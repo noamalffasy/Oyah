@@ -836,6 +836,14 @@ class ArticlePage extends Component<Props, State> {
                 max-height: 30rem;
               }
             }
+
+            @media (min-width: 1300px),
+              @media (min-width: 1300px) and (-webkit-min-device-pixel-ratio: 1) {
+              .ArticlePage .article-image {
+                min-height: 35rem;
+                max-height: 35rem;
+              }
+            }
           `}</style>
         </App>
       );
