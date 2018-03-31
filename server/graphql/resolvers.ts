@@ -794,20 +794,44 @@ export default {
   ) => {
     return await isLoggedIn(ctx)
       .then(async (res: any) => {
-        const newArticle = {
-          id,
-          title,
-          path: `/img/articles/${id}/main.jpeg`,
-          content,
-          authorID
-        };
+        const fs = require("fs");
+        const path = require("path");
 
-        Article.findOrCreate({
-          where: { id: newArticle.id },
-          defaults: newArticle
-        });
+        const check = checkConditions([
+          {
+            condition: !isEmpty(title),
+            error: "Title mustn't be empty"
+          },
+          {
+            condition: fs.existsSync(
+              path.join(__dirname, "../../static/img/articles/", "./" + id)
+            ),
+            error: "Image mustn't be empty"
+          },
+          {
+            condition: !isEmpty(content),
+            error: "Content mustn't be empty"
+          }
+        ]);
 
-        return newArticle;
+        if (check === true) {
+          const newArticle = {
+            id,
+            title,
+            path: `/img/articles/${id}/main.jpeg`,
+            content,
+            authorID
+          };
+
+          Article.findOrCreate({
+            where: { id: newArticle.id },
+            defaults: newArticle
+          });
+
+          return newArticle;
+        } else {
+          throw check;
+        }
       })
       .catch(err => {
         throw err;

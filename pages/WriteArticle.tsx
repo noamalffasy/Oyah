@@ -356,7 +356,7 @@ class WriteArticle extends Component<Props, State> {
   }
 
   publish(e: any, triggerLoading: any) {
-    const title = this.title.value || this.state.title;
+    const title = this.title.value || this.state.title || "";
     const image = this.state.image
       ? this.imageDialog.files.length > 0
         ? this.imageDialog.files[0]
@@ -364,214 +364,32 @@ class WriteArticle extends Component<Props, State> {
           ? this.state.image
           : this.state.image
       : null;
-    const content = this.editor.text() || this.editor.props.value;
+    const content = this.editor.text() || this.editor.props.value || "";
     let imagePath = null;
 
-    if (title !== ("" || undefined)) {
-      if (!this.state.edit && image === null) {
-        this.setError("Image mustn't be empty");
-      } else {
-        if (content !== ("" || undefined)) {
-          triggerLoading();
+    triggerLoading();
 
-          if (
-            typeof image === "string" &&
-            !image.startsWith("//") &&
-            !image.startsWith("https://") &&
-            !image.startsWith("http://") &&
-            !image.startsWith("/img/articles")
-          ) {
-            this.props
-              .uploadFile({
-                variables: {
-                  where: "article",
-                  articleID: this.props.newArticle.id,
-                  main: true,
-                  image
-                }
-              })
-              .then((res: any) => {
-                if (res.error) {
-                  this.ActionButtons.reset();
+    if (
+      typeof image === "string" &&
+      !image.startsWith("//") &&
+      !image.startsWith("https://") &&
+      !image.startsWith("http://") &&
+      !image.startsWith("/img/articles")
+    ) {
+      this.props
+        .uploadFile({
+          variables: {
+            where: "article",
+            articleID: this.props.newArticle.id,
+            main: true,
+            image
+          }
+        })
+        .then((res: any) => {
+          if (res.error) {
+            this.ActionButtons.reset();
 
-                  this.setError(
-                    res.error.message.replace("GraphQL error: ", "")
-                  );
-                } else {
-                  if (!this.state.edit) {
-                    this.props
-                      .createArticle({
-                        variables: {
-                          id: this.props.newArticle.id,
-                          title,
-                          content,
-                          authorID: this.props.user.id
-                        }
-                      })
-                      .then((res: any) => {
-                        this.ActionButtons.reset();
-
-                        if (res.errors) {
-                          this.setError(
-                            res.errors
-                              .map((error: any) => {
-                                return error.message.replace(
-                                  "GraphQL error: ",
-                                  ""
-                                );
-                              })
-                              .join("\n")
-                          );
-                        } else {
-                          Router.push("/articles/" + this.props.newArticle.id);
-                        }
-                      })
-                      .catch((err: any) => {
-                        this.ActionButtons.reset();
-
-                        this.setError(
-                          err.message.replace("GraphQL error: ", "")
-                        );
-                      });
-                  } else {
-                    this.props
-                      .updateArticle({
-                        variables: {
-                          id: this.props.newArticle.id,
-                          title,
-                          content
-                        }
-                      })
-                      .then((res: any) => {
-                        this.ActionButtons.reset();
-
-                        if (res.errors) {
-                          this.setError(
-                            res.errors
-                              .map((error: any) => {
-                                return error.message.replace(
-                                  "GraphQL error: ",
-                                  ""
-                                );
-                              })
-                              .join("\n")
-                          );
-                        } else {
-                          Router.push("/articles/" + res.data.updateArticle.id);
-                        }
-                      })
-                      .catch((err: any) => {
-                        this.ActionButtons.reset();
-
-                        this.setError(
-                          err.message.replace("GraphQL error: ", "")
-                        );
-                      });
-                  }
-                }
-              })
-              .catch((err: any) => {
-                this.ActionButtons.reset();
-
-                this.setError(err.message.replace("GraphQL error: ", ""));
-              });
-          } else if (
-            typeof image === "object" &&
-            image !== null &&
-            this.imageDialog.validity.valid
-          ) {
-            this.props
-              .uploadFile({
-                variables: {
-                  file: image,
-                  where: "article",
-                  articleID: this.props.newArticle.id,
-                  main: true
-                }
-              })
-              .then((res: any) => {
-                if (res.error) {
-                  this.ActionButtons.reset();
-
-                  this.setError(
-                    res.error.message.replace("GraphQL error: ", "")
-                  );
-                } else {
-                  if (!this.state.edit) {
-                    this.props
-                      .createArticle({
-                        variables: {
-                          id: this.props.newArticle.id,
-                          title,
-                          content,
-                          authorID: this.props.user.id
-                        }
-                      })
-                      .then((res: any) => {
-                        if (res.errors) {
-                          this.setError(
-                            res.errors
-                              .map((error: any) => {
-                                return error.message.replace(
-                                  "GraphQL error: ",
-                                  ""
-                                );
-                              })
-                              .join("\n")
-                          );
-                        } else {
-                          Router.push("/articles/" + this.props.newArticle.id);
-                        }
-                      })
-                      .catch((err: any) => {
-                        this.ActionButtons.reset();
-
-                        this.setError(
-                          err.message.replace("GraphQL error: ", "")
-                        );
-                      });
-                  } else {
-                    this.props
-                      .updateArticle({
-                        variables: {
-                          id: this.props.newArticle.id,
-                          title,
-                          content
-                        }
-                      })
-                      .then((res: any) => {
-                        this.ActionButtons.reset();
-
-                        if (res.errors) {
-                          this.setError(
-                            res.errors
-                              .map((error: any) => {
-                                return error.message.replace(
-                                  "GraphQL error: ",
-                                  ""
-                                );
-                              })
-                              .join("\n")
-                          );
-                        } else {
-                          Router.push("/articles/" + res.data.updateArticle.id);
-                        }
-                      })
-                      .catch((err: any) => {
-                        this.ActionButtons.reset();
-
-                        this.setError(
-                          err.message.replace("GraphQL error: ", "")
-                        );
-                      });
-                  }
-                }
-              })
-              .catch((err: any) => {
-                this.ActionButtons.reset();
-
-                this.setError(err.message.replace("GraphQL error: ", ""));
-              });
+            this.setError(res.error.graphQLErrors[0].message);
           } else {
             if (!this.state.edit) {
               this.props
@@ -590,7 +408,7 @@ class WriteArticle extends Component<Props, State> {
                     this.setError(
                       res.errors
                         .map((error: any) => {
-                          return error.message.replace("GraphQL error: ", "");
+                          return error.graphQLErrors[0].message;
                         })
                         .join("\n")
                     );
@@ -601,7 +419,7 @@ class WriteArticle extends Component<Props, State> {
                 .catch((err: any) => {
                   this.ActionButtons.reset();
 
-                  this.setError(err.message.replace("GraphQL error: ", ""));
+                  this.setError(err.graphQLErrors[0].message);
                 });
             } else {
               this.props
@@ -619,7 +437,63 @@ class WriteArticle extends Component<Props, State> {
                     this.setError(
                       res.errors
                         .map((error: any) => {
-                          return error.message.replace("GraphQL error: ", "");
+                          return error.graphQLErrors[0].message;
+                        })
+                        .join("\n")
+                    );
+                  } else {
+                    Router.push("/articles/" + res.data.updateArticle.id);
+                  }
+                })
+                .catch((err: any) => {
+                  this.ActionButtons.reset();
+
+                  this.setError(err.graphQLErrors[0].message);
+                });
+            }
+          }
+        })
+        .catch((err: any) => {
+          this.ActionButtons.reset();
+
+          this.setError(err.graphQLErrors[0].message);
+        });
+    } else if (
+      typeof image === "object" &&
+      image !== null &&
+      this.imageDialog.validity.valid
+    ) {
+      this.props
+        .uploadFile({
+          variables: {
+            file: image,
+            where: "article",
+            articleID: this.props.newArticle.id,
+            main: true
+          }
+        })
+        .then((res: any) => {
+          if (res.error) {
+            this.ActionButtons.reset();
+
+            this.setError(res.error.graphQLErrors[0].message);
+          } else {
+            if (!this.state.edit) {
+              this.props
+                .createArticle({
+                  variables: {
+                    id: this.props.newArticle.id,
+                    title,
+                    content,
+                    authorID: this.props.user.id
+                  }
+                })
+                .then((res: any) => {
+                  if (res.errors) {
+                    this.setError(
+                      res.errors
+                        .map((error: any) => {
+                          return error.graphQLErrors[0].message;
                         })
                         .join("\n")
                     );
@@ -630,16 +504,106 @@ class WriteArticle extends Component<Props, State> {
                 .catch((err: any) => {
                   this.ActionButtons.reset();
 
-                  this.setError(err.message.replace("GraphQL error: ", ""));
+                  this.setError(err.graphQLErrors[0].message);
+                });
+            } else {
+              this.props
+                .updateArticle({
+                  variables: {
+                    id: this.props.newArticle.id,
+                    title,
+                    content
+                  }
+                })
+                .then((res: any) => {
+                  this.ActionButtons.reset();
+
+                  if (res.errors) {
+                    this.setError(
+                      res.errors
+                        .map((error: any) => {
+                          return error.graphQLErrors[0].message;
+                        })
+                        .join("\n")
+                    );
+                  } else {
+                    Router.push("/articles/" + res.data.updateArticle.id);
+                  }
+                })
+                .catch((err: any) => {
+                  this.ActionButtons.reset();
+
+                  this.setError(err.graphQLErrors[0].message);
                 });
             }
           }
-        } else {
-          this.setError("Content mustn't be empty");
-        }
-      }
+        })
+        .catch((err: any) => {
+          this.ActionButtons.reset();
+
+          this.setError(err.graphQLErrors[0].message);
+        });
     } else {
-      this.setError("Title mustn't be empty");
+      if (!this.state.edit) {
+        this.props
+          .createArticle({
+            variables: {
+              id: this.props.newArticle.id,
+              title,
+              content,
+              authorID: this.props.user.id
+            }
+          })
+          .then((res: any) => {
+            this.ActionButtons.reset();
+
+            if (res.errors) {
+              this.setError(
+                res.errors
+                  .map((error: any) => {
+                    return error.graphQLErrors[0].message;
+                  })
+                  .join("\n")
+              );
+            } else {
+              Router.push("/articles/" + this.props.newArticle.id);
+            }
+          })
+          .catch((err: any) => {
+            this.ActionButtons.reset();
+
+            this.setError(err.graphQLErrors[0].message);
+          });
+      } else {
+        this.props
+          .updateArticle({
+            variables: {
+              id: this.props.newArticle.id,
+              title,
+              content
+            }
+          })
+          .then((res: any) => {
+            this.ActionButtons.reset();
+
+            if (res.errors) {
+              this.setError(
+                res.errors
+                  .map((error: any) => {
+                    return error.graphQLErrors[0].message;
+                  })
+                  .join("\n")
+              );
+            } else {
+              Router.push("/articles/" + this.props.newArticle.id);
+            }
+          })
+          .catch((err: any) => {
+            this.ActionButtons.reset();
+
+            this.setError(err.graphQLErrors[0].message);
+          });
+      }
     }
   }
 
