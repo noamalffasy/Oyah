@@ -35,7 +35,7 @@ app.prepare().then(() => {
     }
     return next();
   });
-  
+
   router.post(
     "/graphql",
     koaBody(),
@@ -92,6 +92,11 @@ app.prepare().then(() => {
     ctx.respond = false;
   });
 
+  router.get("/signup", async ctx => {
+    await app.render(ctx.req, ctx.res, "/signup", ctx.query);
+    ctx.respond = false;
+  });
+
   router.get("/login", async ctx => {
     await app.render(ctx.req, ctx.res, "/login", ctx.query);
     ctx.respond = false;
@@ -111,7 +116,6 @@ app.prepare().then(() => {
     await app.render(ctx.req, ctx.res, "/Settings", ctx.query);
     ctx.respond = false;
   });
-
 
   router.get("/signout", async ctx => {
     ctx.cookies.set("token", "");
