@@ -538,7 +538,8 @@ class Settings extends Component<Props, State> {
               flex-flow: column;
               align-items: center;
               justify-content: center;
-              width: 30%;
+              /* width: 30%; */
+              width: 70%;
             }
 
             .Settings .user .info .image {
@@ -653,6 +654,9 @@ class Settings extends Component<Props, State> {
             }
             @media (min-width: 480px),
               @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Settings .user .info {
+                width: 50%;
+              }
               .Settings .other-info td:nth-child(odd) {
                 display: table-cell;
               }
@@ -676,6 +680,9 @@ class Settings extends Component<Props, State> {
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Settings .user {
                 flex-flow: row;
+              }
+              .Settings .user .info {
+                width: 30%;
               }
             }
             @media (min-width: 1200px),
