@@ -43,23 +43,11 @@ function create(initialState: any, ctx: any = {}, jwt: any = "") {
     return forward(operation);
   });
 
-  const errorLink = onError(({ graphQLErrors, networkError }: any) => {
-    if (graphQLErrors)
-      graphQLErrors.map(({ message, locations, path }: any) =>
-        console.log(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-        )
-      );
-
-    if (networkError) console.log(`[Network error]: ${networkError}`);
-  });
-
   return new ApolloClient({
     connectToDevTools:
       process.env.NODE_ENV !== "production" ? process.browser : false,
     ssrMode: !process.browser, // Disables forceFetch on the server (so queries are only run once),
     link: ApolloLink.from([
-      errorLink,
       authMiddleware,
       createUploadLink({ uri, credentials: "include", fetch })
       // new HttpLink({ uri, credentials: "include" })
