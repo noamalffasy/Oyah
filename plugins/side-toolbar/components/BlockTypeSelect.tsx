@@ -51,7 +51,7 @@ export default class BlockTypeSelect extends Component<Props> {
       <div
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        onMouseDown={this.onClick}
+        onMouseDown={this.onMouseDown}
       >
         <div className={theme.blockTypeSelectStyles.blockType}>
           <svg
