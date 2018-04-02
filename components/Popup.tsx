@@ -71,7 +71,7 @@ class Popup extends Component<Props, State> {
       }
     }
   }
-  
+
   render() {
     return (
       <div
@@ -112,7 +112,7 @@ class Popup extends Component<Props, State> {
             margin: 0 auto;
             left: 0;
             right: 0;
-            z-index: 9999999999;
+            z-index: 1000;
             transform: scale(1);
             overflow: hidden;
             transition: all 0.3s;
@@ -140,7 +140,7 @@ class Popup extends Component<Props, State> {
             margin: 0 auto;
             /* left: 50%; */
             box-shadow: rgba(0, 0, 0, 0.15) 0 4px 4px;
-            z-index: 9999999999;
+            z-index: 1000;
             outline: 0;
             /* transform: translate(-50%); */
             transform: scale(1);
