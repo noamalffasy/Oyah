@@ -6,13 +6,11 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import * as signInModalActionCreators from "../actions/signInModal";
-import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
 import * as uuid from "uuid/v4";
 
 import Head from "next/head";
-import Router from "next/router";
 import Link from "next/link";
 
 import * as Markdown from "react-markdown";
@@ -29,6 +27,7 @@ import * as moment from "moment";
 import App from "../components/App";
 
 import Image from "../components/Image";
+import Popup from "../components/Popup";
 import Input from "../components/Input";
 import ActionButtons from "../components/ActionButtons";
 
@@ -180,6 +179,11 @@ class ArticlePage extends Component<Props, State> {
     this.deleteArticle = this.deleteArticle.bind(this);
     this.deleteComment = this.deleteComment.bind(this);
   }
+
+  ctrls: {
+    more?: HTMLDivElement;
+    morePopup?: Popup;
+  } = {};
 
   static async getInitialProps(
     { query: { id } }: any,
@@ -362,9 +366,10 @@ class ArticlePage extends Component<Props, State> {
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
     if (
-      (this.menu && nextState.menuOpen !== this.state.menuOpen) ||
+      (this.ctrls.more &&
+        nextState.menuOpen !== this.ctrls.morePopup.state.open) ||
       (this.deletePopup && nextState.deletePopup !== false) ||
-      // (this.more && this.more.contains(nextProps.clicked)) ||
+      // (this.ctrls.more && this.ctrls.more.contains(nextProps.clicked)) ||
       !this.props.article ||
       !this.props.article.content ||
       !this.props.author ||
@@ -525,35 +530,22 @@ class ArticlePage extends Component<Props, State> {
                     this.props.author.id === this.props.user.id && (
                       <div
                         className="more"
-                        tabIndex={0}
-                        onBlur={() => {
-                          this.setState(prevState => ({
-                            ...prevState,
-                            menuOpen: false
-                          }));
-                        }}
-                        ref={div => (this.more = div)}
+                        ref={div => (this.ctrls.more = div)}
                       >
                         <img
-                          src={"../static/img/more.svg"}
-                          onClick={() => {
+                          src="/img/more.svg"
+                          onClick={e => {
+                            e.preventDefault();
+
                             this.setState(prevState => ({
                               ...prevState,
-                              menuOpen: !this.state.menuOpen
+                              menuOpen: true
                             }));
                           }}
                         />
-                        <div
-                          className="menu"
-                          style={
-                            !this.state.menuOpen
-                              ? { maxHeight: 0, boxShadow: "none" }
-                              : {
-                                  maxHeight:
-                                    "calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem)"
-                                }
-                          }
-                          ref={div => (this.menu = div)}
+                        <Popup
+                          open={this.state.menuOpen}
+                          ref={popup => (this.ctrls.morePopup = popup)}
                         >
                           <li>
                             <Link
@@ -572,7 +564,7 @@ class ArticlePage extends Component<Props, State> {
                               Delete
                             </a>
                           </li>
-                        </div>
+                        </Popup>
                       </div>
                     )}
                 </div>
@@ -636,6 +628,8 @@ class ArticlePage extends Component<Props, State> {
                     user={this.props.user}
                     id={this.props.article.id}
                     likes={this.props.article.likes}
+                    openSignInModal={this.openSignInModal}
+                    setError={this.setError}
                   />
 
                   <Responses
@@ -647,6 +641,7 @@ class ArticlePage extends Component<Props, State> {
                     comments={this.props.article.comments}
                     removeComments={this.state.removeComments}
                     openDeletePopup={this.openDeletePopup}
+                    setError={this.setError}
                   />
                 </div>
               </div>
@@ -703,7 +698,6 @@ class ArticlePage extends Component<Props, State> {
             }
 
             .ArticlePage .top .more {
-              position: relative;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -712,29 +706,10 @@ class ArticlePage extends Component<Props, State> {
 
             .ArticlePage .top .more img {
               width: 1.7rem;
+              margin: 0 2rem 0 0;
               -webkit-user-draq: none;
               user-select: none;
               cursor: pointer;
-            }
-
-            .ArticlePage .top .more .menu {
-              position: absolute;
-              top: 4rem;
-              border-radius: 0;
-              padding: 0.2rem 2rem;
-              max-height: calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem);
-              background: #fff;
-              /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
-              box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
-              overflow: hidden;
-              transition: all 0.3s;
-            }
-
-            .ArticlePage .top .more .menu li {
-              list-style: none;
-              padding: 0.5rem 0;
-              text-align: center;
-              user-select: none;
             }
 
             .ArticlePage h1 {
@@ -761,6 +736,22 @@ class ArticlePage extends Component<Props, State> {
             }
           `}</style>
           <style jsx global>{`
+            .ArticlePage .top .more .popup-wrapper {
+              width: 90% !important;
+            }
+
+            .ArticlePage .top .more .popup-wrapper .popup {
+              width: 30% !important;
+              float: right;
+            }
+
+            .ArticlePage .top .more .popup-wrapper .popup li {
+              list-style: none;
+              padding: 0.5rem 0;
+              text-align: center;
+              user-select: none;
+            }
+
             .ArticlePage .title.text-block {
               width: 80% !important;
               margin: 0 auto;
@@ -807,6 +798,16 @@ class ArticlePage extends Component<Props, State> {
               background: #c0c0c0;
               animation: imageLoad 1s infinite;
             }
+            @media (min-width: 480px),
+              @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
+              .ArticlePage .top .more .popup-wrapper {
+                width: 60% !important;
+                padding-right: 2rem;
+              }
+              .ArticlePage .top .more .popup-wrapper .popup {
+                float: unset;
+              }
+            }
 
             @media (min-width: 576px),
               @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
@@ -814,8 +815,12 @@ class ArticlePage extends Component<Props, State> {
                 min-height: 20rem;
               }
             }
+
             @media (min-width: 768px),
               @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+              .ArticlePage .top .more .popup-wrapper {
+                width: 50% !important;
+              }
               .ArticlePage .article-image {
                 min-height: 25rem;
                 max-height: 25rem;
@@ -824,6 +829,10 @@ class ArticlePage extends Component<Props, State> {
 
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .ArticlePage .top .more .popup-wrapper {
+                width: 40% !important;
+                padding-right: 2rem;
+              }
               .ArticlePage .body .image {
                 min-height: 25rem;
               }
@@ -831,6 +840,10 @@ class ArticlePage extends Component<Props, State> {
 
             @media (min-width: 1200px),
               @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
+              .ArticlePage .top .more .popup-wrapper {
+                width: 30% !important;
+                padding-right: 2rem;
+              }
               .ArticlePage .article-image {
                 min-height: 30rem;
                 max-height: 30rem;
@@ -860,6 +873,8 @@ interface BottombarProps {
   user: User;
   likes: any;
   contentLoaded: any;
+  openSignInModal: any;
+  setError: any;
   likeArticle?: any;
   likeComment?: any;
 }
@@ -868,6 +883,7 @@ interface BottombarState {
   liked: any;
   likes: any;
   isLiked: boolean;
+  showPopup: boolean;
 }
 
 @graphql(
@@ -898,7 +914,12 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
   constructor(props: any) {
     super(props);
 
-    this.state = { liked: [], likes: this.props.likes, isLiked: false };
+    this.state = {
+      liked: [],
+      likes: this.props.likes,
+      isLiked: false,
+      showPopup: false
+    };
 
     this.toggleLike = this.toggleLike.bind(this);
   }
@@ -1031,8 +1052,18 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
               isLiked: !liked.includes(id)
             }));
           })
-          .catch((err: Error) => {
-            console.error(err);
+          .catch((err: any) => {
+            if (
+              err.graphQLErrors[0].message ===
+              "User is not logged in (or authenticated)."
+            ) {
+              this.setState(prevState => ({
+                ...prevState,
+                showPopup: true
+              }));
+            } else {
+              this.props.setError(err.graphQLErrors[0].message);
+            }
           });
         break;
       case "comment":
@@ -1061,8 +1092,18 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
               isLiked: !liked.includes(commentID)
             }));
           })
-          .catch((err: Error) => {
-            console.error(err);
+          .catch((err: any) => {
+            if (
+              err.graphQLErrors[0].message ===
+              "User is not logged in (or authenticated)."
+            ) {
+              this.setState(prevState => ({
+                ...prevState,
+                showPopup: true
+              }));
+            } else {
+              this.props.setError(err.graphQLErrors[0].message);
+            }
           });
         break;
       default:
@@ -1087,8 +1128,18 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
               isLiked: !liked.includes(id)
             }));
           })
-          .catch((err: Error) => {
-            console.error(err);
+          .catch((err: any) => {
+            if (
+              err.graphQLErrors[0].message ===
+              "User is not logged in (or authenticated)."
+            ) {
+              this.setState(prevState => ({
+                ...prevState,
+                showPopup: true
+              }));
+            } else {
+              this.props.setError(err.graphQLErrors[0].message);
+            }
           });
         break;
     }
@@ -1146,6 +1197,13 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
               }
             />
           </button>
+          <Popup open={this.state.showPopup}>
+            <p>
+              You need an account to like{" "}
+              {this.props.where === "comment" ? "a comment" : "an article"}
+            </p>
+            <a onClick={() => this.props.openSignInModal("signUp")}>Sign up</a>
+          </Popup>
         </div>
         {/* <button className="st-custom-button" data-network="reddit">
           <FontAwesomeIcon icon={["fab", "reddit-alien"]} />
@@ -1259,6 +1317,7 @@ interface ResponsesProps {
   comments: any[] | undefined;
   removeComments: string[] | undefined;
   openDeletePopup: any;
+  setError: any;
   getUser?: any;
   sendComment?: any;
   updateComment?: any;
@@ -1681,6 +1740,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                   user={this.props.user}
                   likes={elem.likes}
                   contentLoaded={true}
+                  openSignInModal={this.props.openSignInModal}
+                  setError={this.props.setError}
                 />
               </div>
             </div>
@@ -1892,32 +1953,17 @@ class MoreMenu extends Component<MenuProps, MenuState> {
             menuOpen: false
           }));
         }}
-        ref={div => (this.more = div)}
       >
         <img
           src="/img/more.svg"
           onClick={() => {
             this.setState(prevState => ({
               ...prevState,
-              menuOpen: !this.state.menuOpen
+              menuOpen: true
             }));
           }}
         />
-        <div
-          className="menu"
-          style={
-            !this.state.menuOpen
-              ? {
-                  maxHeight: 0,
-                  boxShadow: "none",
-                  background: "none"
-                }
-              : {
-                  maxHeight: "calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem)"
-                }
-          }
-          ref={div => (this.menu = div)}
-        >
+        <Popup open={this.state.menuOpen}>
           <li>
             <a
               className={this.props.edit ? "disabled" : ""}
@@ -1949,56 +1995,79 @@ class MoreMenu extends Component<MenuProps, MenuState> {
               Delete
             </a>
           </li>
-        </div>
-        <style jsx>{`
-          .more {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 0.5rem;
-            outline: 0;
+        </Popup>
+        <style jsx>
+          {`
+            .more {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 0.5rem;
+              outline: 0;
+            }
+
+            .more img {
+              width: 1.7rem;
+              -webkit-user-draq: none;
+              user-select: none;
+              cursor: pointer;
+            }
+          `}
+        </style>
+        <style jsx global>{`
+          .more .popup-wrapper {
+            width: 90% !important;
           }
 
-          .more img {
-            width: 1.7rem;
-            -webkit-user-draq: none;
-            user-select: none;
-            cursor: pointer;
+          .more .popup-wrapper .popup {
+            width: 30% !important;
+            float: right;
           }
 
-          .more .menu {
-            position: absolute;
-            top: 3rem;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-              Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-              sans-serif;
-            font-size: 1rem;
-            border-radius: 0;
-            padding: 0.2rem 2rem;
-            max-height: calc(2 * (1.5rem + 2 * 0.5rem) + 0.4rem);
-            background: #fff;
-            /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
-            box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
-            overflow: hidden;
-            z-index: 1000;
-            transition: all 0.3s;
-          }
-
-          .more .menu li {
+          .more .popup-wrapper .popup li {
             list-style: none;
             padding: 0.5rem 0;
             text-align: center;
             user-select: none;
           }
 
-          .more .menu li a.disabled {
+          .more .popup-wrapper .popup li a.disabled {
             opacity: 0.6;
             cursor: default;
           }
 
-          .more .menu li a.disabled:hover {
+          .more .popup-wrapper .popup li a.disabled:hover {
             text-decoration: none !important;
+          }
+          @media (min-width: 480px),
+            @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
+            .more .popup-wrapper {
+              width: 60% !important;
+            }
+            .more .popup-wrapper .popup {
+              float: unset;
+            }
+          }
+
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .more .popup-wrapper {
+              width: 50% !important;
+            }
+          }
+
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            .more .popup-wrapper {
+              width: 40% !important;
+            }
+          }
+
+          @media (min-width: 1200px),
+            @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
+            .more .popup-wrapper {
+              width: 30% !important;
+            }
           }
         `}</style>
       </div>
