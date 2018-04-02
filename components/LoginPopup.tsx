@@ -124,34 +124,36 @@ class LoginPopup extends Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.signInModal.state !== this.props.signInModal.state) {
+    const { signInModal, url } = nextProps;
+
+    if (signInModal.state !== this.props.signInModal.state) {
       this.setState(prevState => ({
         ...prevState,
-        open: nextProps.signInModal.state === "open" ? true : false,
-        login: nextProps.signInModal.whatToOpen === "login"
+        open: signInModal.state === "open" ? true : false,
+        login: signInModal.whatToOpen === "login"
       }));
 
-      if (nextProps.signInModal.state === "open") {
-        const url = this.props.url;
-
+      if (signInModal.state === "open") {
         this.setState(prevState => ({
           ...prevState,
-          urlAs: this.props.url.asPath,
+          urlAs: url.asPath,
           url
         }));
 
         Router.push(
-          nextProps.signInModal.whatToOpen === "login"
+          signInModal.whatToOpen === "login"
             ? {
-                pathname: nextProps.url.pathname,
-                query: { ...nextProps.url.query, login: "" }
+                pathname: url.pathname,
+                query: { ...url.query, login: "" }
               }
             : {
-                pathname: nextProps.url.pathname,
-                query: { ...nextProps.url.query, signup: "" }
+                pathname: url.pathname,
+                query: { ...url.query, signup: "" }
               },
-          nextProps.signInModal.whatToOpen === "login" ? "/login" : "/signup"
+          signInModal.whatToOpen === "login" ? "/login" : "/signup"
         );
+      } else {
+        Router.push(this.state.url, this.state.urlAs);
       }
     }
   }
@@ -178,10 +180,7 @@ class LoginPopup extends Component<Props, State> {
       }));
     }
     if (this.state.open === false && this.state.open !== prevState.open) {
-      this.setState(prevState => ({
-        ...prevState,
-        error: false
-      }));
+      this.closeDialog();
     }
   }
 
@@ -219,7 +218,6 @@ class LoginPopup extends Component<Props, State> {
           this.signin.password.reset();
           // this.signin.remember.reset();
 
-          Router.push(this.state.url, this.state.urlAs);
           this.props.closeSignInModal();
 
           this.setState(prevState => ({
@@ -278,7 +276,6 @@ class LoginPopup extends Component<Props, State> {
           this.createAccount.password.reset();
           this.createAccount.confirmPassword.reset();
 
-          Router.push(this.state.url, this.state.urlAs);
           this.props.closeSignInModal();
 
           this.setState(prevState => ({
@@ -327,9 +324,12 @@ class LoginPopup extends Component<Props, State> {
       });
   }
 
-  closeDialog(e: any) {
-    if (!this.popup.contains(e.target)) {
-      Router.push(this.state.url, this.state.urlAs);
+  closeDialog(e: any = undefined) {
+    if ((e && !this.popup.contains(e.target)) || e === undefined) {
+      this.setState(prevState => ({
+        ...prevState,
+        error: false
+      }));
       this.props.closeSignInModal();
     }
   }
