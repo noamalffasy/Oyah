@@ -210,6 +210,7 @@ class Navbar extends Component<Props, State> {
               client={this.props.client}
               login={this.props.login}
               user={this.props.user}
+              url={this.props.url}
               openSignInModal={this.props.openSignInModal}
               closeSignInModal={this.props.closeSignInModal}
             />
@@ -524,7 +525,9 @@ class Account extends Component<any, any> {
                   this.props.client.cache.reset().then(() => {
                     window.location.href = `${window.location.protocol}//${
                       window.location.host
-                    }/signout`;
+                    }/signout?redirect_to=${encodeURIComponent(
+                      window.location.pathname
+                    )}`;
                   });
                 }}
               >

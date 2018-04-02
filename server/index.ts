@@ -119,7 +119,11 @@ app.prepare().then(() => {
 
   router.get("/signout", async ctx => {
     ctx.cookies.set("token", "");
-    ctx.redirect("/");
+    if (ctx.query.redirect_to) {
+      ctx.redirect(decodeURIComponent(ctx.query.redirect_to));
+    } else {
+      ctx.redirect("/");
+    }
   });
 
   router.get("/policies/:name", async ctx => {
