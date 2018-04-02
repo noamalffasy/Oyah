@@ -531,11 +531,6 @@ class Account extends Component<any, any> {
                 Sign out
               </a>
             </div>
-            <img
-              className="arrow"
-              src="/img/Arrow.svg"
-              onClick={this.toggleInfo}
-            />
             {/* <FontAwesomeIcon icon="angle-down" fixedWidth fixedHeight onClick={this.toggleInfo} /> */}
             {/* <img
               onClick={this.toggleInfo}
@@ -544,6 +539,11 @@ class Account extends Component<any, any> {
               alt=""
             /> */}
           </div>
+          <img
+            className="arrow"
+            src="/img/Arrow.svg"
+            onClick={this.toggleInfo}
+          />
           <style jsx>{`
             .Account {
               --border-radius: 0;
@@ -573,11 +573,6 @@ class Account extends Component<any, any> {
               transition: all 0.3s;
             }
 
-            .Account .User img.arrow {
-              width: 2rem;
-              order: 1;
-            }
-
             .Account .Info {
               display: flex;
               flex-direction: column;
@@ -586,31 +581,27 @@ class Account extends Component<any, any> {
               border-bottom-right-radius: var(--border-radius);
               background: #fff;
               width: 100%;
-              background: none;
-              box-shadow: none;
               top: 4rem;
               left: 0;
+              box-shadow: none;
               z-index: 10;
-              transition: all 0.3s;
+              overflow: hidden;
+              transition: max-height 0.3s, box-shadow 0.3s, padding 0.3s;
             }
 
             .Account .Info::before {
               content: "";
+              position: absolute;
               background: #fff;
-              display: none;
               width: 100%;
               height: 9px;
-              position: absolute;
               left: 0;
               top: -4px;
+              opacity: 0;
             }
 
             .Account .Info * {
               transition: all 0.3s;
-            }
-
-            .Account .Info .user {
-              overflow: hidden;
             }
 
             .Account .Info .user h2,
@@ -642,36 +633,38 @@ class Account extends Component<any, any> {
               flex-direction: column;
               align-items: center;
               flex: 1 1;
-              overflow: hidden;
             }
 
             .Account .Info .links a:first-child {
               margin-top: 0;
             }
 
-            .Account .Info img.arrow {
+            .Account img.arrow {
               position: absolute;
-              top: 0.2rem;
+              top: calc(0.2rem + 4rem);
               left: 0;
               right: 0;
               width: 1.2rem;
               height: 1.2rem;
               color: #cc0000;
+              margin: 0 auto;
               order: 1;
               opacity: 1;
-              cursor: pointer;
               z-index: 20;
-              margin: 0 auto;
               visibility: hidden;
+              cursor: pointer;
               user-select: none;
               transition: all 0.3s;
             }
 
-            .Account.active .Info img.arrow {
+            .Account.active img.arrow {
               transform: scaleY(-1);
               filter: FlipV;
               order: 5;
-              top: 80%;
+              top: calc(
+                4rem + 1.5rem + 0.5rem + 1rem + 1rem + 1rem + 0.2rem +
+                  ((1rem + (0.2rem * 2)) * 3) + 3rem
+              );
               height: 2rem;
             }
 
@@ -688,40 +681,40 @@ class Account extends Component<any, any> {
                 /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
                 box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
               }
-              .Account.active .User::after {
+              .Account .User::after {
                 content: "";
-                display: block;
+                position: absolute;
                 background: #fff;
                 top: 100%;
-                position: absolute;
                 height: 0.5rem;
                 width: 100%;
+                opacity: 0;
+              }
+              .Account.active .User::after {
+                opacity: 1;
               }
               .Account .Info {
                 position: absolute;
-                height: 2rem;
+                /* height: 2rem; */
+                /* opacity: 0; */
+                max-height: 0;
+                /* visibility: hidden; */
               }
               .Account.active .Info {
-                background: #fff;
                 /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
                 box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
-                height: auto;
                 padding-bottom: 3rem;
+                /* opacity: 1; */
+                /* visibility: visible; */
+                max-height: calc(
+                  4rem + 1.5rem + 0.5rem + 1rem + 1rem + 1rem + 0.2rem +
+                    ((1rem + (0.2rem * 2)) * 3) + 3rem
+                );
               }
               .Account.active .Info::before {
-                display: block;
-              }
-              .Account .Info * {
-                opacity: 0;
-                height: 0;
-                visibility: hidden;
-              }
-              .Account.active .Info * {
                 opacity: 1;
-                visibility: visible;
-                height: auto;
               }
-              .Account .Info img.arrow {
+              .Account img.arrow {
                 visibility: visible;
               }
             }
