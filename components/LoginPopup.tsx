@@ -358,7 +358,9 @@ class LoginPopup extends Component<Props, State> {
           }
           onKeyPress={e => {
             if (e.key === "Enter") {
-              this.state.login ? this.login() : this.signup();
+              this.state.login
+                ? this.login(e, this.ActionButtons.triggerLoading)
+                : this.signup(e, this.ActionButtons.triggerLoading);
             }
           }}
           ref={div => {

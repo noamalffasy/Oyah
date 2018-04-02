@@ -34,27 +34,22 @@ interface State {
 }
 
 class ActionButtons extends Component<Props, State> {
-  constructor(props) {
-    super(props);
-
-    this.reset = this.reset.bind(this);
-    this.onClick = this.onClick.bind(this);
-  }
-
   state = { loading: false };
 
-  reset() {
+  reset = () => {
     this.setState(prevState => ({
       ...prevState,
       loading: false
     }));
-  }
+  };
 
-  onClick(e) {
-    this.props.primaryAction(e, () =>
-      this.setState(prevState => ({ ...prevState, loading: true }))
-    );
-  }
+  triggerLoading = () => {
+    this.setState(prevState => ({ ...prevState, loading: true }));
+  };
+
+  onClick = e => {
+    this.props.primaryAction(e, this.triggerLoading);
+  };
 
   render() {
     return (
