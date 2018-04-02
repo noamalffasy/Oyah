@@ -694,7 +694,7 @@ export default {
         const user = res.user;
         return await Comment.findOrCreate({
           where: { id },
-          defaults: { articleID, authorID: user.id, message }
+          defaults: { articleID, authorID: user.id, message, likes: 0 }
         }).then(async (comments: any) => {
           return comments[0];
         });
@@ -820,7 +820,8 @@ export default {
             title,
             path: `/img/articles/${id}/main.jpeg`,
             content,
-            authorID
+            authorID,
+            likes: 0,
           };
 
           Article.findOrCreate({
