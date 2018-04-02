@@ -1000,12 +1000,12 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
         ) {
           this.setState(prevState => ({
             ...prevState,
-            likes: this.props.likes,
+            likes: nextProps.likes,
             liked: nextProps.user.comment_likes.split(", "),
             isLiked: nextProps.user.comment_likes.split(", ").includes(
               JSON.stringify({
-                articleID: this.props.articleID,
-                id: this.props.id
+                articleID: nextProps.articleID,
+                id: nextProps.id
               })
             )
           }));
@@ -1016,7 +1016,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           this.setState(prevState => ({
             ...prevState,
             liked: nextProps.user.likes.split(", "),
-            isLiked: nextProps.user.likes.split(", ").includes(this.props.id)
+            isLiked: nextProps.user.likes.split(", ").includes(nextProps.id)
           }));
         }
         break;
@@ -1341,6 +1341,8 @@ interface ResponsesState {
           image
         }
         message
+        likes
+        createdAt
       }
     }
   `,
@@ -1364,6 +1366,8 @@ interface ResponsesState {
           image
         }
         message
+        likes
+        createdAt
       }
     }
   `,
@@ -1466,9 +1470,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                     image:
                       this.props.user.image !== null &&
                       this.props.user.image !== undefined
-                        ? "/static/img/users/" +
-                          encodeURIComponent(this.props.user.image)
-                        : "/static/img/User.png"
+                        ? this.props.user.image
+                        : "User.png"
                   }
                 },
                 ...this.state.comments
@@ -1944,16 +1947,7 @@ class MoreMenu extends Component<MenuProps, MenuState> {
 
   render() {
     return (
-      <div
-        className="more"
-        tabIndex={0}
-        onBlur={() => {
-          this.setState(prevState => ({
-            ...prevState,
-            menuOpen: false
-          }));
-        }}
-      >
+      <div className="more" tabIndex={0}>
         <img
           src="/img/more.svg"
           onClick={() => {
