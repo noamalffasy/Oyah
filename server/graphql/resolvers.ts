@@ -613,12 +613,24 @@ export default {
   searchArticle: async (_: any, { searchTerm }: any) => {
     return await Article.findAll({
       where: {
-        title: sequelize.where(
-          sequelize.fn("LOWER", sequelize.col("title")),
-          "LIKE",
-          "%" + searchTerm.toLowerCase() + "%"
-        )
-      }
+        [sequelize.Op.or]: [
+          {
+            title: sequelize.where(
+              sequelize.fn("LOWER", sequelize.col("title")),
+              "LIKE",
+              "%" + searchTerm.toLowerCase() + "%"
+            )
+          },
+          {
+            content: sequelize.where(
+              sequelize.fn("LOWER", sequelize.col("title")),
+              "LIKE",
+              "%" + searchTerm.toLowerCase() + "%"
+            )
+          }
+        ]
+      },
+      order: [["createdAt", "DESC"]]
     }).then((articles: any) => {
       let Articles: any[] = [];
       articles.forEach((article: any) => {
@@ -821,7 +833,7 @@ export default {
             path: `/img/articles/${id}/main.jpeg`,
             content,
             authorID,
-            likes: 0,
+            likes: 0
           };
 
           Article.findOrCreate({
