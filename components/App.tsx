@@ -12,6 +12,7 @@ import Navbar from "./Navbar";
 
 import Footer from "./Footer";
 import LoginPopup from "./LoginPopup";
+import ErrorAlert from "./ErrorAlert";
 
 import * as fontawesome from "@fortawesome/fontawesome";
 import {
@@ -30,7 +31,6 @@ import {
   faTwitter,
   faFacebookF
 } from "@fortawesome/fontawesome-free-brands";
-import ErrorAlert from "./ErrorAlert";
 
 fontawesome.library.add(
   faSearch,
@@ -49,19 +49,12 @@ fontawesome.library.add(
 );
 
 class App extends Component<any, any> {
-  constructor(props: any) {
-    super(props);
-
-    this.state = { clicked: null, container: true };
-
-    this.addContainer = this.addContainer.bind(this);
-
-    this.addContainer(props);
-  }
-
-  componentDidMount() {
-    this.addContainer(this.props);
-  }
+  state = {
+    clicked: null,
+    container:
+      this.props.url.pathname !== "/article" &&
+      this.props.url.pathname !== "/WriteArticle"
+  };
 
   componentWillReceiveProps(nextProps: any) {
     // if (nextProps.user !== this.props.user) {
@@ -72,11 +65,10 @@ class App extends Component<any, any> {
     }
   }
 
-  addContainer(props: any) {
+  addContainer = (props: any) => {
     const url = props.url;
     if (
-      (url.pathname === "/article" ||
-        url.pathname === "/WriteArticle") &&
+      (url.pathname === "/article" || url.pathname === "/WriteArticle") &&
       this.state.container === true
     ) {
       this.setState((prevState: any) => ({
@@ -93,7 +85,7 @@ class App extends Component<any, any> {
         container: true
       }));
     }
-  }
+  };
 
   // mapStyles(styles: any) {
   //   return {
