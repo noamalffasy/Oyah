@@ -26,6 +26,7 @@ import * as moment from "moment";
 
 import App from "../components/App";
 
+import Verification from "../components/Verification";
 import Image from "../components/Image";
 import Popup from "../components/Popup";
 import Input from "../components/Input";
@@ -137,6 +138,7 @@ interface User {
   reddit?: string;
   twitter?: string;
   editor?: boolean;
+  is_team?: boolean;
 }
 
 interface Article {
@@ -163,6 +165,7 @@ interface Props extends React.Props<ArticlePage> {
 
 interface State {
   datePublished: string | undefined;
+  titleReady: boolean;
   menuOpen: boolean;
   deletePopup: any;
   removeComments?: string[] | undefined;
@@ -187,6 +190,7 @@ class ArticlePage extends Component<Props, State> {
 
     this.state = {
       datePublished: undefined,
+      titleReady: false,
       menuOpen: false,
       deletePopup: false,
       removeComments: []
@@ -200,6 +204,7 @@ class ArticlePage extends Component<Props, State> {
   ctrls: {
     more?: HTMLDivElement;
     morePopup?: Popup;
+    title?: HTMLHeadingElement;
   } = {};
 
   static async getInitialProps(
@@ -220,6 +225,7 @@ class ArticlePage extends Component<Props, State> {
                 nametag
                 small_image
                 image
+                is_team
               }
               likes
               comments {
@@ -229,6 +235,7 @@ class ArticlePage extends Component<Props, State> {
                   nametag
                   small_image
                   image
+                  is_team
                 }
                 message
                 likes
@@ -367,6 +374,7 @@ class ArticlePage extends Component<Props, State> {
             ? moment(article.createdAt).format("MMM D")
             : moment(article.createdAt).format("MMM D, YYYY")
       }));
+      this.fixVerificationPlacement();
     }
     if (error !== false) {
       if (error === "Not found") {
@@ -415,6 +423,42 @@ class ArticlePage extends Component<Props, State> {
   //     }));
   //   }
   // }
+
+  fixVerificationPlacement() {
+    this.setState(
+      prevState => ({
+        ...prevState,
+        titleReady: true
+      }),
+      () => {
+        function checkNumLines(elem: HTMLHeadingElement) {
+          const divHeight = elem.offsetHeight;
+          const lineHeight = parseInt(
+            window.getComputedStyle(elem, null).getPropertyValue("line-height")
+          );
+          return Math.round(divHeight / lineHeight);
+        }
+
+        const originalNumLines = checkNumLines(this.ctrls.title);
+
+        const title = this.ctrls.title.innerHTML;
+        const verificationSymbol = title.substring(title.indexOf("<span"));
+
+        this.ctrls.title.innerText = title.substring(0, title.indexOf("<span"));
+
+        const numLines = checkNumLines(this.ctrls.title);
+
+        if (numLines < originalNumLines) {
+          let words = title.substring(0, title.indexOf("<span")).split(" ");
+          words.splice(words.length - 1, 0, "<br>");
+          words.push(verificationSymbol);
+          this.ctrls.title.innerHTML = words.join(" ");
+        } else {
+          this.ctrls.title.innerHTML = title;
+        }
+      }
+    );
+  }
 
   openDeletePopup(what = "article", id = this.props.article.id) {
     this.setState(prevState => ({
@@ -535,7 +579,7 @@ class ArticlePage extends Component<Props, State> {
                         >
                           <h3
                             style={{
-                              display: "inherit",
+                              display: "inline-block",
                               color: "#212529",
                               cursor: "pointer"
                             }}
@@ -544,6 +588,9 @@ class ArticlePage extends Component<Props, State> {
                               ? this.props.author.nametag
                               : "Loading"}
                           </h3>
+                          {this.props.author.is_team && (
+                            <Verification style={{ marginLeft: ".5rem" }} />
+                          )}
                         </a>
                         <span style={{ color: "rgba(0,0,0,.5)" }}>
                           {this.state.datePublished || ""}
@@ -599,10 +646,15 @@ class ArticlePage extends Component<Props, State> {
                   className="title"
                   type="text"
                   rows={2}
-                  ready={this.props.article.title !== undefined}
+                  ready={this.state.titleReady}
                   style={{ animation: "loading 1.5s infinite", width: "80%" }}
                 >
-                  <h1>{this.props.article.title}</h1>
+                  <h1 ref={title => (this.ctrls.title = title)}>
+                    {this.props.article.title}
+                    {this.props.author.is_team && (
+                      <Verification style={{ marginLeft: "1rem" }} />
+                    )}
+                  </h1>
                 </ReactPlaceholder>
               </div>
             </div>
@@ -1672,13 +1724,16 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                     >
                       <h3
                         style={{
-                          display: "inherit",
+                          display: "inline-block",
                           color: "#212529",
                           cursor: "pointer"
                         }}
                       >
                         {elem.author ? elem.author.nametag : "Loading"}
                       </h3>
+                      {elem.author.is_team && (
+                        <Verification style={{ marginLeft: ".5rem" }} />
+                      )}
                     </a>
                     <span
                       style={{

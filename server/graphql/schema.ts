@@ -102,7 +102,10 @@ const User = new GraphQLObjectType({
         type: GraphQLString
       },
       editor: {
-        type: GraphQLString
+        type: GraphQLBoolean
+      },
+      is_team: {
+        type: GraphQLBoolean
       }
     };
   }

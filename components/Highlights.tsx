@@ -21,6 +21,7 @@ class Highlights extends Component<Props> {
           title={this.props.articles[0].title}
           id={this.props.articles[0].id}
           alt={this.props.articles[0].alt}
+          official={this.props.articles[0].author.is_team}
           loading={false}
         />
         <div className="other">
@@ -30,6 +31,7 @@ class Highlights extends Component<Props> {
                 title={elem.title}
                 alt={elem.alt}
                 id={elem.id}
+                official={elem.author.is_team}
                 loading={false}
                 key={i}
               />

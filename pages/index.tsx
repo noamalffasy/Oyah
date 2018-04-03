@@ -35,6 +35,10 @@ class Index extends Component<Props> {
             allArticles {
               id
               title
+              author {
+                id
+                is_team
+              }
             }
           }
         `
@@ -59,11 +63,11 @@ class Index extends Component<Props> {
             };
           })
           .catch((err: Error) => {
-            return { error: err, user };
+            return { _error: err, user };
           });
       })
       .catch((err: Error) => {
-        return { error: err, user };
+        return { _error: err, user };
       });
   }
 

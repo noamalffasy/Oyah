@@ -23,22 +23,29 @@ interface Props {
 
 class Articles extends Component<Props> {
   static async getInitialProps(ctx: any, apolloClient: any) {
-    return await apolloClient.query({
-      query: gql`
-        {
-          allArticles {
-            id
-            title
+    return await apolloClient
+      .query({
+        query: gql`
+          {
+            allArticles {
+              id
+              title
+              author {
+                id
+                is_team
+              }
+            }
           }
-        }
-      `
-    }).then((res: any) => {
-      return {
-        articles: res.data.allArticles
-      }
-    }).catch((err: Error) => {
-      return { error: err }
-    })
+        `
+      })
+      .then((res: any) => {
+        return {
+          articles: res.data.allArticles
+        };
+      })
+      .catch((err: Error) => {
+        return { error: err };
+      });
   }
 
   // componentWillReceiveProps(nextProps: Props) {
@@ -72,6 +79,7 @@ class Articles extends Component<Props> {
                   title={elem.title}
                   alt={elem.alt}
                   id={elem.id}
+                  official={elem.author.is_team}
                   loading={false}
                   key={i}
                 />

@@ -3,11 +3,12 @@ import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
 import ReactPlaceholder from "react-placeholder";
+import { RectShape } from "react-placeholder/lib/placeholders";
 
 import Link from "next/link";
 
 import Image from "./Image";
-import { RectShape } from "react-placeholder/lib/placeholders";
+import Verification from "./Verification";
 
 class Placeholder extends Component<any, any> {
   render() {
@@ -31,6 +32,7 @@ interface Props {
   id: any;
   title: any;
   alt: any;
+  official: boolean;
   loading: any;
   main?: boolean;
 }
@@ -74,7 +76,14 @@ class Article extends Component<Props, any> {
           }}
         /> */}
               <div className="text" ref={div => (this.text = div)}>
-                <h2>{this.props.title}</h2>
+                <div className="bottom">
+                  <h2>{this.props.title}</h2>
+                  {this.props.official && (
+                    <Verification
+                      style={{ fontSize: "2rem", marginLeft: ".5rem" }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </a>
@@ -135,18 +144,31 @@ class Article extends Component<Props, any> {
             transition: all 0.3s;
           }
 
-          .Article .text h2 {
+          .Article .text .bottom {
             position: absolute;
-            text-align: center;
+            display: flex;
             left: 0;
             right: 0;
             bottom: 0;
+            max-width: 90%;
+            margin: 0 auto;
+            justify-content: center;
+          }
 
-            margin: 0.5rem auto;
+          .Article .text .bottom h2 {
+            /* position: absolute;
+            text-align: center;
+            left: 0;
+            right: 0;
+            bottom: 0; */
+
+            /* flex: 1 1 0; */
+
+            margin: 0.5rem 0 0.5rem 0.5rem;
 
             font-size: 2rem;
-            max-height: 17vw;
-            max-width: 90%;
+            /* max-height: 17vw;
+            max-width: 90%; */
             white-space: nowrap;
 
             text-overflow: ellipsis;
@@ -155,6 +177,15 @@ class Article extends Component<Props, any> {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             backface-visibility: hidden;
+          }
+
+          .Article .text .bottom span {
+            font-size: 2rem;
+            -webkit-text-fill-color: transparent;
+            background: -webkit-linear-gradient(#000,#f00);
+            background-clip: text;
+            border-radius: 50%;
+            margin: auto 0 .2rem;
           }
           @media (min-width: 576px),
             @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {

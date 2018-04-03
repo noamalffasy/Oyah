@@ -45,6 +45,9 @@ export const User = db.define(
     },
     editor: {
       type: Sequelize.BOOLEAN
+    },
+    is_team: {
+      type: Sequelize.BOOLEAN
     }
   },
   {

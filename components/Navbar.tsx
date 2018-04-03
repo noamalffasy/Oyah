@@ -10,6 +10,7 @@ import { Collapse, NavbarToggler } from "reactstrap";
 
 import Image from "./Image";
 import Input from "./Input";
+import Verification from "./Verification";
 
 // GraphQL
 import { withApollo } from "react-apollo";
@@ -498,7 +499,10 @@ class Account extends Component<any, any> {
           </div>
           <div className="Info">
             <div className="user">
-              <h2>{this.state.user.nametag}</h2>
+              <h2>
+                {this.state.user.nametag}
+                {<Verification style={{ marginLeft: ".5rem" }} />}
+              </h2>
               <p>{this.state.user.email}</p>
             </div>
             <div className="links">

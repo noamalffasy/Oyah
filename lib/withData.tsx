@@ -78,6 +78,7 @@ export default (ComposedComponent: any) => {
                       reddit
                       twitter
                       editor
+                      is_team
                     }
                   }
                 }

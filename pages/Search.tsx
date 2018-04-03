@@ -35,6 +35,10 @@ class Search extends Component<Props, State> {
             searchArticle(searchTerm: $searchTerm) {
               id
               title
+              author {
+                id
+                is_team
+              }
             }
           }
         `,
@@ -85,6 +89,7 @@ class Search extends Component<Props, State> {
                     title={elem.title}
                     alt={elem.alt}
                     id={elem.id}
+                    official={elem.author.is_team}
                     loading={false}
                     key={i}
                   />

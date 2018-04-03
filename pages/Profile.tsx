@@ -13,6 +13,7 @@ import App from "../components/App";
 
 import Image from "../components/Image";
 import Article from "../components/Article";
+import Verification from "../components/Verification";
 
 import withData from "../lib/withData";
 
@@ -60,6 +61,7 @@ class Profile extends Component<Props, State> {
                 mains
                 reddit
                 twitter
+                is_team
               }
             }
           `,
@@ -222,9 +224,16 @@ class Profile extends Component<Props, State> {
                   }
                   alt={this.props.profileUser.nametag}
                 />
-                <h2>{this.props.profileUser.nametag}</h2>
+                <h2>
+                  {this.props.profileUser.nametag}
+                  {this.props.profileUser.is_team && (
+                    <Verification style={{ marginLeft: ".5rem" }} />
+                  )}
+                </h2>
               </div>
-              {this.props.profileUser.bio !== null && <p>{this.props.profileUser.bio}</p>}
+              {this.props.profileUser.bio !== null && (
+                <p>{this.props.profileUser.bio}</p>
+              )}
             </div>
             <table className="other-info">
               <tbody>
@@ -249,7 +258,8 @@ class Profile extends Component<Props, State> {
                       <td>
                         <a
                           href={
-                            "https://reddit.com/u/" + this.props.profileUser.reddit
+                            "https://reddit.com/u/" +
+                            this.props.profileUser.reddit
                           }
                         >
                           <b>u/</b>
@@ -265,7 +275,8 @@ class Profile extends Component<Props, State> {
                       <td>
                         <a
                           href={
-                            "https://twitter.com/" + this.props.profileUser.twitter
+                            "https://twitter.com/" +
+                            this.props.profileUser.twitter
                           }
                         >
                           <b>@</b>
@@ -291,7 +302,8 @@ class Profile extends Component<Props, State> {
                     id={elem.id}
                     title={elem.title}
                     alt={elem.title}
-                    loading={this.props.articles[0].id === undefined}
+                    official={this.props.profileUser.is_team}
+                    loading={elem.id === undefined}
                     key={i}
                   />
                 );
