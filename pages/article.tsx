@@ -589,7 +589,10 @@ class ArticlePage extends Component<Props, State> {
                               : "Loading"}
                           </h3>
                           {this.props.author.is_team && (
-                            <Verification style={{ marginLeft: ".5rem" }} />
+                            <Verification
+                              isArticle={false}
+                              style={{ marginLeft: ".5rem" }}
+                            />
                           )}
                         </a>
                         <span style={{ color: "rgba(0,0,0,.5)" }}>
@@ -652,7 +655,10 @@ class ArticlePage extends Component<Props, State> {
                   <h1 ref={title => (this.ctrls.title = title)}>
                     {this.props.article.title}
                     {this.props.author.is_team && (
-                      <Verification style={{ marginLeft: "1rem" }} />
+                      <Verification
+                        isArticle={true}
+                        style={{ marginLeft: "1rem" }}
+                      />
                     )}
                   </h1>
                 </ReactPlaceholder>
@@ -1732,7 +1738,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                         {elem.author ? elem.author.nametag : "Loading"}
                       </h3>
                       {elem.author.is_team && (
-                        <Verification style={{ marginLeft: ".5rem" }} />
+                        <Verification
+                          isArticle={false}
+                          style={{ marginLeft: ".5rem" }}
+                        />
                       )}
                     </a>
                     <span

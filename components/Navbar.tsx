@@ -501,7 +501,12 @@ class Account extends Component<any, any> {
             <div className="user">
               <h2>
                 {this.state.user.nametag}
-                {<Verification style={{ marginLeft: ".5rem" }} />}
+                {
+                  <Verification
+                    isArticle={false}
+                    style={{ marginLeft: ".5rem" }}
+                  />
+                }
               </h2>
               <p>{this.state.user.email}</p>
             </div>

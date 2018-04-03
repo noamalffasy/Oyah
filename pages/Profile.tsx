@@ -227,7 +227,10 @@ class Profile extends Component<Props, State> {
                 <h2>
                   {this.props.profileUser.nametag}
                   {this.props.profileUser.is_team && (
-                    <Verification style={{ marginLeft: ".5rem" }} />
+                    <Verification
+                      isArticle={false}
+                      style={{ marginLeft: ".5rem" }}
+                    />
                   )}
                 </h2>
               </div>

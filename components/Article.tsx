@@ -80,6 +80,7 @@ class Article extends Component<Props, any> {
                   <h2>{this.props.title}</h2>
                   {this.props.official && (
                     <Verification
+                      isArticle={true}
                       style={{ fontSize: "2rem", marginLeft: ".5rem" }}
                     />
                   )}

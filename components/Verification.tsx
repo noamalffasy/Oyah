@@ -2,6 +2,7 @@ import * as React from "react";
 import { Component } from "react";
 
 interface Props {
+  isArticle: boolean;
   style?: object;
 }
 
@@ -10,7 +11,11 @@ class Verification extends Component<Props> {
     return (
       <span
         className="verification-symbol"
-        title="An official article by the Oyah team"
+        title={
+          this.props.isArticle
+            ? "An official article by the Oyah team"
+            : "An official Oyah staff member"
+        }
         style={this.props.style ? this.props.style : {}}
       >
         ツ
