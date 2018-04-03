@@ -27,8 +27,8 @@
 }
 
 .active {
-  background: #efefef;
-  color: #444;
+  /* background: #efefef; */
+  color: #cc0000;
   opacity: 1;
 }
 
