@@ -15,14 +15,19 @@ import buttonStyles from "../buttonStyles.css";
 
 export default (config = {}) => {
   const defaultTheme = { toolbarStyles, buttonStyles };
-  
+
   const store = createStore({
     isVisible: false
   });
 
   const {
     theme = defaultTheme,
-    structure = [BoldButton, ItalicButton, UnderlineButton, CodeButton],
+    structure = [
+      BoldButton,
+      ItalicButton,
+      UnderlineButton
+      // CodeButton
+    ],
     imagePlugin
   }: any = config;
 

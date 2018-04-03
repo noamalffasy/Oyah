@@ -3,8 +3,8 @@ import * as React from "react";
 import {
   HeadlineOneButton,
   HeadlineTwoButton,
-  BlockquoteButton,
-  CodeBlockButton,
+  // BlockquoteButton,
+  // CodeBlockButton,
   UnorderedListButton,
   OrderedListButton
 } from "draft-js-buttons";
@@ -30,8 +30,8 @@ const DefaultBlockTypeSelect = ({
       HeadlineTwoButton,
       UnorderedListButton,
       OrderedListButton,
-      BlockquoteButton,
-      CodeBlockButton,
+      // BlockquoteButton,
+      // CodeBlockButton,
       ImageButton
     ]}
   />
