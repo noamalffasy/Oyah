@@ -39,22 +39,47 @@ import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 
+class AuthorImagePlaceholder extends Component {
+  render() {
+    return (
+      <RoundShape
+        className="image"
+        color="#e0e0e0"
+        style={{
+          display: "inline-block",
+          width: "4rem",
+          height: "4rem",
+          marginRight: "0.5rem",
+          borderRadius: "50%",
+          animation: "loading 1.5s infinite"
+        }}
+      />
+    );
+  }
+}
+
+class AuthorDatePlaceholder extends Component {
+  render() {
+    return (
+      <TextRow
+        className="text"
+        color="#e0e0e0"
+        style={{
+          width: "5rem",
+          height: "1rem",
+          marginTop: "0.4rem",
+          animation: "loading 1.5s infinite"
+        }}
+      />
+    );
+  }
+}
+
 class AuthorPlaceholder extends Component {
   render() {
     return (
       <div className="author">
-        <RoundShape
-          className="image"
-          color="#e0e0e0"
-          style={{
-            display: "inline-block",
-            width: "4rem",
-            height: "4rem",
-            marginRight: "0.5rem",
-            borderRadius: "50%",
-            animation: "loading 1.5s infinite"
-          }}
-        />
+        <AuthorImagePlaceholder />
         <div>
           <TextRow
             className="text"
@@ -66,18 +91,9 @@ class AuthorPlaceholder extends Component {
               animation: "loading 1.5s infinite"
             }}
           />
-          <TextRow
-            className="text"
-            color="#e0e0e0"
-            style={{
-              width: "5rem",
-              height: "1rem",
-              marginTop: "0.4rem",
-              animation: "loading 1.5s infinite"
-            }}
-          />
+          <AuthorDatePlaceholder />
         </div>
-        <style jsx>{`
+        <style jsx global>{`
           .author {
             display: flex;
             flex-flow: row;
@@ -129,6 +145,7 @@ interface Article {
   content: string;
   comments: object[];
   likes: number;
+  createdAt: Date;
 }
 
 interface Props extends React.Props<ArticlePage> {
@@ -460,7 +477,10 @@ class ArticlePage extends Component<Props, State> {
                 <div className="top">
                   <ReactPlaceholder
                     customPlaceholder={<AuthorPlaceholder />}
-                    ready={this.props.author !== undefined}
+                    ready={
+                      this.props.author !== undefined &&
+                      this.state.datePublished !== undefined
+                    }
                   >
                     <div className="author">
                       <a
@@ -491,6 +511,7 @@ class ArticlePage extends Component<Props, State> {
                             marginRight: "0.5rem",
                             borderRadius: "50%"
                           }}
+                          customPlaceholder={<AuthorImagePlaceholder />}
                         />
                       </a>
                       <div
@@ -519,7 +540,7 @@ class ArticlePage extends Component<Props, State> {
                           </h3>
                         </a>
                         <span style={{ color: "rgba(0,0,0,.5)" }}>
-                          {this.state.datePublished || "Feb. 12"}
+                          {this.state.datePublished || ""}
                         </span>
                       </div>
                     </div>
