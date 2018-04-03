@@ -470,7 +470,13 @@ class ArticlePage extends Component<Props, State> {
               <title>
                 {(this.props.article.title || "Article") + ` | Oyah`}
               </title>
-              <meta name="description" content={this.props.article.title} />
+              <meta name="description" content={this.props.article.content} />
+              <meta
+                name="og:image"
+                content={`https://oyah.xyz/articles/${
+                  this.props.article.id
+                }/main.jpeg`}
+              />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>
               <div className="Content" style={{ paddingBottom: "2rem" }}>
