@@ -2,15 +2,35 @@ import * as React from "react";
 import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
+import ReactPlaceholder from "react-placeholder";
+import { RectShape } from "react-placeholder/lib/placeholders";
+
+class ImagePlaceholder extends Component {
+  render() {
+    return (
+      <RectShape
+        color="#e0e0e0"
+        style={{
+          width: "100%",
+          height: "100%",
+          margin: "0",
+          animation: "loading 1.5s infinite"
+        }}
+      />
+    );
+  }
+}
+
 interface Props extends React.Props<Image> {
   src: string;
   alt?: string;
   className?: string;
   fixed?: boolean;
   user?: any;
+  style?: any;
+  customPlaceholder?: JSX.Element;
   onError?: any;
   onClick?: any;
-  style?: any;
 }
 
 interface State {
@@ -112,20 +132,24 @@ class Image extends Component<Props, State> {
         if (!this.props.fixed) {
           imgLarge.classList.add("loaded");
         }
-        this.setState(prevState => ({
-          ...prevState,
-          largeLoaded: true,
-          width: imgLarge.width,
-          height: imgLarge.height
-        }));
+        this.setState(
+          prevState => ({
+            ...prevState,
+            largeLoaded: true,
+            width: imgLarge.width,
+            height: imgLarge.height
+          }),
+          () => {
+            if (!this.props.fixed) {
+              findDOMNode(this.placeholder).appendChild(imgLarge);
+            } else {
+              findDOMNode(this.placeholder).style.backgroundImage = `url(${
+                imgLarge.src
+              })`;
+            }
+          }
+        );
       };
-      if (!this.props.fixed) {
-        findDOMNode(this.placeholder).appendChild(imgLarge);
-      } else {
-        findDOMNode(this.placeholder).style.backgroundImage = `url(${
-          imgLarge.src
-        })`;
-      }
     }
     this.src = this.props.src;
   }
@@ -159,105 +183,122 @@ class Image extends Component<Props, State> {
         if (!this.props.fixed) {
           imgLarge.classList.add("loaded");
         }
-        this.setState(prevState => ({
-          ...prevState,
-          largeLoaded: true,
-          width: imgLarge.width,
-          height: imgLarge.height
-        }));
+        this.setState(
+          prevState => ({
+            ...prevState,
+            largeLoaded: true,
+            width: imgLarge.width,
+            height: imgLarge.height
+          }),
+          () => {
+            if (!this.props.fixed) {
+              findDOMNode(this.placeholder).appendChild(imgLarge);
+            } else {
+              findDOMNode(this.placeholder).style.backgroundImage = `url(${
+                imgLarge.src
+              })`;
+            }
+            this.src = nextProps.src;
+          }
+        );
       };
-      if (!this.props.fixed) {
-        findDOMNode(this.placeholder).appendChild(imgLarge);
-      } else {
-        findDOMNode(this.placeholder).style.backgroundImage = `url(${
-          imgLarge.src
-        })`;
-      }
-      this.src = nextProps.src;
     }
   }
 
   render() {
     if (!this.props.fixed) {
       return (
-        <div
-          className={
-            "image placeholder" +
-            (this.state.smallLoaded ? " loading" : "") +
-            (this.props.className ? " " + this.props.className : "")
+        <ReactPlaceholder
+          customPlaceholder={
+            this.props.customPlaceholder ? (
+              this.props.customPlaceholder
+            ) : (
+              <ImagePlaceholder />
+            )
           }
-          data-large={
-            this.props.user && Object.keys(this.props.user).length !== 0
-              ? this.state.image
-              : this.props.src
-          }
-          style={this.props.style}
-          onClick={this.props.onClick}
-          ref={div => (this.placeholder = div)}
+          ready={this.state.smallLoaded || this.state.largeLoaded}
         >
-          <img
-            className={"img-small" + (this.state.smallLoaded ? " loaded" : "")}
-            src={
-              this.props.user && Object.keys(this.props.user).length !== 0
-                ? this.state.smallImg
-                : this.props.src.replace(/\.[^.]*$/, "") +
-                  "_small" +
-                  this.props.src.replace(/.*(?=\.)/, "")
+          <div
+            className={
+              "image placeholder" +
+              (this.state.smallLoaded ? " loading" : "") +
+              (this.props.className ? " " + this.props.className : "")
             }
-            alt=""
-            ref={img => (this.small = img)}
-          />
-          {/* <div
+            data-large={
+              this.props.user && Object.keys(this.props.user).length !== 0
+                ? this.state.image
+                : this.props.src
+            }
+            style={this.props.style}
+            onClick={this.props.onClick}
+            ref={div => (this.placeholder = div)}
+          >
+            <img
+              className={
+                "img-small" + (this.state.smallLoaded ? " loaded" : "")
+              }
+              src={
+                this.props.user && Object.keys(this.props.user).length !== 0
+                  ? this.state.smallImg
+                  : this.props.src.replace(/\.[^.]*$/, "") +
+                    "_small" +
+                    this.props.src.replace(/.*(?=\.)/, "")
+              }
+              alt=""
+              ref={img => (this.small = img)}
+            />
+            {/* <div
             style={{
               paddingBottom: `calc(100% * ${this.state.height}.0 / ${this.state.width}.0)`
             }}
           /> */}
-          <style jsx>{`
-            .image.placeholder {
-              position: relative;
-              overflow: hidden;
-            }
+            <style jsx>{`
+              .image.placeholder {
+                position: relative;
+                overflow: hidden;
+              }
 
-            .image.placeholder.loading {
-              background-color: #e0e0e0;
-              animation: 1.5s infinite;
-            }
+              .image.placeholder.loading {
+                background-color: #e0e0e0;
+                animation: 1.5s infinite;
+              }
 
-            .image.placeholder img {
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              opacity: 0;
-              transition: opacity 0.3s linear;
-            }
+              .image.placeholder img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                transition: opacity 0.3s linear;
+              }
 
-            .image.placeholder img.loaded {
-              opacity: 1;
-            }
+              .image.placeholder img.loaded {
+                opacity: 1;
+              }
 
-            .image.placeholder .img-small {
-              filter: blur(10px);
-              transform: scale(1);
-            }
-          `}</style>
-          <style jsx global>{`
-            .image.placeholder img {
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              opacity: 0;
-              transition: opacity 0.3s linear;
-            }
+              .image.placeholder .img-small {
+                filter: blur(10px);
+                transform: scale(1);
+              }
+            `}</style>
+            <style jsx global>{`
+              .image.placeholder img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                transition: opacity 0.3s linear;
+              }
 
-            .image.placeholder img.loaded {
-              opacity: 1;
-            }
-          `}</style>
-        </div>
+              .image.placeholder img.loaded {
+                opacity: 1;
+              }
+            `}</style>
+          </div>
+        </ReactPlaceholder>
       );
     } else {
       return (
