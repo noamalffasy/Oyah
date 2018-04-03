@@ -46,17 +46,18 @@ class Article extends Component<Props, any> {
           href={"/article?id=" + this.props.id}
           as={"/articles/" + this.props.id}
         >
-          <div className={this.props.main ? "Article main" : "Article"}>
-            <Image
-              src={"/static/img/articles/" + this.props.id + "/main.jpeg"}
-              alt={this.props.alt || ""}
-              onError={(e: any) => {
-                e.target.src = "";
-                e.target.style.backgroundColor = "#c3c3c3";
-                findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
-              }}
-            />
-            {/* <img
+          <a className={this.props.main ? "Article main" : "Article"}>
+            <div className="article-inner">
+              <Image
+                src={"/static/img/articles/" + this.props.id + "/main.jpeg"}
+                alt={this.props.alt || ""}
+                onError={(e: any) => {
+                  e.target.src = "";
+                  e.target.style.backgroundColor = "#c3c3c3";
+                  findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
+                }}
+              />
+              {/* <img
           src={
             this.props.image.indexOf("undefined") === -1
               ? this.props.image
@@ -72,22 +73,30 @@ class Article extends Component<Props, any> {
             findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
           }}
         /> */}
-            <div className="text" ref={div => (this.text = div)}>
-              <h2>{this.props.title}</h2>
+              <div className="text" ref={div => (this.text = div)}>
+                <h2>{this.props.title}</h2>
+              </div>
             </div>
-          </div>
+          </a>
         </Link>
         <style jsx>{`
           .Article {
             display: flex;
             position: relative;
             border-radius: 8px;
+            opacity: 1;
             transition: all 0.3s;
           }
 
           .Article:hover {
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
             transform: scale(1.04);
+          }
+
+          .Article .article-inner {
+            display: flex;
+            width: 100%;
+            height: 100%;
           }
 
           .Article .image {
