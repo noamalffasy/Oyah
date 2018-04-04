@@ -189,15 +189,15 @@ class App extends Component<any, any> {
 
           @keyframes loading {
             0% {
-              opacity: 0.6;
+              background: rgba(0, 0, 0, 0.3);
             }
 
             50% {
-              opacity: 1;
+              background: rgba(0, 0, 0, 0.5);
             }
 
             100% {
-              opacity: 0.6;
+              background: rgba(0, 0, 0, 0.3);
             }
           }
 
