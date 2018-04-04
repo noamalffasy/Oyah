@@ -3,19 +3,34 @@ import { Component } from "react";
 
 import DraftOffsetKey from "draft-js/lib/DraftOffsetKey";
 
+// import { EmbedModal } from "draft-js-modal-plugin";
+
+// import Popup from "../../../components/Popup";
+// import Input from "../../../components/Input";
+
 interface Props {
   id: any;
   imagePlugin: any;
+  videoPlugin: any;
   theme: any;
   store: any;
+  isVideoModalOpen: boolean;
+  openVideoModal: Function;
+  closeVideoModal: Function;
   structure: any;
 }
 
-export default class Toolbar extends Component<Props> {
+interface State {
+  position: object;
+  popupOpen: boolean;
+}
+
+export default class Toolbar extends Component<Props, State> {
   state = {
     position: {
       transform: "scale(0)"
-    }
+    },
+    popupOpen: false
   };
 
   componentDidMount() {
@@ -31,12 +46,13 @@ export default class Toolbar extends Component<Props> {
 
   onEditorStateChange = editorState => {
     const selection = editorState.getSelection();
-    if (!selection.getHasFocus()) {
-      this.setState({
+    if (!selection.getHasFocus() || this.props.isVideoModalOpen) {
+      this.setState(prevState => ({
+        ...prevState,
         position: {
           transform: "scale(0)"
         }
-      });
+      }));
       return;
     }
 
@@ -53,28 +69,46 @@ export default class Toolbar extends Component<Props> {
       const editor = this.props.store.getItem("getEditorRef")().editor;
       const scrollY =
         window.scrollY == null ? window.pageYOffset : window.scrollY;
-      this.setState({
+      this.setState(prevState => ({
+        ...prevState,
         position: {
           top: top + scrollY,
           left: editor.getBoundingClientRect().left - 80,
           transform: "scale(1)",
           transition: "transform 0.15s cubic-bezier(.3,1.2,.2,1)"
         }
-      });
+      }));
     }, 0);
   };
 
   render() {
-    const { imagePlugin, id, theme, store } = this.props;
+    const { imagePlugin, videoPlugin, id, theme, store } = this.props;
     return (
       <div className={theme.toolbarStyles.wrapper} style={this.state.position}>
+        {/* {this.state.popupOpen && (
+          <Popup open={this.state.popupOpen}>
+            <Input label="Video URL" type="text" />
+          </Popup>
+        )} */}
+        {/* {this.state.popupOpen && (
+          <EmbedModal
+            getEditorState={store.getItem("getEditorState")}
+            setEditorState={store.getItem("setEditorState")}
+            openModal={this.openVideoModal}
+            closeModal={this.closeVideoModal}
+            theme={theme}
+          />
+        )} */}
         {this.props.structure.map((Component, index) => (
           <Component
             id={id}
             imagePlugin={imagePlugin}
+            videoPlugin={videoPlugin}
             theme={theme}
             getEditorState={store.getItem("getEditorState")}
             setEditorState={store.getItem("setEditorState")}
+            openVideoModal={this.props.openVideoModal}
+            closeVideoModal={this.props.closeVideoModal}
             key={index}
           />
         ))}

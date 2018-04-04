@@ -4,10 +4,13 @@ import { Component } from "react";
 interface Props {
   id: any;
   imagePlugin: any;
+  videoPlugin: any;
   theme: any;
   structure: any;
   getEditorState: any;
   setEditorState: any;
+  openVideoModal: Function;
+  closeVideoModal: Function;
 }
 
 export default class BlockTypeSelect extends Component<Props> {
@@ -42,10 +45,13 @@ export default class BlockTypeSelect extends Component<Props> {
   render() {
     const {
       imagePlugin,
+      videoPlugin,
       id,
       theme,
       getEditorState,
-      setEditorState
+      setEditorState,
+      openVideoModal,
+      closeVideoModal
     } = this.props;
     return (
       <div
@@ -77,9 +83,12 @@ export default class BlockTypeSelect extends Component<Props> {
             <Component
               id={id}
               imagePlugin={imagePlugin}
+              videoPlugin={videoPlugin}
               theme={theme.buttonStyles}
               getEditorState={getEditorState}
               setEditorState={setEditorState}
+              openVideoModal={openVideoModal}
+              closeVideoModal={closeVideoModal}
               key={index}
             />
           ))}

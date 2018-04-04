@@ -18,14 +18,16 @@ export default (config = {}) => {
   const {
     theme = defaultTheme,
     structure = [DefaultBlockTypeSelect],
-    imagePlugin
+    imagePlugin,
+    videoPlugin
   }: any = config;
 
   const toolbarProps = {
     store,
     structure,
     theme,
-    imagePlugin
+    imagePlugin,
+    videoPlugin
   };
 
   return {

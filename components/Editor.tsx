@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Component } from "react";
+import { findDOMNode } from "react-dom";
 
 import Editor from "draft-js-plugins-editor";
 import {
@@ -13,21 +14,27 @@ import { mdToDraftjs, draftjsToMd } from "draftjs-md-converter";
 
 import createBlockBreakoutPlugin from "draft-js-block-breakout-plugin";
 import createImagePlugin from "draft-js-image-plugin";
+import createVideoPlugin from "draft-js-video-plugin";
 import createFocusPlugin from "draft-js-focus-plugin";
 
 import createInlineToolbarPlugin from "../plugins/inline-toolbar";
 import createSideToolbarPlugin from "../plugins/side-toolbar";
 
+import Input from "./Input";
+import ActionButtons from "./ActionButtons";
+
 // CSS
 import "draft-js/dist/Draft.css";
 import "draft-js-side-toolbar-plugin/lib/plugin.css";
 import "draft-js-inline-toolbar-plugin/lib/plugin.css";
+import "draft-js-video-plugin/lib/plugin.css";
 
 const focusPlugin = createFocusPlugin();
+const videoPlugin = createVideoPlugin();
 
 const imagePlugin = createImagePlugin({ decorator: focusPlugin.decorator });
 const inlineToolbarPlugin = createInlineToolbarPlugin({ imagePlugin });
-const sideToolbarPlugin = createSideToolbarPlugin({ imagePlugin });
+const sideToolbarPlugin = createSideToolbarPlugin({ imagePlugin, videoPlugin });
 const blockBreakoutPlugin = createBlockBreakoutPlugin();
 
 const { InlineToolbar } = inlineToolbarPlugin;
@@ -43,6 +50,7 @@ interface Props {
 
 interface State {
   editorState: any;
+  videoModalOpen: boolean;
 }
 
 function fixType(raw: any) {
@@ -94,8 +102,13 @@ class CustomEditor extends Component<Props, State> {
   state = {
     editorState: EditorState.createWithContent(
       convertFromRaw(fixType(mdToDraftjs(this.props.value)))
-    )
+    ),
+    videoModalOpen: false
   };
+
+  ctrls: {
+    VideoModal?: VideoModal;
+  } = {};
 
   componentDidMount() {
     this.setState(prevState => ({
@@ -157,8 +170,24 @@ class CustomEditor extends Component<Props, State> {
     }));
   }
 
-  onClickEditor = () => {
-    this.focus();
+  onClickEditor = e => {
+    if (!findDOMNode(this.ctrls.VideoModal).contains(e.target)) {
+      this.focus();
+    }
+  };
+
+  openVideoModal = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      videoModalOpen: true
+    }));
+  };
+
+  closeVideoModal = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      videoModalOpen: false
+    }));
   };
 
   render() {
@@ -185,12 +214,18 @@ class CustomEditor extends Component<Props, State> {
             inlineToolbarPlugin,
             sideToolbarPlugin,
             focusPlugin,
-            imagePlugin
+            imagePlugin,
+            videoPlugin
           ]}
           spellCheck={true}
         />
         <InlineToolbar id={this.props.id} />
-        <SideToolbar id={this.props.id} />
+        <SideToolbar
+          id={this.props.id}
+          isVideoModalOpen={this.state.videoModalOpen}
+          openVideoModal={this.openVideoModal}
+          closeVideoModal={this.closeVideoModal}
+        />
         {/* <InlineToolbar
           structure={[
             (props: any) => [
@@ -203,6 +238,15 @@ class CustomEditor extends Component<Props, State> {
             ]
           ]}
         /> */}
+        <VideoModal
+          isOpen={this.state.videoModalOpen}
+          editorState={this.state.editorState}
+          videoPlugin={videoPlugin}
+          onChange={this.onChange}
+          open={this.openVideoModal}
+          close={this.closeVideoModal}
+          ref={modal => (this.ctrls.VideoModal = modal)}
+        />
         <style jsx global>{`
           .Editor .DraftEditor-root {
             font-family: Georgia, Cambria, "Times New Roman", Times, serif;
@@ -260,6 +304,30 @@ class CustomEditor extends Component<Props, State> {
             min-height: 15rem;
             box-shadow: none;
             transition: all 0.3s;
+          }
+
+          .Editor
+            .DraftEditor-editorContainer
+            .draftJsMentionPlugin__iframeContainer__21EVZ {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: 1.5s ease 0s infinite normal none running loading;
+          }
+
+          .Editor
+            .DraftEditor-editorContainer
+            .draftJsMentionPlugin__iframeContainer__21EVZ
+            iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
           }
 
           .Editor
@@ -331,6 +399,134 @@ class CustomEditor extends Component<Props, State> {
   }
 }
 
+interface VideoModalProps {
+  isOpen: any;
+  editorState: any;
+  videoPlugin: any;
+  onChange: any;
+  open: any;
+  close: any;
+}
 
+class VideoModal extends Component<VideoModalProps> {
+  ctrls: {
+    popup?: HTMLDivElement;
+    videoURL?: Input;
+    ActionButtons?: ActionButtons;
+  } = {};
+
+  closeCheck = e => {
+    if (!this.ctrls.popup.contains(e.target)) {
+      this.props.close();
+    }
+  };
+
+  addVideo = videoURL => {
+    const { editorState, onChange } = this.props;
+    onChange(this.props.videoPlugin.addVideo(editorState, { src: videoURL }));
+    this.props.close();
+  };
+
+  render() {
+    return (
+      <div
+        className="VideoModal modal"
+        role="dialog"
+        style={{
+          visibility: this.props.isOpen ? "visible" : "collapse",
+          opacity: this.props.isOpen ? 1 : 0
+        }}
+        onClick={this.closeCheck}
+      >
+        <div
+          className="modal-dialog"
+          role="document"
+          style={!this.props.isOpen ? { marginTop: "-10rem" } : {}}
+          onKeyPress={e => {
+            if (e.key === "Enter") {
+              this.addVideo(this.ctrls.videoURL.input.value);
+            }
+          }}
+          ref={div => {
+            this.ctrls.popup = div;
+          }}
+        >
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Add video</h5>
+              <button
+                type="button"
+                className="close"
+                data-dismiss="modal"
+                aria-label="Close"
+                onClick={this.props.close}
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              <Input
+                label="Video URL"
+                type="text"
+                ref={input => (this.ctrls.videoURL = input)}
+              />
+            </div>
+            <div className="modal-footer">
+              <ActionButtons
+                primaryText="Add"
+                primaryAction={() =>
+                  this.addVideo(this.ctrls.videoURL.input.value)
+                }
+                secondaryText="Cancel"
+                secondaryAction={this.props.close}
+                ref={btns => (this.ctrls.ActionButtons = btns)}
+              />
+            </div>
+          </div>
+        </div>
+        <style jsx>{`
+          .VideoModal {
+            display: block !important;
+            opacity: 0;
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+          }
+
+          .VideoModal .modal-dialog {
+            transition: all 0.3s;
+          }
+
+          .VideoModal .modal-content,
+          .VideoModal .modal-content .modal-header,
+          .VideoModal .modal-content .modal-footer {
+            border: 0;
+          }
+
+          .VideoModal .modal-content {
+            border-radius: 0;
+            box-shadow: 0 0.3125rem 1rem 0 rgba(0, 0, 0, 0.24);
+          }
+
+          .VideoModal .modal-content .modal-header button.close {
+            outline: 0;
+          }
+
+          .VideoModal .modal-content .modal-body {
+            width: 90%;
+            margin: 0 auto;
+            padding: 15px;
+            padding-bottom: 0;
+            max-height: 20rem;
+            transition: all 0.3s;
+          }
+
+          .VideoModal .modal-content .modal-footer {
+            padding-top: 0;
+          }
+        `}</style>
+      </div>
+    );
+  }
+}
 
 export default CustomEditor;
