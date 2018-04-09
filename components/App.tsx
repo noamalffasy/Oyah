@@ -175,29 +175,29 @@ class App extends Component<any, any> {
 
           @keyframes imageLoad {
             0% {
-              background: #c0c0c0;
+              background-color: rgba(205, 205, 205, 0.6);
             }
 
             50% {
-              background: #aaa;
+              background-color: rgba(205, 205, 205, 1);
             }
 
             100% {
-              background: #c0c0c0;
+              background-color: rgba(205, 205, 205, 0.6);
             }
           }
 
           @keyframes loading {
             0% {
-              background: rgba(0, 0, 0, 0.3);
+              opacity: 0.6;
             }
 
             50% {
-              background: rgba(0, 0, 0, 0.5);
+              opacity: 1;
             }
 
             100% {
-              background: rgba(0, 0, 0, 0.3);
+              opacity: 0.6;
             }
           }
 
