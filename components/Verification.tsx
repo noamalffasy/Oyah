@@ -23,6 +23,7 @@ class Verification extends Component<Props> {
           .verification-symbol {
             -webkit-text-fill-color: transparent;
             background: -webkit-linear-gradient(#000, #f00);
+            -webkit-background-clip: text;
             background-clip: text;
             font-weight: 500;
             border-radius: 50%;
