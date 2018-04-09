@@ -215,14 +215,20 @@ const comment = new GraphQLObjectType({
       author: {
         type: User,
         resolve(obj) {
-          return obj && obj.getAuthor();
+          if (!obj.author) {
+            return obj && obj.getAuthor();
+          }
+          return obj.author;
         }
       },
       message: {
         type: GraphQLString
       },
       likes: {
-        type: GraphQLInt
+        type: GraphQLInt,
+        resolve(obj) {
+          return obj.likes;
+        }
       },
       createdAt: {
         type: GraphQLDate

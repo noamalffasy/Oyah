@@ -12,7 +12,10 @@ import {
 } from "draft-js";
 import { mdToDraftjs, draftjsToMd } from "draftjs-md-converter";
 
+import videoUtils from "draft-js-video-plugin/lib/video/utils";
+
 import createBlockBreakoutPlugin from "draft-js-block-breakout-plugin";
+import createLinkPlugin from "draft-js-anchor-plugin";
 import createImagePlugin from "draft-js-image-plugin";
 import createVideoPlugin from "draft-js-video-plugin";
 import createFocusPlugin from "draft-js-focus-plugin";
@@ -20,25 +23,59 @@ import createFocusPlugin from "draft-js-focus-plugin";
 import createInlineToolbarPlugin from "../plugins/inline-toolbar";
 import createSideToolbarPlugin from "../plugins/side-toolbar";
 
+import Markdown from "./Markdown";
+import Image from "./Image";
 import Input from "./Input";
 import ActionButtons from "./ActionButtons";
 
 // CSS
 import "draft-js/dist/Draft.css";
 import "draft-js-side-toolbar-plugin/lib/plugin.css";
-import "draft-js-inline-toolbar-plugin/lib/plugin.css";
 import "draft-js-video-plugin/lib/plugin.css";
+import "draft-js-inline-toolbar-plugin/lib/plugin.css";
+import "draft-js-anchor-plugin/lib/plugin.css";
+
+interface EditorImageProps {
+  className: any;
+  contentState: any;
+  block: any;
+  theme: any;
+  onClick: any;
+}
+class EditorImage extends Component<EditorImageProps> {
+  render() {
+    const entityBlock = this.props.contentState.getEntity(
+      this.props.block.getEntityAt(0)
+    );
+    const { src } = entityBlock.getData();
+    return (
+      <Image
+        className={this.props.theme.image + " " + this.props.className}
+        src={src}
+        onClick={this.props.onClick}
+      />
+    );
+  }
+}
 
 const focusPlugin = createFocusPlugin();
 const videoPlugin = createVideoPlugin();
 
-const imagePlugin = createImagePlugin({ decorator: focusPlugin.decorator });
-const inlineToolbarPlugin = createInlineToolbarPlugin({ imagePlugin });
+const linkPlugin = createLinkPlugin();
+const imagePlugin = createImagePlugin({
+  decorator: focusPlugin.decorator,
+  imageComponent: EditorImage
+});
+const inlineToolbarPlugin = createInlineToolbarPlugin({
+  LinkButton: linkPlugin.LinkButton,
+  imagePlugin
+});
 const sideToolbarPlugin = createSideToolbarPlugin({ imagePlugin, videoPlugin });
 const blockBreakoutPlugin = createBlockBreakoutPlugin();
-
 const { InlineToolbar } = inlineToolbarPlugin;
 const { SideToolbar } = sideToolbarPlugin;
+
+const { isYoutube, getYoutubeSrc, isVimeo, getVimeoSrc } = videoUtils;
 
 interface Props {
   className?: any;
@@ -50,6 +87,7 @@ interface Props {
 
 interface State {
   editorState: any;
+  rendered: boolean;
   videoModalOpen: boolean;
 }
 
@@ -59,7 +97,7 @@ function fixType(raw: any) {
     return _entities[key];
   });
   entities.map((elem: any, i: any) => {
-    if (elem.type) {
+    if (elem.type === "IMAGE") {
       elem.type = elem.type.toLowerCase();
       raw.entityMap[i] = elem;
     }
@@ -103,6 +141,7 @@ class CustomEditor extends Component<Props, State> {
     editorState: EditorState.createWithContent(
       convertFromRaw(fixType(mdToDraftjs(this.props.value)))
     ),
+    rendered: false,
     videoModalOpen: false
   };
 
@@ -113,9 +152,10 @@ class CustomEditor extends Component<Props, State> {
   componentDidMount() {
     this.setState(prevState => ({
       ...prevState,
-      editorState: EditorState.createWithContent(
-        convertFromRaw(fixType(mdToDraftjs(this.props.value)))
-      )
+      // editorState: EditorState.createWithContent(
+      //   convertFromRaw(fixType(mdToDraftjs(this.props.value)))
+      // )
+      rendered: true
     }));
   }
 
@@ -191,7 +231,7 @@ class CustomEditor extends Component<Props, State> {
   };
 
   render() {
-    return (
+    return this.state.rendered ? (
       <div
         className={"Editor " + this.props.className}
         onClick={this.onClickEditor}
@@ -215,7 +255,8 @@ class CustomEditor extends Component<Props, State> {
             sideToolbarPlugin,
             focusPlugin,
             imagePlugin,
-            videoPlugin
+            videoPlugin,
+            linkPlugin
           ]}
           spellCheck={true}
         />
@@ -266,9 +307,9 @@ class CustomEditor extends Component<Props, State> {
             color: #212529;
           }
 
-          // .Editor .DraftEditor-editorContainer .public-DraftStyleDefault-block {
-          //   margin-bottom: 1rem;
-          // }
+          /* .Editor .DraftEditor-editorContainer .public-DraftStyleDefault-block {
+            margin-bottom: 1rem;
+          } */
 
           .Editor .DraftEditor-editorContainer h1,
           .Editor .DraftEditor-editorContainer h2,
@@ -279,6 +320,10 @@ class CustomEditor extends Component<Props, State> {
             font-family: -apple-system, blinkmacsystemfont, "segoe ui", roboto,
               "helvetica neue", arial, sans-serif, "apple color emoji",
               "segoe ui emoji", "segoe ui symbol";
+          }
+
+          .Editor .DraftEditor-editorContainer a {
+            cursor: text;
           }
 
           .Editor .DraftEditor-editorContainer blockquote {
@@ -297,13 +342,32 @@ class CustomEditor extends Component<Props, State> {
             padding: 20px;
           }
 
-          .Editor .DraftEditor-editorContainer img {
+          /* .Editor .DraftEditor-editorContainer img {
             border-radius: 2px;
             width: 100%;
             max-height: 15rem;
             min-height: 15rem;
             box-shadow: none;
             transition: all 0.3s;
+          } */
+
+          .Editor .DraftEditor-editorContainer .image {
+            border-radius: 2px;
+            box-shadow: none;
+            cursor: default;
+            transition: all 0.3s;
+          }
+
+          .Editor
+            .DraftEditor-editorContainer
+            .image.draftJsFocusPlugin__unfocused__1Wvrs:hover {
+            box-shadow: 0 0 0.5rem 0.5rem #d2e3f7;
+          }
+
+          .Editor
+            .DraftEditor-editorContainer
+            .image.draftJsFocusPlugin__focused__3Mksn {
+            box-shadow: 0 0 0.5rem 0.5rem #accef7;
           }
 
           .Editor
@@ -328,20 +392,6 @@ class CustomEditor extends Component<Props, State> {
             bottom: 0;
             width: 100%;
             height: 100%;
-          }
-
-          .Editor
-            .DraftEditor-editorContainer
-            img.draftJsFocusPlugin__unfocused__1Wvrs:hover {
-            cursor: default;
-            box-shadow: 0 0 0.5rem 0.5rem #d2e3f7;
-          }
-
-          .Editor
-            .DraftEditor-editorContainer
-            img.draftJsFocusPlugin__focused__3Mksn {
-            cursor: default;
-            box-shadow: 0 0 0.5rem 0.5rem #accef7;
           }
 
           .Editor .RichEditor-controls {
@@ -381,7 +431,7 @@ class CustomEditor extends Component<Props, State> {
             opacity: 1;
           }
 
-          @media (min-width: 576px),
+          /* @media (min-width: 576px),
             @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .Editor .DraftEditor-editorContainer img {
               min-height: 20rem;
@@ -392,9 +442,11 @@ class CustomEditor extends Component<Props, State> {
             .Editor .DraftEditor-editorContainer img {
               min-height: 25rem;
             }
-          }
+            } */
         `}</style>
       </div>
+    ) : (
+      <Markdown value={this.props.value} />
     );
   }
 }
@@ -421,9 +473,25 @@ class VideoModal extends Component<VideoModalProps> {
     }
   };
 
+  fixVideoURL = videoURL => {
+    const YOUTUBE_PREFIX = "https://www.youtube.com/embed/";
+    const VIMEO_PREFIX = "https://player.vimeo.com/video/";
+
+    if (isYoutube(videoURL)) {
+      const { srcID } = getYoutubeSrc(videoURL);
+      return `${YOUTUBE_PREFIX}${srcID}`;
+    }
+    if (isVimeo(videoURL)) {
+      const { srcID } = getVimeoSrc(videoURL);
+      return `${VIMEO_PREFIX}${srcID}`;
+    }
+    return undefined;
+  };
+
   addVideo = videoURL => {
     const { editorState, onChange } = this.props;
-    onChange(this.props.videoPlugin.addVideo(editorState, { src: videoURL }));
+    const src = this.fixVideoURL(videoURL);
+    onChange(this.props.videoPlugin.addVideo(editorState, { src }));
     this.props.close();
   };
 

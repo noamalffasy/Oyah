@@ -51,6 +51,7 @@ interface State {
   authorID?: any;
   title: string;
   image: any;
+  scaleRatio: any;
   content: any;
   edit: any;
   value?: any;
@@ -131,6 +132,7 @@ class WriteArticle extends Component<Props, State> {
       focus: false,
       title: "",
       image: null,
+      scaleRatio: "33.3%",
       content: undefined,
       edit: false
     };
@@ -140,6 +142,10 @@ class WriteArticle extends Component<Props, State> {
     this.getFile = this.getFile.bind(this);
     this.publish = this.publish.bind(this);
   }
+
+  ctrls: {
+    articleImage?: HTMLDivElement;
+  } = {};
 
   static async getInitialProps(
     { pathname, query: { id: _id } }: any,
@@ -158,6 +164,42 @@ class WriteArticle extends Component<Props, State> {
       const id =
         _id.indexOf("_small.jpeg") > -1 ? _id.replace("_small.jpeg", "") : _id;
 
+      if (user === undefined) {
+        const user = await apolloClient
+          .query({
+            query: gql`
+              {
+                currentUser {
+                  ok
+                  jwt
+                  errors {
+                    field
+                    message
+                  }
+                  user {
+                    id
+                    nametag
+                    email
+                    small_image
+                    image
+                    likes
+                    comment_likes
+                    bio
+                    name
+                    mains
+                    reddit
+                    twitter
+                    editor
+                    is_team
+                  }
+                }
+              }
+            `
+          })
+          .then(res => {
+            return res.currentUser.user;
+          });
+      }
       if (user !== undefined) {
         return await apolloClient
           .mutate({
@@ -177,7 +219,7 @@ class WriteArticle extends Component<Props, State> {
               id
             }
           })
-          .then((res: any) => {
+          .then(res => {
             if (res.errors) {
               res.errors.forEach((error: any) => {
                 console.error(error);
@@ -245,7 +287,7 @@ class WriteArticle extends Component<Props, State> {
           newArticle: {
             id
           },
-          notAuthorized: true
+          notAuthorized: false
         };
       }
     }
@@ -258,24 +300,35 @@ class WriteArticle extends Component<Props, State> {
       this.props.newArticle !== undefined &&
       this.props.newArticle.title !== undefined
     ) {
-      this.setState(prevState => ({
-        ...prevState,
-        title: this.props.newArticle.title,
-        image: this.props.newArticle.image,
-        content: this.props.newArticle.content,
-        edit: this.props.newArticle.edit ? true : false
-      }));
+      this.setState(
+        prevState => ({
+          ...prevState,
+          id,
+          title: this.props.newArticle.title,
+          image: this.props.newArticle.image,
+          content: this.props.newArticle.content,
+          edit: this.props.newArticle.edit ? true : false
+        }),
+        () => {
+          this.setImageScaleRatio();
+        }
+      );
     }
 
     if (localStorage.getItem("article_" + id) !== null) {
       const saved = JSON.parse(localStorage.getItem("article_" + id));
-      this.setState((prevState: any) => ({
-        ...prevState,
-        title: saved.title
-          ? saved.title
-          : this.state.title ? this.state.title : this.props.newArticle.title,
-        image: saved.image
-      }));
+      this.setState(
+        (prevState: any) => ({
+          ...prevState,
+          title: saved.title
+            ? saved.title
+            : this.state.title ? this.state.title : this.props.newArticle.title,
+          image: saved.image
+        }),
+        () => {
+          this.setImageScaleRatio();
+        }
+      );
     }
 
     setInterval(() => {
@@ -305,6 +358,29 @@ class WriteArticle extends Component<Props, State> {
         );
       }
     }, 10000);
+  }
+
+  getDimensionsOfImage(imageURL) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = imageURL;
+      image.onload = () => {
+        resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      };
+    });
+  }
+
+  async setImageScaleRatio() {
+    const imgURL = this.state.image || this.props.newArticle.image;
+    const { width, height } = await this.getDimensionsOfImage(imgURL);
+    const scaleRatio = `${100 * height / width}%`;
+
+    console.log(scaleRatio);
+
+    this.setState(prevState => ({
+      ...prevState,
+      scaleRatio
+    }));
   }
 
   renderToPreview() {
@@ -646,13 +722,15 @@ class WriteArticle extends Component<Props, State> {
             <div
               className="article-image"
               style={
-                this.state.image
+                this.state.image || this.props.newArticle.image
                   ? {
-                      backgroundImage: `url("${this.state.image}")`
+                      backgroundImage: `url("${this.state.image ||
+                        this.props.newArticle.image}")`
                     }
                   : {}
               }
               onClick={this.uploadImage}
+              ref={div => (this.ctrls.articleImage = div)}
             >
               <div className="background">
                 <div className="upload-text">
@@ -660,6 +738,7 @@ class WriteArticle extends Component<Props, State> {
                   <h2>Upload Image</h2>
                 </div>
               </div>
+              <div className="scale-ratio" />
             </div>
             <input
               type="file"
@@ -777,23 +856,23 @@ class WriteArticle extends Component<Props, State> {
 
             .WriteArticle .article-image {
               position: relative;
-              min-height: 20rem;
-              max-height: 20rem;
-              background-size: cover;
+              /* min-height: 20rem;
+              max-height: 20rem; */
+              background-size: 100% 100%;
               background-repeat: no-repeat;
               background-position: center center;
-              background-attachment: fixed;
-              background-color: #c3c3c3;
+              /* background-attachment: fixed;
+              background-color: #c3c3c3; */
               z-index: 1;
               width: 100%;
               margin-bottom: 2rem;
-              transition: all 0.3s;
-            }
-
-            .WriteArticle .article-image {
-              background-color: #c3c3c3;
               cursor: pointer;
               transition: all 0.3s;
+              animation: imageLoad 1s infinite;
+            }
+
+            .WriteArticle .article-image .scale-ratio {
+              padding-bottom: ${this.state.scaleRatio};
             }
 
             .WriteArticle .article-image .background {
@@ -850,23 +929,28 @@ class WriteArticle extends Component<Props, State> {
                 padding-bottom: 3.5rem;
               }
             }
+
             @media (min-width: 768px),
               @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .WriteArticle .Content {
                 width: 70%;
               }
               .WriteArticle .article-image {
-                min-height: 25rem;
-                max-height: 25rem;
+                /* min-height: 25rem;
+                max-height: 25rem; */
+                background-attachment: fixed;
+              }
+              .WriteArticle .article-image .scale-ratio {
+                padding-bottom: 33.3%;
               }
             }
 
             @media (min-width: 1200px),
               @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
-              .WriteArticle .article-image {
+              /* .WriteArticle .article-image {
                 min-height: 30rem;
                 max-height: 30rem;
-              }
+              } */
             }
           `}</style>
         </App>

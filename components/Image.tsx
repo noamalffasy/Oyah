@@ -5,7 +5,12 @@ import { findDOMNode } from "react-dom";
 import ReactPlaceholder from "react-placeholder";
 import { RectShape } from "react-placeholder/lib/placeholders";
 
-class ImagePlaceholder extends Component {
+interface ImagePlaceholderProps {
+  height: number;
+  width: number;
+}
+
+class ImagePlaceholder extends Component<ImagePlaceholderProps> {
   render() {
     return (
       <RectShape
@@ -14,6 +19,9 @@ class ImagePlaceholder extends Component {
           width: "100%",
           height: "100%",
           margin: "0",
+          paddingBottom: `calc(100% * ${this.props.height}.0 / ${
+            this.props.width
+          }.0)`,
           animation: "loading 1.5s infinite"
         }}
       />
@@ -69,7 +77,9 @@ class Image extends Component<Props, State> {
       img.onload = () => {
         this.setState(prevState => ({
           ...prevState,
-          smallLoaded: true
+          smallLoaded: true,
+          width: imgLarge.width,
+          height: imgLarge.height
         }));
       };
 
@@ -109,6 +119,9 @@ class Image extends Component<Props, State> {
     } else {
       const img = document.createElement("img");
       img.src =
+        (this.props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
+          ? "/img"
+          : "") +
         this.props.src.replace(/\.[^.]*$/, "") +
         "_small" +
         this.props.src.replace(/.*(?=\.)/, "");
@@ -128,6 +141,16 @@ class Image extends Component<Props, State> {
           this.props.src.replace(/[^\/]*$/, "") +
           encodeURIComponent(this.props.src.replace(/.*(?=\/)\//, ""));
       }
+      const poll = setInterval(() => {
+        if (imgLarge.naturalWidth) {
+          clearInterval(poll);
+          this.setState(prevState => ({
+            ...prevState,
+            width: imgLarge.naturalWidth,
+            height: imgLarge.naturalHeight
+          }));
+        }
+      }, 10);
       imgLarge.onload = () => {
         if (!this.props.fixed) {
           imgLarge.classList.add("loaded");
@@ -135,9 +158,9 @@ class Image extends Component<Props, State> {
         this.setState(
           prevState => ({
             ...prevState,
-            largeLoaded: true,
-            width: imgLarge.width,
-            height: imgLarge.height
+            largeLoaded: true
+            // width: imgLarge.width,
+            // height: imgLarge.height
           }),
           () => {
             if (!this.props.fixed) {
@@ -160,7 +183,8 @@ class Image extends Component<Props, State> {
       img.src =
         this.props.user && Object.keys(this.props.user).length !== 0
           ? this.state.smallImg
-          : this.props.src.replace(/\.[^.]*$/, "") +
+          : "/img" +
+            this.props.src.replace(/\.[^.]*$/, "") +
             "_small" +
             this.props.src.replace(/.*(?=\.)/, "");
       img.onload = () => {
@@ -179,6 +203,16 @@ class Image extends Component<Props, State> {
           nextProps.src.replace(/[^\/]*$/, "") +
           encodeURIComponent(nextProps.src.replace(/.*(?=\/)\//, ""));
       }
+      const poll = setInterval(() => {
+        if (imgLarge.naturalWidth) {
+          clearInterval(poll);
+          this.setState(prevState => ({
+            ...prevState,
+            width: imgLarge.naturalWidth,
+            height: imgLarge.naturalHeight
+          }));
+        }
+      }, 10);
       imgLarge.onload = () => {
         if (!this.props.fixed) {
           imgLarge.classList.add("loaded");
@@ -186,9 +220,9 @@ class Image extends Component<Props, State> {
         this.setState(
           prevState => ({
             ...prevState,
-            largeLoaded: true,
-            width: imgLarge.width,
-            height: imgLarge.height
+            largeLoaded: true
+            // width: imgLarge.width,
+            // height: imgLarge.height
           }),
           () => {
             if (!this.props.fixed) {
@@ -213,7 +247,10 @@ class Image extends Component<Props, State> {
             this.props.customPlaceholder ? (
               this.props.customPlaceholder
             ) : (
-              <ImagePlaceholder />
+              <ImagePlaceholder
+                height={this.state.height}
+                width={this.state.width}
+              />
             )
           }
           ready={this.state.smallLoaded || this.state.largeLoaded}
@@ -247,11 +284,7 @@ class Image extends Component<Props, State> {
               alt=""
               ref={img => (this.small = img)}
             />
-            {/* <div
-            style={{
-              paddingBottom: `calc(100% * ${this.state.height}.0 / ${this.state.width}.0)`
-            }}
-          /> */}
+            <div className="scale-ratio" />
             <style jsx>{`
               .image.placeholder {
                 position: relative;
@@ -280,6 +313,12 @@ class Image extends Component<Props, State> {
               .image.placeholder .img-small {
                 filter: blur(10px);
                 transform: scale(1);
+              }
+
+              .image.placeholder .scale-ratio {
+                padding-bottom: calc(
+                  100% * ${this.state.height}.0 / ${this.state.width}.0
+                );
               }
             `}</style>
             <style jsx global>{`
@@ -320,18 +359,23 @@ class Image extends Component<Props, State> {
                 : this.props.src.replace(/\.[^.]*$/, "") +
                   "_small" +
                   this.props.src.replace(/.*(?=\.)/, ""),
-            filter: this.state.largeLoaded ? "none" : "blur(20px)"
+            filter: this.state.largeLoaded
+              ? "none"
+              : this.state.smallLoaded ? "blur(20px)" : "none"
             // backgroundAttachment: this.state.largeLoaded ? "fixed" : "unset"
           }}
           onClick={this.props.onClick}
           ref={div => (this.placeholder = div)}
         >
           <div
-            style={{
-              paddingBottom: `calc(100% * ${this.state.height}.0 / ${
-                this.state.width
-              }.0)`
-            }}
+            className="scale-ratio"
+            style={
+              {
+                // paddingBottom: `calc(100% * ${this.state.height}.0 / ${
+                //   this.state.width
+                // }.0)`
+              }
+            }
           />
           <style jsx>{`
             .image.placeholder {
@@ -341,11 +385,29 @@ class Image extends Component<Props, State> {
               background-repeat: no-repeat;
               overflow: hidden;
             }
-            @media (min-width: 992px) {
+
+            .image.placeholder .scale-ratio {
+              padding-bottom: calc(100% * ${this.state.height}.0 / ${
+            this.state.width
+          }.0);
+            }
+            @media(min-width: 768px),
+              @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+                .image.placeholder {
+                  background-attachment: fixed;
+                }
+                .image.placeholder .scale-ratio {
+                  padding-bottom: 33.3%;
+                }
+              }
+            }
+
+            /* @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .image.placeholder {
                 background-attachment: fixed;
               }
-            }
+            } */
           `}</style>
         </div>
       );

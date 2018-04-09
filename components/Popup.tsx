@@ -72,6 +72,20 @@ class Popup extends Component<Props, State> {
     }
   }
 
+  open = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      open: true
+    }));
+  };
+
+  close = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      open: false
+    }));
+  };
+
   render() {
     return (
       <div
@@ -89,12 +103,8 @@ class Popup extends Component<Props, State> {
         <div
           className="popup"
           tabIndex={0}
-          onBlur={() =>
-            this.setState(prevState => ({
-              ...prevState,
-              open: false
-            }))
-          }
+          onFocus={this.open}
+          onBlur={this.close}
           ref={div => (this.ctrls.popup = div)}
         >
           {this.props.children}

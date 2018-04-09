@@ -4,7 +4,7 @@ import { findDOMNode } from "react-dom";
 
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/fontawesome-free-solid";
+import { RoundShape } from "react-placeholder/lib/placeholders";
 
 import { Collapse, NavbarToggler } from "reactstrap";
 
@@ -476,6 +476,20 @@ class Account extends Component<any, any> {
                   : "/img/User.png"
               }
               alt={this.state.user.nametag}
+              customPlaceholder={
+                <RoundShape
+                  className="image"
+                  color="#e0e0e0"
+                  style={{
+                    display: "inline-block",
+                    width: "4rem",
+                    height: "4rem",
+                    transform: "scale(0.89)",
+                    borderRadius: "50%",
+                    animation: "loading 1.5s infinite"
+                  }}
+                />
+              }
               style={
                 this.state.infoOpen
                   ? {

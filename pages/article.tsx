@@ -13,7 +13,6 @@ import * as uuid from "uuid/v4";
 import Head from "next/head";
 import Link from "next/link";
 
-import * as Markdown from "react-markdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
 import { RoundShape, TextRow } from "react-placeholder/lib/placeholders";
@@ -26,6 +25,7 @@ import * as moment from "moment";
 
 import App from "../components/App";
 
+import Markdown from "../components/Markdown";
 import Verification from "../components/Verification";
 import Image from "../components/Image";
 import Popup from "../components/Popup";
@@ -272,7 +272,7 @@ class ArticlePage extends Component<Props, State> {
             author: {
               ...getArticle.data.getArticle.author,
               image:
-                "/static/img/users/" +
+                "/img/users/" +
                 encodeURIComponent(getArticle.data.getArticle.author.image)
             }
           };
@@ -282,7 +282,7 @@ class ArticlePage extends Component<Props, State> {
             author: {
               ...getArticle.data.getArticle.author,
               image:
-                "/static/img/users/" +
+                "/img/users/" +
                 encodeURIComponent(getArticle.data.getArticle.author.image)
             }
           };
@@ -389,27 +389,27 @@ class ArticlePage extends Component<Props, State> {
     }
   }
 
-  shouldComponentUpdate(nextProps: Props, nextState: State) {
-    if (
-      (this.ctrls.more &&
-        nextState.menuOpen !== this.ctrls.morePopup.state.open) ||
-      (this.deletePopup && nextState.deletePopup !== false) ||
-      // (this.ctrls.more && this.ctrls.more.contains(nextProps.clicked)) ||
-      !this.props.article ||
-      !this.props.article.content ||
-      !this.props.author ||
-      !this.state.datePublished ||
-      this.props.user !== nextProps.user ||
-      this.props.signInModal !== nextProps.signInModal
-      // (nextProps.clicked === this.props.clicked &&
-      //   !this.state.menuOpen &&
-      //   this.state.content &&
-      //   this.props.author)
-    ) {
-      return true;
-    }
-    return false;
-  }
+  // shouldComponentUpdate(nextProps: Props, nextState: State) {
+  //   if (
+  //     (this.ctrls.more &&
+  //       nextState.menuOpen !== this.ctrls.morePopup.state.open) ||
+  //     (this.deletePopup && nextState.deletePopup !== false) ||
+  //     // (this.ctrls.more && this.ctrls.more.contains(nextProps.clicked)) ||
+  //     !this.props.article ||
+  //     !this.props.article.content ||
+  //     !this.props.author ||
+  //     !this.state.datePublished ||
+  //     this.props.user !== nextProps.user ||
+  //     this.props.signInModal !== nextProps.signInModal
+  //     // (nextProps.clicked === this.props.clicked &&
+  //     //   !this.state.menuOpen &&
+  //     //   this.state.content &&
+  //     //   this.props.author)
+  //   ) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   // componentWillReceiveProps(nextProps: any) {
   //   if (
@@ -629,7 +629,9 @@ class ArticlePage extends Component<Props, State> {
                               href={"/WriteArticle?id=" + this.props.article.id}
                               as={"/articles/new/" + this.props.article.id}
                             >
-                              <a>Edit</a>
+                              <a onClick={() => this.ctrls.morePopup.open()}>
+                                Edit
+                              </a>
                             </Link>
                           </li>
                           <li>
@@ -669,17 +671,6 @@ class ArticlePage extends Component<Props, State> {
               className="article-image"
               src={`/articles/${this.props.article.id}/main.jpeg`}
               fixed
-              style={{
-                position: "relative",
-                backgroundSize: "100% 100%",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center center",
-                backgroundColor: "#c3c3c3",
-                zIndex: "1",
-                width: "100%",
-                marginBottom: "2rem",
-                transition: "all 0.3s"
-              }}
             />
             {/* <div
             className="article-image"
@@ -691,22 +682,7 @@ class ArticlePage extends Component<Props, State> {
             <div className="ArticlePage">
               <div className="container">
                 <div className="Content">
-                  <Markdown
-                    className="body"
-                    source={this.props.article.content || ""}
-                    renderers={{
-                      image: ({ src, alt }) => {
-                        return (
-                          <Image
-                            src={src}
-                            alt={alt}
-                            // onError={e => (e.target.style.animation = "none")}
-                          />
-                        );
-                      }
-                    }}
-                  />
-
+                  <Markdown value={this.props.article.content || ""} />
                   <Bottombar
                     where="article"
                     contentLoaded={this.props.article.content !== undefined}
@@ -822,12 +798,12 @@ class ArticlePage extends Component<Props, State> {
           `}</style>
           <style jsx global>{`
             .ArticlePage .top .more .popup-wrapper {
-              width: 90% !important;
+              width: 90%;
             }
 
             .ArticlePage .top .more .popup-wrapper .popup {
-              width: 30% !important;
-              float: right;
+              width: 30%;
+              /* float: right; */
             }
 
             .ArticlePage .top .more .popup-wrapper .popup li {
@@ -853,40 +829,25 @@ class ArticlePage extends Component<Props, State> {
             }
 
             .ArticlePage .article-image {
-              min-height: 20rem;
-              max-height: 20rem;
-            }
-
-            .ArticlePage .body {
-              font-size: 1.25rem;
-              white-space: pre-wrap;
-              font-family: Georgia, Cambria, "Times New Roman", Times, serif;
-            }
-
-            .ArticlePage .body h1 {
-              font-size: 2.5rem;
-              font-weight: 600;
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
-                "Segoe UI Emoji", "Segoe UI Symbol";
-              margin: 1rem 0;
-              text-align: left;
-            }
-
-            .ArticlePage .body .image {
-              display: block;
-              min-height: 15rem;
-              max-height: 15rem;
+              position: relative;
+              background-size: 100% 100%;
+              background-repeat: no-repeat;
+              background-position: center center;
+              background-color: #c3c3c3;
+              z-index: 1;
               width: 100%;
-              font-size: 0rem;
-              border-radius: 2px;
-              background: #c0c0c0;
+              margin-bottom: 2rem;
+              transition: all 0.3s;
               animation: imageLoad 1s infinite;
             }
+            /* .ArticlePage .article-image {
+              min-height: 20rem;
+              max-height: 20rem;
+            } */
             @media (min-width: 480px),
               @media (min-width: 480px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .top .more .popup-wrapper {
-                width: 60% !important;
+                width: 60%;
                 padding-right: 2rem;
               }
               .ArticlePage .top .more .popup-wrapper .popup {
@@ -894,54 +855,52 @@ class ArticlePage extends Component<Props, State> {
               }
             }
 
-            @media (min-width: 576px),
+            /* @media (min-width: 576px),
               @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .body .image {
                 min-height: 20rem;
               }
-            }
+            } */
 
             @media (min-width: 768px),
               @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .top .more .popup-wrapper {
-                width: 50% !important;
+                width: 50%;
               }
-              .ArticlePage .article-image {
+              /* .ArticlePage .article-image {
                 min-height: 25rem;
                 max-height: 25rem;
-              }
+              } */
             }
 
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .top .more .popup-wrapper {
-                width: 40% !important;
-                padding-right: 2rem;
+                width: 40%;
               }
-              .ArticlePage .body .image {
+              /* .ArticlePage .body .image {
                 min-height: 25rem;
-              }
+              } */
             }
 
             @media (min-width: 1200px),
               @media (min-width: 1200px) and (-webkit-min-device-pixel-ratio: 1) {
               .ArticlePage .top .more .popup-wrapper {
-                width: 30% !important;
-                padding-right: 2rem;
+                width: 30%;
               }
-              .ArticlePage .article-image {
+              /* .ArticlePage .article-image {
                 min-height: 30rem;
                 max-height: 30rem;
-              }
+              } */
             }
 
-            @media (min-width: 1300px),
+            /* @media (min-width: 1300px),
               @media (min-width: 1300px) and (-webkit-min-device-pixel-ratio: 1) {
-              .ArticlePage .article-image {
+               .ArticlePage .article-image {
                 min-height: 35rem;
                 max-height: 35rem;
-              }
-            }
+              } 
+            } */
           `}</style>
         </App>
       );
@@ -1593,22 +1552,12 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           } else {
             this.setState(prevState => {
               let state: any = prevState;
-              let author: any;
-              state.comments = this.state.comments
-                .filter((comment: any) => {
-                  if (comment.id === id) {
-                    author = comment.author;
-                    return false;
-                  }
-                  return true;
-                })
-                .concat([
-                  {
-                    id,
-                    author,
-                    message: this["edit_" + id].input.value.trim()
-                  }
-                ]);
+              state.comments = this.state.comments.map((comment: any) => {
+                if (comment.id === id) {
+                  return { ...comment, ...res.data.updateComment };
+                }
+                return comment;
+              });
               state["edit_" + id] = false;
 
               return state;
@@ -1633,10 +1582,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                   this.props.user
                     ? this.props.user.image !== null &&
                       this.props.user.image !== undefined
-                      ? "/static/img/users/" +
+                      ? "/img/users/" +
                         encodeURIComponent(this.props.user.image)
-                      : "/static/img/User.png"
-                    : "/static/img/User.png"
+                      : "/img/User.png"
+                    : "/img/User.png"
                 }
                 style={{
                   width: "3rem",
@@ -1700,12 +1649,13 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                         elem.author
                           ? elem.author.image !== null &&
                             elem.author.image !== undefined
-                            ? "/static/img/users/" +
+                            ? "/img/users/" +
                               encodeURIComponent(elem.author.image)
-                            : "/static/img/User.png"
-                          : "/static/img/User.png"
+                            : "/img/User.png"
+                          : "/img/User.png"
                       }
                       alt={elem.author ? elem.author.nametag : "Loading"}
+                      customPlaceholder={<AuthorImagePlaceholder />}
                       style={{
                         display: "inline-block",
                         width: "3rem",
@@ -1780,6 +1730,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
               <div
                 className="message-outer clearfix"
                 style={{ padding: "0 0 1rem 0" }}
+                key={elem.id}
               >
                 {this.state["edit_" + elem.id] ? (
                   <div>
@@ -1825,7 +1776,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                     />
                   </div>
                 ) : (
-                  <Markdown className="message" source={elem.message} />
+                  <Markdown className="message" value={elem.message} />
                 )}
                 <Bottombar
                   where="comment"

@@ -762,10 +762,13 @@ export default {
         const user = res.user.dataValues;
         const comment = await Comment.find({ where: { id, articleID } });
         if (comment.dataValues.authorID === user.id) {
-          return await Comment.update(
-            { message },
-            { where: { id, articleID } }
-          );
+          return await Comment.update({ message }, { where: { id, articleID } })
+            .then(res => {
+              return { ...comment.get({ plain: true }), author: user, message };
+            })
+            .catch(err => {
+              throw err;
+            });
         } else {
           throw new Error(
             "This user is not the author of the selected comment"

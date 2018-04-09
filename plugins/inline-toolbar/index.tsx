@@ -2,8 +2,8 @@ import decorateComponentWithProps from "decorate-component-with-props";
 import {
   ItalicButton,
   BoldButton,
-  UnderlineButton,
-  CodeButton
+  UnderlineButton
+  // CodeButton
 } from "draft-js-buttons";
 import { Separator } from "draft-js-inline-toolbar-plugin";
 
@@ -25,7 +25,8 @@ export default (config = {}) => {
     structure = [
       BoldButton,
       ItalicButton,
-      UnderlineButton
+      UnderlineButton,
+      config.LinkButton
       // CodeButton
     ],
     imagePlugin
