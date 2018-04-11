@@ -25,6 +25,7 @@ import withData from "../lib/withData";
 interface Props {
   profile: any;
   error: any;
+  _error: any;
   user?: any;
   login?: any;
   dispatch?: any;
@@ -137,22 +138,22 @@ class Settings extends Component<Props, State> {
   static async getInitialProps(ctx: any, apolloClient: any, user: any) {
     if (user === undefined || user.id === null || user.id === undefined) {
       return {
-        error: "Not logged in"
+        _error: "Not logged in"
       };
     }
   }
 
   componentDidMount() {
-    const { user, error } = this.props;
-    if (error) {
-      if (error === "Not logged in") {
+    const { _error } = this.props;
+    if (_error) {
+      if (_error === "Not logged in") {
         this.setState((prevState: any) => ({
           ...prevState,
           loggedIn: false
         }));
       } else {
         // console.error(error);
-        this.setError(error);
+        this.setError(_error);
       }
     }
   }
@@ -329,14 +330,13 @@ class Settings extends Component<Props, State> {
                   ref={img => (this.image = img)}
                 /> */}
                   <Image
-                    user={this.props.user}
                     src={
                       this.state.userImg
                         ? this.state.userImg
                         : this.props.user.image !== null
-                          ? "/static/img/users/" +
+                          ? "/img/users/" +
                             encodeURIComponent(this.props.user.image)
-                          : "/static/img/User.png"
+                          : "/img/User.png"
                     }
                     ref={img => (this.image = img)}
                   />
