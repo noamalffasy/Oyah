@@ -108,9 +108,9 @@ class MyDocument extends Document {
         <body>
           <Main />
           <NextScript />
-          <script src="/static/js/jquery.min.js" />
-          <script src="/static/js/popper.min.js" />
-          <script src="/static/js/bootstrap.bundle.min.js" />
+          <script src="/js/jquery.min.js" />
+          <script src="/js/popper.min.js" />
+          <script src="/js/bootstrap.bundle.min.js" />
         </body>
         <style jsx global>{`
           html,

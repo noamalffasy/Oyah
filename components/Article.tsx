@@ -51,7 +51,7 @@ class Article extends Component<Props, any> {
           <a className={this.props.main ? "Article main" : "Article"}>
             <div className="article-inner">
               <Image
-                src={"/static/img/articles/" + this.props.id + "/main.jpeg"}
+                src={"/img/articles/" + this.props.id + "/main.jpeg"}
                 alt={this.props.alt || ""}
                 onError={(e: any) => {
                   e.target.src = "";
