@@ -13,18 +13,20 @@ interface ImagePlaceholderProps {
 class ImagePlaceholder extends Component<ImagePlaceholderProps> {
   render() {
     return (
-      <RectShape
-        color="#e0e0e0"
-        style={{
-          width: "100%",
-          height: "100%",
-          margin: "0",
-          paddingBottom: `calc(100% * ${this.props.height}.0 / ${
-            this.props.width
-          }.0)`,
-          animation: "loading 1.5s infinite"
-        }}
-      />
+      <div className="image">
+        <RectShape
+          color="#e0e0e0"
+          style={{
+            width: "100%",
+            height: "100%",
+            margin: "0",
+            paddingBottom: `calc(100% * ${this.props.height}.0 / ${
+              this.props.width
+            }.0)`,
+            animation: "loading 1.5s infinite"
+          }}
+        />
+      </div>
     );
   }
 }
@@ -64,12 +66,21 @@ class Image extends Component<Props, State> {
 
   async componentDidMount() {
     this._mounted = true;
-    if (this.props.user && Object.keys(this.props.user).length !== 0) {
+    this.loadImages(this.props);
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.src !== this.props.src && this._mounted) {
+      this.loadImages(nextProps);
+    }
+  }
+
+  loadImages = props => {
+    if (props.user && Object.keys(props.user).length !== 0) {
       this.setState(prevState => ({
         ...prevState,
-        smallImg:
-          "/img/users/" + encodeURIComponent(this.props.user.small_image),
-        image: "/img/users/" + encodeURIComponent(this.props.user.image)
+        smallImg: "/img/users/" + encodeURIComponent(props.user.small_image),
+        image: "/img/users/" + encodeURIComponent(props.user.image)
       }));
 
       const img = document.createElement("img");
@@ -84,16 +95,16 @@ class Image extends Component<Props, State> {
       };
 
       const imgLarge = document.createElement("img");
-      if (!this.props.fixed) {
-        imgLarge.src = this.props.src;
+      if (!props.fixed) {
+        imgLarge.src = this.state.image;
       } else {
         imgLarge.src =
           "/img" +
-          this.props.src.replace(/[^\/]*$/, "") +
-          encodeURIComponent(this.props.src.replace(/.*(?=\/)\//, ""));
+          props.src.replace(/[^\/]*$/, "") +
+          encodeURIComponent(props.src.replace(/.*(?=\/)\//, ""));
       }
       imgLarge.onload = () => {
-        if (!this.props.fixed) {
+        if (!props.fixed) {
           imgLarge.classList.add("loaded");
           this.setState(prevState => ({
             ...prevState,
@@ -101,30 +112,34 @@ class Image extends Component<Props, State> {
             height: imgLarge.height
           }));
         } else {
-          this.setState(prevState => ({
-            ...prevState,
-            largeLoaded: true,
-            width: imgLarge.width,
-            height: imgLarge.height
-          }));
+          this.setState(
+            prevState => ({
+              ...prevState,
+              largeLoaded: true,
+              width: imgLarge.width,
+              height: imgLarge.height
+            }),
+            () => {
+              if (!props.fixed) {
+                this.placeholder.appendChild(imgLarge);
+              } else {
+                this.placeholder.style.backgroundImage = `url(${"/img" +
+                  imgLarge.src.replace(/[^\/]*$/, "") +
+                  encodeURIComponent(imgLarge.src.replace(/.*(?=\/)\//, ""))})`;
+              }
+            }
+          );
         }
       };
-      if (!this.props.fixed) {
-        findDOMNode(this.placeholder).appendChild(imgLarge);
-      } else {
-        findDOMNode(this.placeholder).style.backgroundImage = `url(${"/img" +
-          imgLarge.src.replace(/[^\/]*$/, "") +
-          encodeURIComponent(imgLarge.src.replace(/.*(?=\/)\//, ""))})`;
-      }
     } else {
       const img = document.createElement("img");
       img.src =
-        (this.props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
+        (props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
           ? "/img"
           : "") +
-        this.props.src.replace(/\.[^.]*$/, "") +
+        props.src.replace(/\.[^.]*$/, "") +
         "_small" +
-        this.props.src.replace(/.*(?=\.)/, "");
+        props.src.replace(/.*(?=\.)/, "");
       img.onload = () => {
         this.setState(prevState => ({
           ...prevState,
@@ -133,13 +148,13 @@ class Image extends Component<Props, State> {
       };
 
       const imgLarge = document.createElement("img");
-      if (!this.props.fixed) {
-        imgLarge.src = this.props.src;
+      if (!props.fixed) {
+        imgLarge.src = props.src;
       } else {
         imgLarge.src =
           "/img" +
-          this.props.src.replace(/[^\/]*$/, "") +
-          encodeURIComponent(this.props.src.replace(/.*(?=\/)\//, ""));
+          props.src.replace(/[^\/]*$/, "") +
+          encodeURIComponent(props.src.replace(/.*(?=\/)\//, ""));
       }
       const poll = setInterval(() => {
         if (imgLarge.naturalWidth) {
@@ -152,7 +167,7 @@ class Image extends Component<Props, State> {
         }
       }, 10);
       imgLarge.onload = () => {
-        if (!this.props.fixed) {
+        if (!props.fixed) {
           imgLarge.classList.add("loaded");
         }
         this.setState(
@@ -163,7 +178,7 @@ class Image extends Component<Props, State> {
             // height: imgLarge.height
           }),
           () => {
-            if (!this.props.fixed) {
+            if (!props.fixed) {
               findDOMNode(this.placeholder).appendChild(imgLarge);
             } else {
               findDOMNode(this.placeholder).style.backgroundImage = `url(${
@@ -174,70 +189,7 @@ class Image extends Component<Props, State> {
         );
       };
     }
-    this.src = this.props.src;
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.src !== this.props.src && this._mounted) {
-      const img = document.createElement("img");
-      img.src =
-        this.props.user && Object.keys(this.props.user).length !== 0
-          ? this.state.smallImg
-          : "/img" +
-            this.props.src.replace(/\.[^.]*$/, "") +
-            "_small" +
-            this.props.src.replace(/.*(?=\.)/, "");
-      img.onload = () => {
-        this.setState(prevState => ({
-          ...prevState,
-          smallLoaded: true
-        }));
-      };
-
-      const imgLarge = document.createElement("img");
-      if (!this.props.fixed) {
-        imgLarge.src = nextProps.src;
-      } else {
-        imgLarge.src =
-          "/img" +
-          nextProps.src.replace(/[^\/]*$/, "") +
-          encodeURIComponent(nextProps.src.replace(/.*(?=\/)\//, ""));
-      }
-      const poll = setInterval(() => {
-        if (imgLarge.naturalWidth) {
-          clearInterval(poll);
-          this.setState(prevState => ({
-            ...prevState,
-            width: imgLarge.naturalWidth,
-            height: imgLarge.naturalHeight
-          }));
-        }
-      }, 10);
-      imgLarge.onload = () => {
-        if (!this.props.fixed) {
-          imgLarge.classList.add("loaded");
-        }
-        this.setState(
-          prevState => ({
-            ...prevState,
-            largeLoaded: true
-            // width: imgLarge.width,
-            // height: imgLarge.height
-          }),
-          () => {
-            if (!this.props.fixed) {
-              findDOMNode(this.placeholder).appendChild(imgLarge);
-            } else {
-              findDOMNode(this.placeholder).style.backgroundImage = `url(${
-                imgLarge.src
-              })`;
-            }
-            this.src = nextProps.src;
-          }
-        );
-      };
-    }
-  }
+  };
 
   render() {
     if (!this.props.fixed) {
