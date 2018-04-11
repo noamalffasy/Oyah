@@ -150,146 +150,149 @@ class WriteArticle extends Component<Props, State> {
   static async getInitialProps(
     { pathname, query: { id: _id } }: any,
     apolloClient: any,
-    user: any
+    _user: any
   ) {
+    const user =
+      _user === undefined
+        ? await apolloClient
+            .query({
+              query: gql`
+                {
+                  currentUser {
+                    ok
+                    jwt
+                    errors {
+                      field
+                      message
+                    }
+                    user {
+                      id
+                      nametag
+                      email
+                      small_image
+                      image
+                      likes
+                      comment_likes
+                      bio
+                      name
+                      mains
+                      reddit
+                      twitter
+                      editor
+                      is_team
+                    }
+                  }
+                }
+              `
+            })
+            .then(res => {
+              return res.data.currentUser.user;
+            })
+            .catch(() => {
+              return undefined;
+            })
+        : _user;
+    const id =
+      _id === undefined
+        ? uuid()
+        : _id.indexOf("_small.jpeg") > -1
+          ? _id.replace("_small.jpeg", "")
+          : _id;
     if (_id === undefined) {
-      const id = uuid();
-
       Router.push("/articles/new/" + id);
 
       return {
         newArticle: { id }
       };
-    } else {
-      const id =
-        _id.indexOf("_small.jpeg") > -1 ? _id.replace("_small.jpeg", "") : _id;
-
-      if (user === undefined) {
-        const user = await apolloClient
-          .query({
-            query: gql`
-              {
-                currentUser {
-                  ok
-                  jwt
-                  errors {
-                    field
-                    message
-                  }
-                  user {
-                    id
-                    nametag
-                    email
-                    small_image
-                    image
-                    likes
-                    comment_likes
-                    bio
-                    name
-                    mains
-                    reddit
-                    twitter
-                    editor
-                    is_team
-                  }
+    }
+    if (user !== undefined) {
+      return await apolloClient
+        .mutate({
+          mutation: gql`
+            mutation getArticle($id: String!) {
+              getArticle(id: $id) {
+                id
+                title
+                content
+                author {
+                  id
                 }
               }
-            `
-          })
-          .then(res => {
-            return res.currentUser.user;
-          });
-      }
-      if (user !== undefined) {
-        return await apolloClient
-          .mutate({
-            mutation: gql`
-              mutation getArticle($id: String!) {
-                getArticle(id: $id) {
-                  id
-                  title
-                  content
-                  author {
-                    id
-                  }
-                }
-              }
-            `,
-            variables: {
-              id
             }
-          })
-          .then(res => {
-            if (res.errors) {
-              res.errors.forEach((error: any) => {
-                console.error(error);
-              });
-            } else if (res.data.getArticle.id !== null) {
-              if (
-                user.id === res.data.getArticle.author.id &&
-                res.data.getArticle.content !== null
-              ) {
-                return {
-                  newArticle: {
-                    id,
-                    edit: true,
-                    title: res.data.getArticle.title,
-                    image: "/img/articles/" + id + "/main.jpeg",
-                    content: res.data.getArticle.content
-                  },
-                  user
-                };
-              } else if (res.data.getArticle.content !== null) {
-                return {
-                  newArticle: {
-                    id,
-                    authorID: res.data.getArticle.author.id
-                  },
-                  notAuthorized: true,
-                  user
-                };
-              } else {
-                return {
-                  newArticle: {
-                    id,
-                    edit: true
-                  },
-                  user
-                };
-              }
-            } else {
-              return {
-                newArticle: {
-                  id
-                },
-                user
-              };
-            }
-          })
-          .catch((err: any) => {
+          `,
+          variables: {
+            id
+          }
+        })
+        .then(res => {
+          if (res.errors) {
+            res.errors.forEach((error: any) => {
+              console.error(error);
+            });
+          } else if (res.data.getArticle.id !== null) {
             if (
-              err.message === "GraphQL error: obj.getAuthor is not a function"
+              user.id === res.data.getArticle.author.id &&
+              res.data.getArticle.content !== null
             ) {
               return {
                 newArticle: {
-                  id
+                  id,
+                  edit: true,
+                  title: res.data.getArticle.title,
+                  image: "/img/articles/" + id + "/main.jpeg",
+                  content: res.data.getArticle.content
+                },
+                user
+              };
+            } else if (res.data.getArticle.content !== null) {
+              return {
+                newArticle: {
+                  id,
+                  authorID: res.data.getArticle.author.id
+                },
+                notAuthorized: true,
+                user
+              };
+            } else {
+              return {
+                newArticle: {
+                  id,
+                  edit: true
                 },
                 user
               };
             }
-            console.error(err);
+          } else {
             return {
-              error: err
+              newArticle: {
+                id
+              },
+              user
             };
-          });
-      } else {
-        return {
-          newArticle: {
-            id
-          },
-          notAuthorized: false
-        };
-      }
+          }
+        })
+        .catch((err: any) => {
+          if (
+            err.message === "GraphQL error: obj.getAuthor is not a function"
+          ) {
+            return {
+              newArticle: {
+                id
+              },
+              user
+            };
+          }
+          return {
+            error: err
+          };
+        });
+    } else {
+      return {
+        newArticle: {
+          id
+        },
+        notAuthorized: false
+      };
     }
   }
 
@@ -861,14 +864,14 @@ class WriteArticle extends Component<Props, State> {
               background-size: 100% 100%;
               background-repeat: no-repeat;
               background-position: center center;
-              /* background-attachment: fixed;
-              background-color: #c3c3c3; */
+              /* background-attachment: fixed; */
+              background-color: #c3c3c3;
               z-index: 1;
               width: 100%;
               margin-bottom: 2rem;
               cursor: pointer;
               transition: all 0.3s;
-              animation: imageLoad 1s infinite;
+              /* animation: imageLoad 1s infinite; */
             }
 
             .WriteArticle .article-image .scale-ratio {
