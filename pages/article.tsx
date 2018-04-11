@@ -1949,14 +1949,14 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           }
         `}</style>
         <style jsx global>{`
-          .Responses .input .message p.Input label,
-          .Responses .response p.Input label {
+          .Responses .input .message .Input label,
+          .Responses .response .Input label {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
               Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
               sans-serif;
           }
 
-          .Responses .input .message p.Input span::after {
+          .Responses .input .message .Input span::after {
             margin: -0.1rem 0 0 0;
           }
 

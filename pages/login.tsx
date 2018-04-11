@@ -349,12 +349,12 @@ class Login extends Component<Props, State> {
           }
         `}</style>
         <style jsx global>{`
-          .Login .remember-checkbox p.Input.checkbox,
+          .Login .remember-checkbox .Input.checkbox,
           .Login .remember-checkbox label {
             vertical-align: middle;
           }
 
-          .Login .remember-checkbox p.Input.checkbox {
+          .Login .remember-checkbox .Input.checkbox {
             margin: 0 0.5rem 0 0;
           }
 

@@ -595,7 +595,7 @@ class LoginPopup extends Component<Props, State> {
             transition: all 0.3s;
           }
 
-          .LoginPopup .modal-content .modal-body p.Input.half::last-child {
+          .LoginPopup .modal-content .modal-body .Input.half::last-child {
             margin-bottom: 1.5rem;
           }
 
@@ -608,15 +608,15 @@ class LoginPopup extends Component<Props, State> {
             .modal-content
             .modal-body
             .remember-checkbox
-            p.Input.checkbox,
+            .Input.checkbox,
           .LoginPopup .modal-content .modal-body .remember-checkbox label,
-          .LoginPopup .modal-content .modal-body .age-checkbox p.Input.checkbox,
+          .LoginPopup .modal-content .modal-body .age-checkbox .Input.checkbox,
           .LoginPopup .modal-content .modal-body .age-checkbox label,
           .LoginPopup
             .modal-content
             .modal-body
             .terms-checkbox
-            p.Input.checkbox,
+            .Input.checkbox,
           .LoginPopup .modal-content .modal-body .terms-checkbox label {
             vertical-align: middle;
           }
@@ -625,13 +625,13 @@ class LoginPopup extends Component<Props, State> {
             .modal-content
             .modal-body
             .remember-checkbox
-            p.Input.checkbox,
-          .LoginPopup .modal-content .modal-body .age-checkbox p.Input.checkbox,
+            .Input.checkbox,
+          .LoginPopup .modal-content .modal-body .age-checkbox .Input.checkbox,
           .LoginPopup
             .modal-content
             .modal-body
             .terms-checkbox
-            p.Input.checkbox {
+            .Input.checkbox {
             margin: 0 0.5rem 0 0;
           }
 
@@ -654,7 +654,7 @@ class LoginPopup extends Component<Props, State> {
           }
           @media (min-width: 768px),
             @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-            .LoginPopup .modal-content .modal-body p.Input.half {
+            .LoginPopup .modal-content .modal-body .Input.half {
               margin-bottom: 1.5rem;
             }
           }

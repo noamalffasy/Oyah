@@ -278,15 +278,15 @@ class Signup extends Component<Props, State> {
           }
         `}</style>
         <style jsx global>{`
-          .Signup .age-checkbox p.Input.checkbox,
+          .Signup .age-checkbox .Input.checkbox,
           .Signup .age-checkbox label,
-          .Signup .terms-checkbox p.Input.checkbox,
+          .Signup .terms-checkbox .Input.checkbox,
           .Signup .terms-checkbox label {
             vertical-align: middle;
           }
 
-          .Signup .age-checkbox p.Input.checkbox,
-          .Signup .terms-checkbox p.Input.checkbox {
+          .Signup .age-checkbox .Input.checkbox,
+          .Signup .terms-checkbox .Input.checkbox {
             margin: 0 0.5rem 0 0;
           }
 
@@ -302,7 +302,7 @@ class Signup extends Component<Props, State> {
 
           @media (min-width: 768px),
             @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-            .Signup p.Input.half {
+            .Signup .Input.half {
               margin-bottom: 1.5rem;
             }
           }

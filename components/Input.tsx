@@ -292,7 +292,7 @@ class Input extends Component<Props, State> {
     switch (this.props.type) {
       case "dropdown":
         return (
-          <p
+          <div
             className={
               "Input dropdown" +
               (this.state.empty ? " empty" : "") +
@@ -354,14 +354,14 @@ class Input extends Component<Props, State> {
             </ul>
 
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
 
-              p.Input label {
+              .Input label {
                 display: block;
                 position: absolute;
                 z-index: 5;
@@ -372,20 +372,20 @@ class Input extends Component<Props, State> {
                 transform-origin: left top;
               }
 
-              p.Input.focus label {
+              .Input.focus label {
                 transform: translateY(-75%) scale(0.75);
               }
 
-              p.Input label.focus {
+              .Input label.focus {
                 color: #cc0000;
               }
 
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -395,11 +395,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
 
-              p.Input span input {
+              .Input span input {
                 border: 0;
                 position: relative;
                 width: 100%;
@@ -409,55 +409,55 @@ class Input extends Component<Props, State> {
                 box-shadow: none;
               }
 
-              p.Input span input:-webkit-autofill {
+              .Input span input:-webkit-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-moz-autofill {
+              .Input span input:-moz-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-o-autofill {
+              .Input span input:-o-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-khtml-autofill {
+              .Input span input:-khtml-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input,
-              p.Input span input::placeholder {
+              .Input span input,
+              .Input span input::placeholder {
                 color: #131313;
               }
 
-              p.Input span input::selection {
+              .Input span input::selection {
                 color: #fff;
                 -webkit-text-fill-color: #fff;
                 background: #cc0000;
               }
-              p.Input.dropdown {
+              .Input.dropdown {
                 outline: 0;
                 cursor: pointer;
               }
 
-              p.Input.dropdown span textarea {
+              .Input.dropdown span textarea {
                 padding: 0 1.5rem 0 0;
                 pointer-events: none;
               }
 
-              p.Input.dropdown::after {
+              .Input.dropdown::after {
                 content: "";
                 position: absolute;
                 top: 50%;
@@ -472,11 +472,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input.dropdown.open::after {
+              .Input.dropdown.open::after {
                 transform: scaleY(-1) translateY(50%);
               }
 
-              p.Input.dropdown .box-wrapper {
+              .Input.dropdown .box-wrapper {
                 position: absolute;
                 background: #fff;
                 box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
@@ -488,7 +488,7 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input.dropdown .box {
+              .Input.dropdown .box {
                 text-align: left;
                 list-style: none;
                 padding: 0;
@@ -498,28 +498,28 @@ class Input extends Component<Props, State> {
                 cursor: default;
               }
 
-              p.Input.dropdown .box li {
+              .Input.dropdown .box li {
                 padding: 0.2rem 0.3rem;
                 transition: all 0.15s;
                 cursor: pointer;
               }
 
-              p.Input.dropdown .box li.disabled {
+              .Input.dropdown .box li.disabled {
                 opacity: 0.4;
                 cursor: default;
               }
 
-              p.Input.dropdown .box li:not(.disabled):hover {
+              .Input.dropdown .box li:not(.disabled):hover {
                 background: rgb(236, 236, 236);
               }
 
-              p.Input.dropdown .box li p.Input.checkbox {
+              .Input.dropdown .box li .Input.checkbox {
                 float: none;
                 margin: 0 0.5rem 0 0;
                 vertical-align: middle;
               }
 
-              p.Input.dropdown .box li h2 {
+              .Input.dropdown .box li h2 {
                 font-size: 1rem;
                 display: inline-block;
                 vertical-align: middle;
@@ -527,11 +527,11 @@ class Input extends Component<Props, State> {
                 margin: 0;
               }
             `}</style>
-          </p>
+          </div>
         );
       case "select-dropdown":
         return (
-          <p
+          <div
             className={
               "Input dropdown" +
               (this.state.empty ? " empty" : "") +
@@ -720,14 +720,14 @@ class Input extends Component<Props, State> {
               </Scrollbars>
             </div>
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
 
-              p.Input label {
+              .Input label {
                 display: block;
                 position: absolute;
                 z-index: 5;
@@ -738,20 +738,20 @@ class Input extends Component<Props, State> {
                 transform-origin: left top;
               }
 
-              p.Input.focus label {
+              .Input.focus label {
                 transform: translateY(-75%) scale(0.75);
               }
 
-              p.Input label.focus {
+              .Input label.focus {
                 color: #cc0000;
               }
 
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -761,11 +761,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
 
-              p.Input.dropdown::after {
+              .Input.dropdown::after {
                 content: "";
                 position: absolute;
                 top: 50%;
@@ -780,11 +780,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input.dropdown.open::after {
+              .Input.dropdown.open::after {
                 transform: scaleY(-1) translateY(50%);
               }
 
-              p.Input.dropdown .box-wrapper {
+              .Input.dropdown .box-wrapper {
                 position: absolute;
                 background: #fff;
                 box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
@@ -797,7 +797,7 @@ class Input extends Component<Props, State> {
               }
             `}</style>
             <style jsx global>{`
-              p.Input span textarea {
+              .Input span textarea {
                 position: relative;
                 width: 100%;
                 outline: 0;
@@ -807,87 +807,88 @@ class Input extends Component<Props, State> {
                 resize: none;
               }
 
-              p.Input span textarea:-webkit-autofill {
+              .Input span textarea:-webkit-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-moz-autofill {
+              .Input span textarea:-moz-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-o-autofill {
+              .Input span textarea:-o-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-khtml-autofill {
+              .Input span textarea:-khtml-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea,
-              p.Input span textarea::placeholder {
+              .Input span textarea,
+              .Input span textarea::placeholder {
                 color: #131313;
               }
 
-              p.Input span textarea::selection {
+              .Input span textarea::selection {
                 color: #fff;
                 -webkit-text-fill-color: #fff;
                 background: #cc0000;
               }
 
-              p.Input.dropdown {
+              .Input.dropdown {
                 outline: 0;
                 cursor: pointer;
               }
 
-              p.Input.dropdown span textarea {
+              .Input.dropdown span textarea {
                 padding: 0 1.5rem 0 0;
                 pointer-events: none;
               }
 
-              p.Input.dropdown .box {
+              .Input.dropdown .box {
                 text-align: left;
                 list-style: none;
                 padding: 0;
                 /* max-height: calc(1.9rem*5); */
                 overflow-y: auto;
+                overflow-x: unset !important;
                 transition: all 0.3s;
                 cursor: default;
               }
 
-              p.Input.dropdown .box li {
+              .Input.dropdown .box li {
                 padding: 0.2rem 0.3rem;
                 transition: all 0.15s;
                 cursor: pointer;
               }
 
-              p.Input.dropdown .box li.disabled {
+              .Input.dropdown .box li.disabled {
                 opacity: 0.4;
                 cursor: default;
               }
 
-              p.Input.dropdown .box li:not(.disabled):hover {
+              .Input.dropdown .box li:not(.disabled):hover {
                 background: rgb(236, 236, 236);
               }
 
-              p.Input.dropdown .box li p.Input.checkbox {
+              .Input.dropdown .box li .Input.checkbox {
                 float: none;
                 margin: 0 0.5rem 0 0;
                 vertical-align: middle;
               }
 
-              p.Input.dropdown .box li h2 {
+              .Input.dropdown .box li h2 {
                 font-size: 1rem;
                 display: inline-block;
                 vertical-align: middle;
@@ -895,11 +896,11 @@ class Input extends Component<Props, State> {
                 margin: 0;
               }
             `}</style>
-          </p>
+          </div>
         );
       case "checkbox":
         return (
-          <p
+          <div
             className={
               "Input checkbox" +
               (this.state.checked ? " checked" : "") +
@@ -911,18 +912,18 @@ class Input extends Component<Props, State> {
           >
             <span />
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -932,11 +933,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
 
-              p.Input.checkbox {
+              .Input.checkbox {
                 display: inline-block;
                 font-family: Verdana;
                 font-size: 12px;
@@ -952,7 +953,7 @@ class Input extends Component<Props, State> {
                 margin: 0.2rem 0.5rem 0 0;
               }
 
-              p.Input.checkbox span::after {
+              .Input.checkbox span::after {
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -973,15 +974,15 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input.checkbox.checked span::after {
+              .Input.checkbox.checked span::after {
                 transform: scaleX(1);
               }
             `}</style>
-          </p>
+          </div>
         );
       case "textarea":
         return (
-          <p
+          <div
             className={
               this.state.focus
                 ? this.props.half
@@ -1025,14 +1026,14 @@ class Input extends Component<Props, State> {
               />
             </span>
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
 
-              p.Input label {
+              .Input label {
                 display: block;
                 position: absolute;
                 z-index: 5;
@@ -1043,20 +1044,20 @@ class Input extends Component<Props, State> {
                 transform-origin: left top;
               }
 
-              p.Input.focus label {
+              .Input.focus label {
                 transform: translateY(-75%) scale(0.75);
               }
 
-              p.Input label.focus {
+              .Input label.focus {
                 color: #cc0000;
               }
 
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -1067,21 +1068,21 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
               @media screen and (-webkit-min-device-pixel-ratio: 0) {
-                p.Input span input {
+                .Input span input {
                   padding: 0;
                 }
               }
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-                p.Input.half:last-of-type {
+                .Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
                 }
-                p.Input.half {
+                .Input.half {
                   width: calc(50% - 1rem);
                   float: left;
                   margin-right: 1rem;
@@ -1089,7 +1090,7 @@ class Input extends Component<Props, State> {
               }
             `}</style>
             <style jsx global>{`
-              p.Input span textarea {
+              .Input span textarea {
                 position: relative;
                 width: 100%;
                 outline: 0;
@@ -1099,50 +1100,50 @@ class Input extends Component<Props, State> {
                 resize: none;
               }
 
-              p.Input span textarea:-webkit-autofill {
+              .Input span textarea:-webkit-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-moz-autofill {
+              .Input span textarea:-moz-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-o-autofill {
+              .Input span textarea:-o-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea:-khtml-autofill {
+              .Input span textarea:-khtml-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span textarea,
-              p.Input span textarea::placeholder {
+              .Input span textarea,
+              .Input span textarea::placeholder {
                 color: #131313;
               }
 
-              p.Input span textarea::selection {
+              .Input span textarea::selection {
                 color: #fff;
                 -webkit-text-fill-color: #fff;
                 background: #cc0000;
               }
             `}</style>
-          </p>
+          </div>
         );
       case "password":
         return (
-          <p
+          <div
             className={
               this.state.focus
                 ? this.props.half
@@ -1245,14 +1246,14 @@ class Input extends Component<Props, State> {
               </a>
             </span>
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
 
-              p.Input label {
+              .Input label {
                 display: block;
                 position: absolute;
                 z-index: 5;
@@ -1263,20 +1264,20 @@ class Input extends Component<Props, State> {
                 transform-origin: left top;
               }
 
-              p.Input.focus label {
+              .Input.focus label {
                 transform: translateY(-75%) scale(0.75);
               }
 
-              p.Input label.focus {
+              .Input label.focus {
                 color: #cc0000;
               }
 
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -1286,11 +1287,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
 
-              p.Input span input {
+              .Input span input {
                 border: 0;
                 position: relative;
                 width: 100%;
@@ -1300,60 +1301,60 @@ class Input extends Component<Props, State> {
                 box-shadow: none;
               }
 
-              p.Input span input:-webkit-autofill {
+              .Input span input:-webkit-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-moz-autofill {
+              .Input span input:-moz-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-o-autofill {
+              .Input span input:-o-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-khtml-autofill {
+              .Input span input:-khtml-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input,
-              p.Input span input::placeholder {
+              .Input span input,
+              .Input span input::placeholder {
                 color: #131313;
               }
 
-              p.Input span input::selection {
+              .Input span input::selection {
                 color: #fff;
                 -webkit-text-fill-color: #fff;
                 background: #cc0000;
               }
-              p.Input span a.toggle-password {
+              .Input span a.toggle-password {
                 position: absolute;
                 right: 0;
               }
               @media screen and (-webkit-min-device-pixel-ratio: 0) {
-                p.Input span input {
+                .Input span input {
                   padding: 0;
                 }
               }
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-                p.Input.half:last-of-type {
+                .Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
                 }
-                p.Input.half {
+                .Input.half {
                   width: calc(50% - 1rem);
                   float: left;
                   margin-right: 1rem;
@@ -1361,15 +1362,15 @@ class Input extends Component<Props, State> {
               }
             `}</style>
             <style jsx global>{`
-              p.Input span a svg {
+              .Input span a svg {
                 max-width: 1rem;
               }
             `}</style>
-          </p>
+          </div>
         );
       default:
         return (
-          <p
+          <div
             className={
               this.state.focus
                 ? this.props.half
@@ -1412,14 +1413,14 @@ class Input extends Component<Props, State> {
               />
             </span>
             <style jsx>{`
-              p.Input {
+              .Input {
                 margin-bottom: 2rem;
                 position: relative;
                 width: 100%;
                 cursor: text;
               }
 
-              p.Input label {
+              .Input label {
                 display: block;
                 position: absolute;
                 z-index: 5;
@@ -1430,20 +1431,20 @@ class Input extends Component<Props, State> {
                 transform-origin: left top;
               }
 
-              p.Input.focus label {
+              .Input.focus label {
                 transform: translateY(-75%) scale(0.75);
               }
 
-              p.Input label.focus {
+              .Input label.focus {
                 color: #cc0000;
               }
 
-              p.Input span {
+              .Input span {
                 border-bottom: 1px solid rgba(0, 0, 0, 0.4);
                 padding-bottom: 2px;
               }
 
-              p.Input span::after {
+              .Input span::after {
                 content: "";
                 display: block;
                 transform: scaleX(0);
@@ -1453,11 +1454,11 @@ class Input extends Component<Props, State> {
                 transition: all 0.3s;
               }
 
-              p.Input span.focus::after {
+              .Input span.focus::after {
                 transform: scaleX(1);
               }
 
-              p.Input span input {
+              .Input span input {
                 border: 0;
                 position: relative;
                 width: 100%;
@@ -1467,63 +1468,63 @@ class Input extends Component<Props, State> {
                 box-shadow: none;
               }
 
-              p.Input span input:-webkit-autofill {
+              .Input span input:-webkit-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-moz-autofill {
+              .Input span input:-moz-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-o-autofill {
+              .Input span input:-o-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input:-khtml-autofill {
+              .Input span input:-khtml-autofill {
                 background: none !important;
                 color: #131313 !important;
                 -webkit-text-fill-color: #131313;
                 box-shadow: 0 0 0px 1000px white inset;
               }
 
-              p.Input span input,
-              p.Input span input::placeholder {
+              .Input span input,
+              .Input span input::placeholder {
                 color: #131313;
               }
 
-              p.Input span input::selection {
+              .Input span input::selection {
                 color: #fff;
                 -webkit-text-fill-color: #fff;
                 background: #cc0000;
               }
               @media screen and (-webkit-min-device-pixel-ratio: 0) {
-                p.Input span input {
+                .Input span input {
                   padding: 0;
                 }
               }
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-                p.Input.half:last-of-type {
+                .Input.half:last-of-type {
                   margin-right: 0;
                   width: 50%;
                 }
-                p.Input.half {
+                .Input.half {
                   width: calc(50% - 1rem);
                   float: left;
                   margin-right: 1rem;
                 }
               }
             `}</style>
-          </p>
+          </div>
         );
     }
   }

@@ -296,7 +296,7 @@ class Navbar extends Component<Props, State> {
             .navbar .search button svg {
               max-width: 1rem;
             }
-            .navbar .search p.Input span input {
+            .navbar .search .Input span input {
               padding: 0;
             }
           `}</style>
