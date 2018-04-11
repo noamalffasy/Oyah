@@ -8,6 +8,7 @@ import Head from "next/head";
 import Error from "./_error";
 
 import * as userActionCreators from "../actions/user";
+import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 
@@ -24,6 +25,7 @@ interface Props {
   data?: any;
   profileUser?: any;
   articles: any;
+  _error?: any;
   getArticlesByUser?: any;
   dispatch?: any;
   user?: any;
@@ -43,7 +45,7 @@ class Profile extends Component<Props, State> {
   static async getInitialProps(
     { query: { nametag } }: any,
     apolloClient: any,
-    user: any
+    _user: any
   ) {
     if (nametag !== undefined) {
       return await apolloClient
@@ -106,7 +108,56 @@ class Profile extends Component<Props, State> {
           };
         });
     } else {
-      if (user !== undefined && user.id !== null && user.id !== undefined) {
+      const user =
+        _user === undefined
+          ? await apolloClient
+              .query({
+                query: gql`
+                  {
+                    currentUser {
+                      ok
+                      jwt
+                      errors {
+                        field
+                        message
+                      }
+                      user {
+                        id
+                        nametag
+                        email
+                        small_image
+                        image
+                        likes
+                        comment_likes
+                        bio
+                        name
+                        mains
+                        reddit
+                        twitter
+                        editor
+                        is_team
+                      }
+                    }
+                  }
+                `
+              })
+              .then(res => {
+                return {
+                  ...res.data.currentUser.user,
+                  mains:
+                    typeof res.data.currentUser.user.mains === "string"
+                      ? res.data.currentUser.user.mains.split(", ")
+                      : typeof res.data.currentUser.user.mains === "object"
+                        ? res.data.currentUser.user.mains
+                        : null
+                };
+              })
+              .catch(() => {
+                return undefined;
+              })
+          : _user;
+
+      if (user !== undefined) {
         return await apolloClient
           .mutate({
             mutation: gql`
@@ -132,19 +183,23 @@ class Profile extends Component<Props, State> {
           });
       } else {
         return {
-          error: "Not logged in"
+          _error: "Not logged in"
         };
       }
     }
   }
 
   componentDidMount() {
-    const { profileUser, articles } = this.props;
-    this.setState(prevState => ({
-      ...prevState,
-      user: profileUser,
-      articles: articles
-    }));
+    const { profileUser, articles, _error } = this.props;
+    if (!_error) {
+      this.setState(prevState => ({
+        ...prevState,
+        user: profileUser,
+        articles: articles
+      }));
+    } else {
+      this.setError(_error);
+    }
   }
 
   // componentWillReceiveProps(nextProps: Props) {
@@ -201,6 +256,11 @@ class Profile extends Component<Props, State> {
   //   }
   // }
 
+  setError = bindActionCreators(
+    errorActionCreators.setError,
+    this.props.dispatch
+  );
+
   render() {
     if (Object.keys(this.props.profileUser).length !== 0) {
       return (
@@ -218,9 +278,9 @@ class Profile extends Component<Props, State> {
                 <Image
                   src={
                     this.props.profileUser.image !== null
-                      ? "/static/img/users/" +
+                      ? "/img/users/" +
                         encodeURIComponent(this.props.profileUser.image)
-                      : "/static/img/User.png"
+                      : "/img/User.png"
                   }
                   alt={this.props.profileUser.nametag}
                 />
@@ -402,6 +462,7 @@ class Profile extends Component<Props, State> {
               width: 10rem;
               height: 10rem;
               border-radius: 50%;
+              overflow: hidden;
             }
 
             .Profile .articles {
