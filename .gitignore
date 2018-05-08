@@ -5,4 +5,7 @@ static/css/App.css
 static/img
 server/
 server/db/config.ts
+functions/src/static/img/articles/
+functions/src/static/img/users/
+functions/src/static/css/App.css
 functions/src/serviceAccountKey.json
