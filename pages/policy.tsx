@@ -13,7 +13,7 @@ import withData from "../lib/withData";
 
 String.prototype.capitalize = function() {
   return this.charAt(0).toUpperCase() + this.slice(1);
-}
+};
 
 interface Props {
   policy?: any;
@@ -26,7 +26,7 @@ interface Props {
 class Policy extends Component<Props, any> {
   static async getInitialProps({ query: { name } }: any) {
     const policy = await require(`../static/policies/${name}.md`);
-
+    
     return {
       policy
     };
@@ -40,7 +40,9 @@ class Policy extends Component<Props, any> {
             <title>{this.props.url.query.name.capitalize() + " | Oyah"}</title>
             <meta
               name="description"
-              content={this.props.url.query.name.capitalize() + "policy on Oyah"}
+              content={
+                this.props.url.query.name.capitalize() + "policy on Oyah"
+              }
             />
           </Head>
           <Markdown source={this.props.policy} />

@@ -1,5 +1,8 @@
 node_modules/
 .next/
+dist/
 static/css/App.css
 static/img
+server/
 server/db/config.ts
+functions/src/serviceAccountKey.json

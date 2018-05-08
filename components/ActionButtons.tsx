@@ -3,6 +3,7 @@ import { Component } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/fontawesome-free-solid";
+import Loading from "./Loading";
 
 function concatClassNames() {
   let className = "";
@@ -69,12 +70,13 @@ class ActionButtons extends Component<Props, State> {
           {!this.state.loading ? (
             this.props.primaryText
           ) : (
-            <FontAwesomeIcon
-              icon={faCircleNotch}
-              spin
-              style={{ height: "1.3rem", width: "1.3rem" }}
-            />
-          )}
+              // <FontAwesomeIcon
+              //   icon={faCircleNotch}
+              //   spin
+              //   style={{ height: "1.3rem", width: "1.3rem" }}
+              // />
+              <Loading />
+            )}
         </button>
         {this.props.secondaryText && (
           <button
@@ -83,7 +85,7 @@ class ActionButtons extends Component<Props, State> {
             disabled={this.state.loading}
             style={
               this.props.secondaryShow === undefined ||
-              this.props.secondaryShow === true
+                this.props.secondaryShow === true
                 ? {}
                 : { display: "none" }
             }

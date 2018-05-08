@@ -1,0 +1,227 @@
+2018-04-26T16:51:50.551Z - error: Unhandled rejection SequelizeAccessDeniedError: Access denied for user 'oyah_xyz'@'5.28.132.27' (using password: YES)
+    at Utils.Promise.tap.then.catch.err (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/sequelize/lib/dialects/mysql/connection-manager.js:141:19)
+    at tryCatcher (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/util.js:16:23)
+    at Promise._settlePromiseFromHandler (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:512:31)
+    at Promise._settlePromise (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:569:18)
+    at Promise._settlePromise0 (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:614:10)
+    at Promise._settlePromises (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:689:18)
+    at Async._drainQueue (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:133:16)
+    at Async._drainQueues (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:143:10)
+    at Immediate.Async.drainQueues [as _onImmediate] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:17:14)
+    at runCallback (timers.js:763:18)
+    at tryOnImmediate (timers.js:734:5)
+    at processImmediate (timers.js:716:5)
+Unhandled rejection SequelizeAccessDeniedError: Access denied for user 'oyah_xyz'@'5.28.132.27' (using password: YES)
+    at Utils.Promise.tap.then.catch.err (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/sequelize/lib/dialects/mysql/connection-manager.js:141:19)
+    at tryCatcher (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/util.js:16:23)
+    at Promise._settlePromiseFromHandler (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:512:31)
+    at Promise._settlePromise (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:569:18)
+    at Promise._settlePromise0 (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:614:10)
+    at Promise._settlePromises (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:689:18)
+    at Async._drainQueue (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:133:16)
+    at Async._drainQueues (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:143:10)
+    at Immediate.Async.drainQueues [as _onImmediate] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:17:14)
+    at runCallback (timers.js:763:18)
+    at tryOnImmediate (timers.js:734:5)
+    at processImmediate (timers.js:716:5)
+Unhandled rejection SequelizeAccessDeniedError: Access denied for user 'oyah_xyz'@'5.28.132.27' (using password: YES)
+    at Utils.Promise.tap.then.catch.err (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/sequelize/lib/dialects/mysql/connection-manager.js:141:19)
+    at tryCatcher (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/util.js:16:23)
+    at Promise._settlePromiseFromHandler (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:512:31)
+    at Promise._settlePromise (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:569:18)
+    at Promise._settlePromise0 (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:614:10)
+    at Promise._settlePromises (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:689:18)
+    at Async._drainQueue (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:133:16)
+    at Async._drainQueues (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:143:10)
+    at Immediate.Async.drainQueues [as _onImmediate] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:17:14)
+    at runCallback (timers.js:763:18)
+    at tryOnImmediate (timers.js:734:5)
+    at processImmediate (timers.js:716:5)
+Unhandled rejection SequelizeAccessDeniedError: Access denied for user 'oyah_xyz'@'5.28.132.27' (using password: YES)
+    at Utils.Promise.tap.then.catch.err (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/sequelize/lib/dialects/mysql/connection-manager.js:141:19)
+    at tryCatcher (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/util.js:16:23)
+    at Promise._settlePromiseFromHandler (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:512:31)
+    at Promise._settlePromise (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:569:18)
+    at Promise._settlePromise0 (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:614:10)
+    at Promise._settlePromises (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/promise.js:689:18)
+    at Async._drainQueue (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:133:16)
+    at Async._drainQueues (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:143:10)
+    at Immediate.Async.drainQueues [as _onImmediate] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/bluebird/js/release/async.js:17:14)
+    at runCallback (timers.js:763:18)
+    at tryOnImmediate (timers.js:734:5)
+    at processImmediate (timers.js:716:5)
+2018-04-26T16:56:09.328Z - info: User function triggered, starting execution
+2018-04-26T16:56:18.129Z - error: TypeError: Cannot read property 'quote' of undefined
+    at Index.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/index.js:4124:32)
+    at d (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:211)
+    at wa (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:493)
+    at a.render (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:33:18)
+    at a.read (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:32:243)
+    at renderToString (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:43:6)
+    at renderPage (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:180:26)
+    at Function.getInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/_document.js:256:25)
+    at _callee$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:36:30)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+    at Generator.invoke [as _invoke] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:296:22)
+    at Generator.prototype.(anonymous function) [as next] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:114:21)
+    at step (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/babel-runtime/helpers/asyncToGenerator.js:17:30)
+    at /Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/babel-runtime/helpers/asyncToGenerator.js:35:14
+    at new Promise (<anonymous>)
+    at new F (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/core-js/library/modules/_export.js:36:28)
+    at /Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/babel-runtime/helpers/asyncToGenerator.js:14:12
+    at loadGetInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:70:17)
+    at _callee3$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:191:51)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+    at Generator.invoke [as _invoke] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:296:22)
+    at Generator.prototype.(anonymous function) [as next] (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:114:21)
+2018-04-26T16:56:19.357Z - info: Execution took 10029 ms, user function completed successfully
+2018-04-26T17:05:47.005Z - error: Function worker killed by signal: SIGTERM
+2018-04-26T21:40:47.278Z - info: User function triggered, starting execution
+2018-04-26T21:40:54.820Z - error: TypeError: Cannot read property 'quote' of undefined
+    at Index.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/index.js:4124:32)
+    at d (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:211)
+    at wa (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:493)
+    at a.render (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:33:18)
+    at a.read (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:32:243)
+    at renderToString (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:43:6)
+    at renderPage (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:180:26)
+    at Function.getInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/_document.js:256:25)
+    at _callee$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:36:30)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+2018-04-26T21:40:55.606Z - info: Execution took 8329 ms, user function completed successfully
+2018-04-27T13:40:33.958Z - info: User function triggered, starting execution
+2018-04-27T13:40:42.309Z - error: TypeError: Cannot read property 'quote' of undefined
+    at Index.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/index.js:4124:31)
+    at d (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:211)
+    at wa (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:493)
+    at a.render (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:33:18)
+    at a.read (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:32:243)
+    at renderToString (/Volumes/Myputer and Videos/Oyah/site-next5/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:43:6)
+    at renderPage (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:180:26)
+    at Function.getInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/_document.js:256:25)
+    at _callee$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:36:30)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+2018-04-27T13:40:43.184Z - info: Execution took 9226 ms, user function completed successfully
+2018-04-27T14:35:59.926Z - info: Execution took 83884 ms, finished with status: 'crash'
+2018-04-27T14:37:01.242Z - info: User function triggered, starting execution
+2018-04-27T14:37:01.251Z - info: Execution took 8 ms, user function completed successfully
+2018-04-27T14:37:45.340Z - info: Execution took 3664 ms, finished with status: 'crash'
+2018-04-27T14:38:02.282Z - info: User function triggered, starting execution
+2018-04-27T14:38:02.289Z - info: Execution took 7 ms, user function completed successfully
+2018-04-27T14:38:59.241Z - error:  code=500, status=INTERNAL, message=Function worker killed by signal: SIGTERM, errors=[Function worker killed by signal: SIGTERM]
+2018-04-27T14:39:30.818Z - info: Worker for next closed due to file changes.
+2018-04-27T14:39:43.142Z - info: User function triggered, starting execution
+2018-04-27T14:39:43.149Z - info: Execution took 7 ms, user function completed successfully
+2018-04-27T15:16:52.833Z - info: User function triggered, starting execution
+2018-04-27T15:17:02.994Z - error: TypeError: Cannot read property 'quote' of undefined
+    at Index.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/index.js:4124:31)
+    at d (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:211)
+    at wa (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:493)
+    at a.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:33:18)
+    at a.read (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:32:243)
+    at renderToString (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:43:6)
+    at renderPage (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:180:26)
+    at Function.getInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/_document.js:256:25)
+    at _callee$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:36:30)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+2018-04-27T15:17:03.850Z - info: Execution took 11014 ms, user function completed successfully
+2018-04-27T15:17:03.998Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.000Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.001Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.002Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.012Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.013Z - info: User function triggered, starting execution
+2018-04-27T15:17:04.036Z - info: Execution took 39 ms, user function completed successfully
+2018-04-27T15:17:04.048Z - info: Execution took 46 ms, user function completed successfully
+2018-04-27T15:17:04.056Z - info: Execution took 56 ms, user function completed successfully
+2018-04-27T15:17:04.949Z - info: Execution took 937 ms, user function completed successfully
+2018-04-27T15:17:04.984Z - info: Execution took 983 ms, user function completed successfully
+2018-04-27T15:17:05.031Z - info: User function triggered, starting execution
+2018-04-27T15:17:05.153Z - info: Execution took 1139 ms, user function completed successfully
+2018-04-27T15:17:05.781Z - info: Execution took 749 ms, user function completed successfully
+2018-04-27T15:17:05.806Z - info: User function triggered, starting execution
+2018-04-27T15:17:06.539Z - info: Execution took 733 ms, user function completed successfully
+2018-04-27T15:17:06.568Z - info: User function triggered, starting execution
+2018-04-27T15:17:06.594Z - info: User function triggered, starting execution
+2018-04-27T15:17:06.597Z - info: User function triggered, starting execution
+2018-04-27T15:17:07.363Z - info: Execution took 795 ms, user function completed successfully
+2018-04-27T15:17:07.383Z - info: Execution took 789 ms, user function completed successfully
+2018-04-27T15:17:07.814Z - info: Execution took 1216 ms, user function completed successfully
+2018-04-27T15:17:32.036Z - info: User function triggered, starting execution
+2018-04-27T15:17:33.692Z - error: TypeError: Cannot read property 'quote' of undefined
+    at Index.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/index.js:4124:31)
+    at d (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:211)
+    at wa (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:28:493)
+    at a.render (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:33:18)
+    at a.read (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:32:243)
+    at renderToString (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/react-dom/cjs/react-dom-server.node.production.min.js:43:6)
+    at renderPage (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/server/render.js:180:26)
+    at Function.getInitialProps (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/next/dist/bundles/pages/_document.js:256:25)
+    at _callee$ (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/next/dist/lib/utils.js:36:30)
+    at tryCatch (/Volumes/Myputer and Videos/Oyah/site-next5/dist/functions/node_modules/regenerator-runtime/runtime.js:62:40)
+2018-04-27T15:17:34.454Z - info: Execution took 2418 ms, user function completed successfully
+2018-04-27T15:17:34.620Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.621Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.621Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.625Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.625Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.627Z - info: User function triggered, starting execution
+2018-04-27T15:17:34.653Z - info: Execution took 32 ms, user function completed successfully
+2018-04-27T15:17:34.654Z - info: Execution took 32 ms, user function completed successfully
+2018-04-27T15:17:34.664Z - info: Execution took 42 ms, user function completed successfully
+2018-04-27T15:17:35.414Z - info: Execution took 788 ms, user function completed successfully
+2018-04-27T15:17:35.427Z - info: Execution took 800 ms, user function completed successfully
+2018-04-27T15:17:35.899Z - info: Execution took 1273 ms, user function completed successfully
+2018-04-27T15:17:35.936Z - info: User function triggered, starting execution
+2018-04-27T15:17:36.701Z - info: Execution took 765 ms, user function completed successfully
+2018-04-27T15:17:36.730Z - info: User function triggered, starting execution
+2018-04-27T15:17:37.774Z - info: Execution took 1044 ms, user function completed successfully
+2018-04-27T15:21:08.821Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.220Z - info: Execution took 1398 ms, user function completed successfully
+2018-04-27T15:21:10.366Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.369Z - info: Execution took 3 ms, user function completed successfully
+2018-04-27T15:21:10.377Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.378Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.379Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.382Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.400Z - info: Execution took 18 ms, user function completed successfully
+2018-04-27T15:21:10.412Z - info: User function triggered, starting execution
+2018-04-27T15:21:10.421Z - info: Execution took 8 ms, user function completed successfully
+2018-04-27T15:21:11.465Z - info: Execution took 1086 ms, user function completed successfully
+2018-04-27T15:21:11.490Z - info: Execution took 1113 ms, user function completed successfully
+2018-04-27T15:21:11.884Z - info: Execution took 1506 ms, user function completed successfully
+2018-04-27T15:21:11.914Z - info: User function triggered, starting execution
+2018-04-27T15:21:12.691Z - info: Execution took 776 ms, user function completed successfully
+2018-04-27T15:21:21.164Z - info: User function triggered, starting execution
+2018-04-27T15:21:21.167Z - info: Execution took 3 ms, user function completed successfully
+2018-04-27T15:21:21.471Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.464Z - info: Execution took 992 ms, user function completed successfully
+2018-04-27T15:21:22.798Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.804Z - info: Execution took 3 ms, user function completed successfully
+2018-04-27T15:21:22.817Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.817Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.819Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.819Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.821Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.821Z - info: User function triggered, starting execution
+2018-04-27T15:21:22.836Z - info: Execution took 19 ms, user function completed successfully
+2018-04-27T15:21:22.837Z - info: Execution took 15 ms, user function completed successfully
+2018-04-27T15:21:22.849Z - info: Execution took 28 ms, user function completed successfully
+2018-04-27T15:21:23.574Z - info: Execution took 756 ms, user function completed successfully
+2018-04-27T15:21:23.859Z - info: Execution took 1039 ms, user function completed successfully
+2018-04-27T15:21:23.887Z - info: User function triggered, starting execution
+2018-04-27T15:21:23.998Z - info: Execution took 1179 ms, user function completed successfully
+2018-04-27T15:21:24.667Z - info: Execution took 779 ms, user function completed successfully
+2018-04-27T15:21:24.694Z - info: User function triggered, starting execution
+2018-04-27T15:21:25.474Z - info: Execution took 780 ms, user function completed successfully
+2018-04-27T15:21:38.097Z - info: User function triggered, starting execution
+2018-04-27T15:21:38.099Z - info: Execution took 1 ms, user function completed successfully
+2018-04-27T15:25:00.254Z - info: Worker for next closed due to file changes.
+2018-04-27T15:25:00.283Z - error: Function worker killed by signal: SIGTERM
+2018-04-27T15:25:55.515Z - info: User function triggered, starting execution
+2018-04-27T15:25:55.524Z - info: Execution took 7 ms, user function completed successfully
+Worker for next closed due to file changes.
+2018-04-27T15:26:01.164Z - error:  code=500, status=INTERNAL, message=Function worker killed by signal: SIGTERM, errors=[Function worker killed by signal: SIGTERM]
+2018-04-27T15:28:23.063Z - info: User function triggered, starting execution
+2018-04-27T15:28:23.072Z - info: Execution took 8 ms, user function completed successfully
+2018-04-27T15:29:02.569Z - info: Execution took 23302 ms, finished with status: 'crash'

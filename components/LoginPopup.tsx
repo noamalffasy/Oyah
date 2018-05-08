@@ -2,10 +2,8 @@ import * as React from "react";
 import { Component } from "react";
 
 import Router from "next/router";
-import Link from "next/link";
 
-import Input from "./Input";
-import ActionButtons from "./ActionButtons";
+import firebase, { app } from "../lib/firebase";
 
 // GraphQL
 import graphql from "../utils/graphql";
@@ -16,6 +14,7 @@ interface Props {
   closeSignInModal: any;
   login: any;
   url: any;
+  user: any;
   signinUser?: any;
   createUser?: any;
   forgetPassword?: any;
@@ -35,15 +34,15 @@ interface State {
 
 @graphql(
   gql`
-    mutation signinUser($email: AUTH_PROVIDER_EMAIL) {
-      signinUser(email: $email) {
-        token
+    mutation signinUser($authInfo: AuthInfo) {
+      signinUser(authInfo: $authInfo) {
         user {
           id
+          name
           nametag
           email
-          small_image
           image
+          small_image
           likes
           comment_likes
           bio
@@ -51,7 +50,6 @@ interface State {
           mains
           reddit
           twitter
-          editor
         }
       }
     }
@@ -63,26 +61,26 @@ interface State {
 @graphql(
   gql`
     mutation createUser(
+      $email: String
+      $name: String
       $nametag: String
-      $authProvider: AuthProviderSignupData
-      $isOver13: Boolean
-      $didAgree: Boolean
+      $image: String
+      $authInfo: AuthInfo
     ) {
       createUser(
+        email: $email
+        name: $name
         nametag: $nametag
-        authProvider: $authProvider
-        isOver13: $isOver13
-        didAgree: $didAgree
+        image: $image
+        authInfo: $authInfo
       ) {
-        token
         user {
           id
           name
           nametag
           email
-          editor
-          small_image
           image
+          small_image
         }
       }
     }
@@ -117,11 +115,225 @@ class LoginPopup extends Component<Props, State> {
       errorHeight: 0
     };
 
-    this.login = this.login.bind(this);
-    this.signup = this.signup.bind(this);
-    this.sendMail = this.sendMail.bind(this);
+    // this.login = this.login.bind(this);
+    // this.signup = this.signup.bind(this);
+    // this.sendMail = this.sendMail.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
   }
+
+  // uiConfig = {
+  //   signInFlow: "popup",
+  //   // credentialHelper: this.firebaseui ? this.firebaseui.auth.CredentialHelper.GOOGLE_YOLO : undefined,
+  //   credentialHelper:
+  //     Object.keys(this.props.user).length > 0 ? "none" : "googleyolo",
+  //   signInOptions: [
+  //     {
+  //       provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+  //       authMethod: "https://accounts.google.com",
+  //       clientId:
+  //         "394175612865-2vohnv5a7ln2bh6pcsg9t4e4482fcnid.apps.googleusercontent.com"
+  //     },
+  //     firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+  //     firebase.auth.TwitterAuthProvider.PROVIDER_ID
+  //   ],
+  //   tosUrl: "/policies/terms",
+  //   callbacks: {
+  //     signInSuccessWithAuthResult: async () => {
+  //       return false;
+  //     }
+  //     // signInSuccessWithAuthResult: async authResult => {
+  //     //   const { user: _user } = authResult;
+  //     //   const user = {
+  //     //     email: _user.email,
+  //     //     nametag: _user.displayName,
+  //     //     image: _user.photoURL,
+  //     //     uid: _user.uid
+  //     //   };
+
+  //     //   const idToken = await _user
+  //     //     .getIdToken()
+  //     //     .then(idToken => {
+  //     //       return idToken;
+  //     //     })
+  //     //     .catch(err => {
+  //     //       this.setState(prevState => ({
+  //     //         ...prevState,
+  //     //         error: "Was unable to verify the user"
+  //     //       }));
+  //     //     });
+
+  //     //   if (authResult.additionalUserInfo.isNewUser) {
+  //     //     this.props
+  //     //       .createUser({
+  //     //         variables: {
+  //     //           email: user.email,
+  //     //           nametag: user.nametag,
+  //     //           image: user.image,
+  //     //           authInfo: {
+  //     //             idToken
+  //     //           }
+  //     //         }
+  //     //       })
+  //     //       .then(res => {
+  //     //         const user = {
+  //     //           ...res.data.createUser.user,
+  //     //           mains:
+  //     //             typeof res.data.createUser.user.mains === "string"
+  //     //               ? res.data.createUser.user.mains.split(", ")
+  //     //               : typeof res.data.createUser.user.mains === "object"
+  //     //                 ? res.data.createUser.user.mains
+  //     //                 : null
+  //     //         };
+  //     //         this.props.login({
+  //     //           ...user,
+  //     //           idToken
+  //     //         });
+  //     //         this.closeDialog();
+
+  //     //         return false;
+  //     //       })
+  //     //       .catch(err => {
+  //     //         this.setState(prevState => ({
+  //     //           ...prevState,
+  //     //           error: err.message
+  //     //         }));
+  //     //       });
+  //     //   } else {
+  //     //     this.props.login({ startLoading: true });
+  //     //     this.props
+  //     //       .signinUser({
+  //     //         variables: {
+  //     //           authInfo: {
+  //     //             idToken
+  //     //           }
+  //     //         }
+  //     //       })
+  //     //       .then(res => {
+  //     //         const user = {
+  //     //           ...res.data.signinUser.user,
+  //     //           mains:
+  //     //             typeof res.data.signinUser.user.mains === "string"
+  //     //               ? res.data.signinUser.user.mains.split(", ")
+  //     //               : typeof res.data.signinUser.user.mains === "object"
+  //     //                 ? res.data.signinUser.user.mains
+  //     //                 : null
+  //     //         };
+  //     //         this.props.login({
+  //     //           ...user,
+  //     //           idToken
+  //     //         });
+  //     //         this.closeDialog();
+
+  //     //         return false;
+  //     //       })
+  //     //       .catch(err => {
+  //     //         this.setState(prevState => ({
+  //     //           ...prevState,
+  //     //           error: err.message
+  //     //         }));
+  //     //       });
+  //     //   }
+  //     // }
+  //   }
+  // };
+
+  unregisterAuthObserver = () => {
+    const that = this;
+    return app.auth().onAuthStateChanged(async _user => {
+      if (_user) {
+        const user = {
+          email: _user.email,
+          nametag: _user.displayName,
+          image: _user.photoURL,
+          uid: _user.uid
+        };
+
+        const idToken = await _user
+          .getIdToken()
+          .then(idToken => {
+            return idToken;
+          })
+          .catch(err => {
+            this.setState(prevState => ({
+              ...prevState,
+              error: "Was unable to verify the user"
+            }));
+          });
+
+        if (_user.metadata.creationTime === _user.metadata.lastSignInTime) {
+          that.props
+            .createUser({
+              variables: {
+                email: user.email,
+                nametag: user.nametag,
+                image: user.image,
+                authInfo: {
+                  idToken
+                }
+              }
+            })
+            .then(res => {
+              const user = {
+                ...res.data.createUser.user,
+                mains:
+                  typeof res.data.createUser.user.mains === "string"
+                    ? res.data.createUser.user.mains.split(", ")
+                    : typeof res.data.createUser.user.mains === "object"
+                      ? res.data.createUser.user.mains
+                      : null
+              };
+              that.props.login({
+                ...user,
+                idToken
+              });
+              that.closeDialog();
+
+              return false;
+            })
+            .catch(err => {
+              that.setState(prevState => ({
+                ...prevState,
+                error: err.message
+              }));
+            });
+        } else {
+          that.props.login({ startLoading: true });
+          that.props
+            .signinUser({
+              variables: {
+                authInfo: {
+                  idToken
+                }
+              }
+            })
+            .then(res => {
+              const user = {
+                ...res.data.signinUser.user,
+                mains:
+                  typeof res.data.signinUser.user.mains === "string"
+                    ? res.data.signinUser.user.mains.split(", ")
+                    : typeof res.data.signinUser.user.mains === "object"
+                      ? res.data.signinUser.user.mains
+                      : null
+              };
+              that.props.login({
+                ...user,
+                idToken
+              });
+              that.closeDialog();
+
+              return false;
+            })
+            .catch(err => {
+              that.setState(prevState => ({
+                ...prevState,
+                error: err.message
+              }));
+            });
+        }
+      }
+    });
+  };
 
   componentWillReceiveProps(nextProps: Props) {
     const { signInModal, url } = nextProps;
@@ -133,28 +345,28 @@ class LoginPopup extends Component<Props, State> {
         login: signInModal.whatToOpen === "login"
       }));
 
-      if (signInModal.state === "open") {
-        this.setState(prevState => ({
-          ...prevState,
-          urlAs: url.asPath,
-          url
-        }));
+      // if (signInModal.state === "open") {
+      //   this.setState(prevState => ({
+      //     ...prevState,
+      //     urlAs: url.asPath,
+      //     url
+      //   }));
 
-        Router.push(
-          signInModal.whatToOpen === "login"
-            ? {
-                pathname: url.pathname,
-                query: { ...url.query, login: "" }
-              }
-            : {
-                pathname: url.pathname,
-                query: { ...url.query, signup: "" }
-              },
-          signInModal.whatToOpen === "login" ? "/login" : "/signup"
-        );
-      } else {
-        Router.push(this.state.url, this.state.urlAs);
-      }
+      //   Router.push(
+      //     signInModal.whatToOpen === "login"
+      //       ? {
+      //           pathname: url.pathname,
+      //           query: { ...url.query, login: "" }
+      //         }
+      //       : {
+      //           pathname: url.pathname,
+      //           query: { ...url.query, signup: "" }
+      //         },
+      //     signInModal.whatToOpen === "login" ? "/login" : "/signup"
+      //   );
+      // } else {
+      //   Router.push(this.state.url, this.state.urlAs);
+      // }
     }
   }
 
@@ -184,145 +396,145 @@ class LoginPopup extends Component<Props, State> {
     }
   }
 
-  login(e: any, triggerLoading: any) {
-    triggerLoading();
+  // login(e: any, triggerLoading: any) {
+  //   triggerLoading();
 
-    this.props
-      .signinUser({
-        variables: {
-          email: {
-            email: this.signin.email.input.value,
-            password: this.signin.password.input.value
-          }
-          // isRememberChecked: this.signin.remember.isChecked()
-        }
-      })
-      .then((res: any) => {
-        this.ActionButtons.reset();
+  //   this.props
+  //     .signinUser({
+  //       variables: {
+  //         email: {
+  //           email: this.signin.email.input.value,
+  //           password: this.signin.password.input.value
+  //         }
+  //         // isRememberChecked: this.signin.remember.isChecked()
+  //       }
+  //     })
+  //     .then((res: any) => {
+  //       this.ActionButtons.reset();
 
-        if (res.errors) {
-          let errors: any[] = [];
-          res.errors.forEach((error: Error) => {
-            errors.push(error.message);
-          });
-          this.setState(prevState => ({
-            ...prevState,
-            error: errors.join("\n• ")
-          }));
-        } else {
-          const data = res.data.signinUser;
+  //       if (res.errors) {
+  //         let errors: any[] = [];
+  //         res.errors.forEach((error: Error) => {
+  //           errors.push(error.message);
+  //         });
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           error: errors.join("\n• ")
+  //         }));
+  //       } else {
+  //         const data = res.data.signinUser;
 
-          this.props.login({ ...data.user, token: data.token });
+  //         this.props.login({ ...data.user, token: data.token });
 
-          this.signin.email.reset();
-          this.signin.password.reset();
-          // this.signin.remember.reset();
+  //         this.signin.email.reset();
+  //         this.signin.password.reset();
+  //         // this.signin.remember.reset();
 
-          this.props.closeSignInModal();
+  //         this.props.closeSignInModal();
 
-          this.setState(prevState => ({
-            ...prevState,
-            error: false
-          }));
-        }
-      })
-      .catch((err: any) => {
-        this.ActionButtons.reset();
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           error: false
+  //         }));
+  //       }
+  //     })
+  //     .catch((err: any) => {
+  //       this.ActionButtons.reset();
 
-        this.setState(prevState => ({
-          ...prevState,
-          error: err.graphQLErrors[0].message
-        }));
-      });
-  }
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         error: err.graphQLErrors[0].message
+  //       }));
+  //     });
+  // }
 
-  signup(e: any, triggerLoading: any) {
-    triggerLoading();
+  // signup(e: any, triggerLoading: any) {
+  //   triggerLoading();
 
-    this.props
-      .createUser({
-        variables: {
-          nametag: this.createAccount.nametag.input.value,
-          authProvider: {
-            email: {
-              email: this.createAccount.email.input.value,
-              password: this.createAccount.password.input.value
-            },
-            confirmPassword: this.createAccount.confirmPassword.input.value
-          },
-          isOver13: this.createAccount.age.isChecked(),
-          didAgree: this.createAccount.terms.isChecked()
-        }
-      })
-      .then((res: any) => {
-        this.ActionButtons.reset();
+  //   this.props
+  //     .createUser({
+  //       variables: {
+  //         nametag: this.createAccount.nametag.input.value,
+  //         authProvider: {
+  //           email: {
+  //             email: this.createAccount.email.input.value,
+  //             password: this.createAccount.password.input.value
+  //           },
+  //           confirmPassword: this.createAccount.confirmPassword.input.value
+  //         },
+  //         isOver13: this.createAccount.age.isChecked(),
+  //         didAgree: this.createAccount.terms.isChecked()
+  //       }
+  //     })
+  //     .then((res: any) => {
+  //       this.ActionButtons.reset();
 
-        if (res.errors) {
-          let errors: any[] = [];
-          res.errors.forEach((error: Error) => {
-            errors.push(error.message);
-          });
-          this.setState(prevState => ({
-            ...prevState,
-            error: errors.join("\n• ")
-          }));
-        } else {
-          const data = res.data.createUser;
-          // this.props.cookies.set("token", data.token);
-          this.props.login({ ...data.user, token: data.token });
+  //       if (res.errors) {
+  //         let errors: any[] = [];
+  //         res.errors.forEach((error: Error) => {
+  //           errors.push(error.message);
+  //         });
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           error: errors.join("\n• ")
+  //         }));
+  //       } else {
+  //         const data = res.data.createUser;
+  //         // this.props.cookies.set("token", data.token);
+  //         this.props.login({ ...data.user, token: data.token });
 
-          this.createAccount.nametag.reset();
-          this.createAccount.email.reset();
-          this.createAccount.password.reset();
-          this.createAccount.confirmPassword.reset();
+  //         this.createAccount.nametag.reset();
+  //         this.createAccount.email.reset();
+  //         this.createAccount.password.reset();
+  //         this.createAccount.confirmPassword.reset();
 
-          this.props.closeSignInModal();
+  //         this.props.closeSignInModal();
 
-          this.setState(prevState => ({
-            ...prevState,
-            error: false
-          }));
-        }
-      })
-      .catch((err: any) => {
-        this.ActionButtons.reset();
+  //         this.setState(prevState => ({
+  //           ...prevState,
+  //           error: false
+  //         }));
+  //       }
+  //     })
+  //     .catch((err: any) => {
+  //       this.ActionButtons.reset();
 
-        this.setState(prevState => ({
-          ...prevState,
-          error: err.graphQLErrors[0].message
-        }));
-      });
-  }
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         error: err.graphQLErrors[0].message
+  //       }));
+  //     });
+  // }
 
-  sendMail(e: any, triggerLoading: any) {
-    if (e) {
-      e.preventDefault();
-    }
+  // sendMail(e: any, triggerLoading: any) {
+  //   if (e) {
+  //     e.preventDefault();
+  //   }
 
-    triggerLoading();
+  //   triggerLoading();
 
-    this.props
-      .forgetPassword({
-        variables: { email: this.forgotPassword.email.input.value }
-      })
-      .then((res: any) => {
-        this.setState(
-          prevState => ({
-            ...prevState,
-            resetStatus: res.data.forgetPassword.status
-          }),
-          () => this.ActionButtons.reset()
-        );
-      })
-      .catch((err: any) => {
-        this.ActionButtons.reset();
+  //   this.props
+  //     .forgetPassword({
+  //       variables: { email: this.forgotPassword.email.input.value }
+  //     })
+  //     .then((res: any) => {
+  //       this.setState(
+  //         prevState => ({
+  //           ...prevState,
+  //           resetStatus: res.data.forgetPassword.status
+  //         }),
+  //         () => this.ActionButtons.reset()
+  //       );
+  //     })
+  //     .catch((err: any) => {
+  //       this.ActionButtons.reset();
 
-        this.setState(prevState => ({
-          ...prevState,
-          error: err.graphQLErrors[0].message
-        }));
-      });
-  }
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         error: err.graphQLErrors[0].message
+  //       }));
+  //     });
+  // }
 
   closeDialog(e: any = undefined) {
     if ((e && !this.popup.contains(e.target)) || e === undefined) {
@@ -356,30 +568,25 @@ class LoginPopup extends Component<Props, State> {
               ? { marginTop: "-10rem" }
               : {}
           }
-          onKeyPress={e => {
-            if (e.key === "Enter") {
-              this.state.login
-                ? this.login(e, this.ActionButtons.triggerLoading)
-                : this.signup(e, this.ActionButtons.triggerLoading);
-            }
-          }}
+          // onKeyPress={e => {
+          //   if (e.key === "Enter") {
+          //     this.state.login
+          //       ? this.login(e, this.ActionButtons.triggerLoading)
+          //       : this.signup(e, this.ActionButtons.triggerLoading);
+          //   }
+          // }}
           ref={div => {
             this.popup = div;
           }}
         >
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">
-                {!this.state.reset
-                  ? this.state.login ? "Sign in" : "Create an account"
-                  : "Forgot password"}
-              </h5>
               <button
                 type="button"
                 className="close"
                 data-dismiss="modal"
                 aria-label="Close"
-                onClick={this.props.closeSignInModal}
+                onClick={this.closeDialog}
               >
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -432,6 +639,8 @@ class LoginPopup extends Component<Props, State> {
                   reset: true
                 }));
               }}
+              // uiConfig={this.uiConfig}
+              unregisterAuthObserver={this.unregisterAuthObserver}
               style={
                 !this.state.login || this.state.reset
                   ? {
@@ -445,6 +654,8 @@ class LoginPopup extends Component<Props, State> {
               ref={div => (this.signin = div)}
             />
             <CreateAccount
+              // uiConfig={this.uiConfig}
+              unregisterAuthObserver={this.unregisterAuthObserver}
               style={
                 this.state.login || this.state.reset
                   ? {
@@ -457,7 +668,7 @@ class LoginPopup extends Component<Props, State> {
               }
               ref={div => (this.createAccount = div)}
             />
-            <ForgotPassword
+            {/* <ForgotPassword
               status={this.state.resetStatus}
               style={
                 !this.state.reset
@@ -470,65 +681,37 @@ class LoginPopup extends Component<Props, State> {
                     }
               }
               ref={div => (this.forgotPassword = div)}
-            />
-            <div className="modal-footer" style={{ padding: "0 2rem 1rem" }}>
-              <ActionButtons
-                primaryText={
-                  !this.state.reset
-                    ? this.state.login ? "Login" : "Create an account"
-                    : "Continue"
-                }
-                primaryAction={
-                  !this.state.reset
-                    ? this.state.login ? this.login : this.signup
-                    : this.sendMail
-                }
-                secondaryText={
-                  !this.state.reset
-                    ? this.state.login
-                      ? "Create an account"
-                      : "Already have an account?"
-                    : "Remember the password?"
-                }
-                secondaryAction={e => {
-                  e.preventDefault();
-
-                  Router.push(
-                    !this.state.reset
-                      ? !this.state.login
-                        ? {
-                            pathname: this.props.url.pathname,
-                            query: { ...this.props.url.query, login: "" }
-                          }
-                        : {
-                            pathname: this.props.url.pathname,
-                            query: { ...this.props.url.query, signup: "" }
-                          }
-                      : this.state.login
-                        ? {
-                            pathname: this.props.url.pathname,
-                            query: { ...this.props.url.query, login: "" }
-                          }
-                        : {
-                            pathname: this.props.url.pathname,
-                            query: { ...this.props.url.query, signup: "" }
-                          },
-                    !this.state.reset
-                      ? !this.state.login ? "/login" : "/signup"
-                      : this.state.login ? "/login" : "/signup"
-                  );
-
-                  this.setState(prevState => ({
-                    ...prevState,
-                    login: !this.state.reset
-                      ? !this.state.login
-                      : this.state.login,
-                    reset: false,
-                    error: false
-                  }));
-                }}
-                ref={btns => (this.ActionButtons = btns)}
-              />
+            /> */}
+            <div className="modal-footer">
+              {this.state.login ? (
+                <p>
+                  Don't have an account?{" "}
+                  <a
+                    onClick={() =>
+                      this.setState(prevState => ({
+                        ...prevState,
+                        login: false
+                      }))
+                    }
+                  >
+                    Create one
+                  </a>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{" "}
+                  <a
+                    onClick={() =>
+                      this.setState(prevState => ({
+                        ...prevState,
+                        login: true
+                      }))
+                    }
+                  >
+                    Sign in
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -585,6 +768,12 @@ class LoginPopup extends Component<Props, State> {
           .LoginPopup .modal-content .modal-header button.close {
             outline: 0;
           }
+
+          .LoginPopup .modal-content .modal-footer {
+            padding: 1rem 2rem 0.5rem;
+            justify-content: center;
+            align-items: center;
+          }
         `}</style>
         <style jsx global>{`
           .LoginPopup .modal-content .modal-body {
@@ -594,68 +783,10 @@ class LoginPopup extends Component<Props, State> {
             max-height: 20rem;
             transition: all 0.3s;
           }
-
-          .LoginPopup .modal-content .modal-body .Input.half::last-child {
-            margin-bottom: 1.5rem;
-          }
-
-          .LoginPopup .modal-content .modal-body .age-checkbox,
-          .LoginPopup .modal-content .modal-body .terms-checkbox {
-            margin-bottom: 1rem;
-          }
-
-          .LoginPopup
-            .modal-content
-            .modal-body
-            .remember-checkbox
-            .Input.checkbox,
-          .LoginPopup .modal-content .modal-body .remember-checkbox label,
-          .LoginPopup .modal-content .modal-body .age-checkbox .Input.checkbox,
-          .LoginPopup .modal-content .modal-body .age-checkbox label,
-          .LoginPopup
-            .modal-content
-            .modal-body
-            .terms-checkbox
-            .Input.checkbox,
-          .LoginPopup .modal-content .modal-body .terms-checkbox label {
-            vertical-align: middle;
-          }
-
-          .LoginPopup
-            .modal-content
-            .modal-body
-            .remember-checkbox
-            .Input.checkbox,
-          .LoginPopup .modal-content .modal-body .age-checkbox .Input.checkbox,
-          .LoginPopup
-            .modal-content
-            .modal-body
-            .terms-checkbox
-            .Input.checkbox {
-            margin: 0 0.5rem 0 0;
-          }
-
-          .LoginPopup .modal-content .modal-body .remember-checkbox label,
-          .LoginPopup .modal-content .modal-body .age-checkbox label,
-          .LoginPopup .modal-content .modal-body .terms-checkbox label {
-            margin: 0;
-          }
-
-          .LoginPopup .modal-content .modal-body label[for="remember"],
-          .LoginPopup .modal-content .modal-body label[for="age"],
-          .LoginPopup .modal-content .modal-body label[for="terms"] {
-            color: #161616;
-          }
           @media (max-width: 576px),
             @media(max-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
             .LoginPopup .modal-content .modal-footer {
               margin: 0 auto;
-            }
-          }
-          @media (min-width: 768px),
-            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-            .LoginPopup .modal-content .modal-body .Input.half {
-              margin-bottom: 1.5rem;
             }
           }
         `}</style>
@@ -666,18 +797,113 @@ class LoginPopup extends Component<Props, State> {
 
 interface LoginProps {
   forgotPassword: any;
+  // uiConfig: any;
+  unregisterAuthObserver: any;
   style?: any;
 }
 
-class Login extends Component<LoginProps> {
+interface LoginState {
+  FacebookLoginButton: any;
+  TwitterLoginButton: any;
+}
+
+class Login extends Component<LoginProps, LoginState> {
+  state = {
+    FacebookLoginButton: null,
+    TwitterLoginButton: null
+  };
+
+  unregisterAuthObserver = () => {};
+
+  GoogleProvider = new firebase.auth.GoogleAuthProvider();
+  FacebookProvider = new firebase.auth.FacebookAuthProvider();
+  TwitterProvider = new firebase.auth.TwitterAuthProvider();
+
+  componentDidMount() {
+    const {
+      FacebookLoginButton,
+      TwitterLoginButton
+    } = require("react-social-login-buttons");
+
+    this.setState(prevState => ({
+      ...prevState,
+      FacebookLoginButton,
+      TwitterLoginButton
+    }));
+
+    this.unregisterAuthObserver = this.props.unregisterAuthObserver();
+  }
+
+  componentWillUnmount() {
+    this.unregisterAuthObserver();
+  }
+
+  loginWith(provider) {
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .catch(err => {
+        console.error(err);
+      });
+  }
+
   render() {
+    const { FacebookLoginButton, TwitterLoginButton } = this.state;
+
     return (
       <div
         className="modal-body"
         style={this.props.style}
         ref={div => (this.main = div)}
       >
-        <Input
+        <h2>Welcome back</h2>
+        <p>Sign in to get the full experience</p>
+        {FacebookLoginButton && (
+          <div
+            className="login-buttons"
+            style={{ maxWidth: "220px", margin: "0 auto", fontSize: "14px" }}
+          >
+            <GoogleLoginButton
+              innerText="Sign in with Google"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: "",
+                color: "#757575",
+                background: "#ffffff"
+              }}
+              activeStyle={{
+                background: ""
+              }}
+              onClick={() => this.loginWith(this.GoogleProvider)}
+            />
+            <FacebookLoginButton
+              text="Sign in with Facebook"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: ""
+              }}
+              activeStyle={{
+                background: "rgb(59, 89, 152)"
+              }}
+              onClick={() => this.loginWith(this.FacebookProvider)}
+            />
+            <TwitterLoginButton
+              text="Sign in with Twitter"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: ""
+              }}
+              activeStyle={{
+                background: "rgb(90, 164, 235)"
+              }}
+              onClick={() => this.loginWith(this.TwitterProvider)}
+            />
+          </div>
+        )}
+        {/* <Input
           label="Email"
           type="email"
           autocomplete="email"
@@ -706,7 +932,7 @@ class Login extends Component<LoginProps> {
           onClick={this.props.forgotPassword}
         >
           Forgot password?
-        </a>
+        </a> */}
         {/* <div className="remember-checkbox" style={{ marginBottom: ".5rem" }}>
           <Input
             id="remember"
@@ -723,136 +949,194 @@ class Login extends Component<LoginProps> {
             Remember me
           </label>
         </div> */}
+        <style jsx>{`
+          .modal-body {
+            text-align: center;
+          }
+
+          .modal-body h2 {
+            margin-bottom: 1rem;
+          }
+        `}</style>
       </div>
     );
   }
 }
 
 interface CreateAccountProps {
+  // uiConfig: any;
+  unregisterAuthObserver: any;
   style?: any;
 }
 
-class CreateAccount extends Component<CreateAccountProps> {
+interface CreateAccountState {
+  FacebookLoginButton: any;
+  TwitterLoginButton: any;
+}
+
+class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
+  state = {
+    FacebookLoginButton: null,
+    TwitterLoginButton: null
+  };
+
+  unregisterAuthObserver = () => {};
+
+  GoogleProvider = new firebase.auth.GoogleAuthProvider();
+  FacebookProvider = new firebase.auth.FacebookAuthProvider();
+  TwitterProvider = new firebase.auth.TwitterAuthProvider();
+
+  componentDidMount() {
+    const {
+      FacebookLoginButton,
+      TwitterLoginButton
+    } = require("react-social-login-buttons");
+
+    this.setState(prevState => ({
+      ...prevState,
+      FacebookLoginButton,
+      TwitterLoginButton
+    }));
+
+    this.unregisterAuthObserver = this.props.unregisterAuthObserver();
+  }
+
+  componentWillUnmount() {
+    this.unregisterAuthObserver();
+  }
+
+  loginWith(provider) {
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .catch(err => {
+        console.error(err);
+      });
+  }
+
   render() {
+    const { FacebookLoginButton, TwitterLoginButton } = this.state;
     return (
       <div
         className="modal-body"
         style={this.props.style}
         ref={div => (this.main = div)}
       >
-        <Input
-          label="Nametag"
-          type="text"
-          autocomplete="off"
-          ref={input => {
-            this.nametag = input;
-          }}
-        />
-        <Input
-          label="Email"
-          type="email"
-          autocomplete="email"
-          ref={input => {
-            this.email = input;
-          }}
-        />
-        <Input
-          label="Password"
-          type="password"
-          half={true}
-          autocomplete="password"
-          ref={input => {
-            this.password = input;
-          }}
-        />
-        <Input
-          label="Confirm Password"
-          type="password"
-          half={true}
-          autocomplete="password"
-          ref={input => {
-            this.confirmPassword = input;
-          }}
-        />
-        <div className="age-checkbox" style={{ marginBottom: "1rem" }}>
-          <Input
-            id="age"
-            type="checkbox"
-            label=""
-            ref={checkbox => (this.age = checkbox)}
-          />
-          <label
-            htmlFor="terms"
-            onClick={e => {
-              this.age.check();
-            }}
+        <h2>Welcome to Oyah</h2>
+        <p>Create an account to get the full experience</p>
+        {/* <StyledFirebaseAuth
+          uiConfig={this.props.uiConfig}
+          firebaseAuth={app.auth()}
+        /> */}
+        {FacebookLoginButton && (
+          <div
+            className="login-buttons"
+            style={{ maxWidth: "220px", margin: "0 auto", fontSize: "14px" }}
           >
-            I confirm that I'm 13 or over
-          </label>
-        </div>
-        <div className="terms-checkbox" style={{ marginBottom: ".5rem" }}>
-          <Input
-            id="terms"
-            type="checkbox"
-            label=""
-            ref={checkbox => (this.terms = checkbox)}
-          />
-          <label
-            htmlFor="terms"
-            onClick={e => {
-              this.terms.check();
-            }}
-          >
-            I agree to the{" "}
-            <Link href="/policy?name=terms" as="/policies/terms">
-              <a>terms of use</a>
-            </Link>
-          </label>
-        </div>
+            <GoogleLoginButton
+              innerText="Sign up with Google"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: "",
+                color: "#757575",
+                background: "#ffffff"
+              }}
+              activeStyle={{
+                background: ""
+              }}
+              onClick={() => this.loginWith(this.GoogleProvider)}
+            />
+            <FacebookLoginButton
+              text="Sign up with Facebook"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: ""
+              }}
+              activeStyle={{
+                background: "rgb(59, 89, 152)"
+              }}
+              onClick={() => this.loginWith(this.FacebookProvider)}
+            />
+            <TwitterLoginButton
+              text="Sign up with Twitter"
+              size="40px"
+              iconSize="18px"
+              style={{
+                fontSize: ""
+              }}
+              activeStyle={{
+                background: "rgb(90, 164, 235)"
+              }}
+              onClick={() => this.loginWith(this.TwitterProvider)}
+            />
+          </div>
+        )}
+        <style jsx>{`
+          .modal-body {
+            text-align: center;
+          }
+
+          .modal-body h2 {
+            margin-bottom: 1rem;
+          }
+        `}</style>
       </div>
     );
   }
 }
 
-interface ForgotPasswordProps {
-  status: any;
-  style?: any;
+interface GoogleLoginButtonProps {
+  iconSize?: string;
+  innerText?: string;
 }
 
-class ForgotPassword extends Component<ForgotPasswordProps> {
+class GoogleLoginButton extends Component<GoogleLoginButtonProps> {
+  state = {
+    SocialLoginButton: null
+  };
+  componentDidMount() {
+    const SocialLoginButton = require("react-social-login-buttons/lib/buttons/SocialLoginButton")
+      .default;
+
+    this.setState(prevState => ({
+      ...prevState,
+      SocialLoginButton
+    }));
+  }
+
   render() {
-    if (this.props.status === undefined) {
-      return (
-        <div
-          className="modal-body"
-          style={this.props.style}
-          ref={div => (this.main = div)}
-        >
-          <Input
-            label="Your account's email"
-            type="email"
-            autocomplete="email"
-            ref={input => {
-              this.email = input;
-            }}
-          />
-        </div>
-      );
-    } else if (this.props.status === true) {
-      return (
-        <div className="modal-body" style={this.props.style}>
-          <h5>The mail has been sent</h5>
-          <p>Open the mail we have sent you and follow the instructions</p>
-        </div>
-      );
-    } else {
-      return (
-        <div className="modal-body" style={this.props.style}>
-          <h5>An error occured</h5>
-          <p>Please try again later</p>
-        </div>
-      );
-    }
+    const { SocialLoginButton } = this.state;
+    const props = {
+      innerText: "Sign in with Google",
+      style: {
+        fontSize: "",
+        color: "#757575",
+        background: "#ffffff"
+      },
+      activeStyle: {
+        background: ""
+      },
+      ...this.props
+    };
+
+    return SocialLoginButton ? (
+      <SocialLoginButton {...props}>
+        <img
+          style={{
+            verticalAlign: "middle",
+            paddingRight: 10,
+            marginLeft: ".2rem",
+            height: props.iconSize
+          }}
+          src="https://cdn4.iconfinder.com/data/icons/new-google-logo-2015/400/new-google-favicon-128.png"
+        />
+        <span style={{ verticalAlign: "middle" }}>{props.innerText}</span>
+      </SocialLoginButton>
+    ) : (
+      <span>Loading...</span>
+    );
   }
 }
 

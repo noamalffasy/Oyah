@@ -33,7 +33,8 @@ class ImagePlaceholder extends Component<ImagePlaceholderProps> {
 
 interface Props extends React.Props<Image> {
   src: string;
-  alt?: string;
+  smallSrc?: string;
+  alt: string;
   className?: string;
   fixed?: boolean;
   user?: any;
@@ -79,8 +80,12 @@ class Image extends Component<Props, State> {
     if (props.user && Object.keys(props.user).length !== 0) {
       this.setState(prevState => ({
         ...prevState,
-        smallImg: "/img/users/" + encodeURIComponent(props.user.small_image),
-        image: "/img/users/" + encodeURIComponent(props.user.image)
+        smallImg: props.user.small_image.startsWith("http")
+          ? props.user.small_image
+          : "/img/users/" + encodeURIComponent(props.user.small_image),
+        image: props.user.image.startsWith("http")
+          ? props.user.image
+          : "/img/users/" + encodeURIComponent(props.user.image)
       }));
 
       const img = document.createElement("img");
@@ -133,13 +138,16 @@ class Image extends Component<Props, State> {
       };
     } else {
       const img = document.createElement("img");
-      img.src =
-        (props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
-          ? "/img"
-          : "") +
-        props.src.replace(/\.[^.]*$/, "") +
-        "_small" +
-        props.src.replace(/.*(?=\.)/, "");
+      img.src = props.smallSrc
+        ? props.smallSrc
+        : props.src.startsWith("http")
+          ? props.src
+          : (props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
+              ? "/img"
+              : "") +
+            props.src.replace(/\.[^.]*$/, "") +
+            "_small" +
+            props.src.replace(/.*(?=\.)/, "");
       img.onload = () => {
         this.setState(prevState => ({
           ...prevState,
@@ -151,10 +159,11 @@ class Image extends Component<Props, State> {
       if (!props.fixed) {
         imgLarge.src = props.src;
       } else {
-        imgLarge.src =
-          "/img" +
-          props.src.replace(/[^\/]*$/, "") +
-          encodeURIComponent(props.src.replace(/.*(?=\/)\//, ""));
+        imgLarge.src = props.src.startsWith("http")
+          ? props.src
+          : "/img" +
+            props.src.replace(/[^\/]*$/, "") +
+            encodeURIComponent(props.src.replace(/.*(?=\/)\//, ""));
       }
       const poll = setInterval(() => {
         if (imgLarge.naturalWidth) {
@@ -190,6 +199,8 @@ class Image extends Component<Props, State> {
       };
     }
   };
+
+  src = this.props.src;
 
   render() {
     if (!this.props.fixed) {
@@ -229,9 +240,11 @@ class Image extends Component<Props, State> {
               src={
                 this.props.user && Object.keys(this.props.user).length !== 0
                   ? this.state.smallImg
-                  : this.props.src.replace(/\.[^.]*$/, "") +
-                    "_small" +
-                    this.props.src.replace(/.*(?=\.)/, "")
+                  : this.props.smallSrc
+                    ? this.props.smallSrc
+                    : this.props.src.replace(/\.[^.]*$/, "") +
+                      "_small" +
+                      this.props.src.replace(/.*(?=\.)/, "")
               }
               alt=""
               ref={img => (this.small = img)}
@@ -308,12 +321,16 @@ class Image extends Component<Props, State> {
             backgroundImage:
               this.props.user && Object.keys(this.props.user).length !== 0
                 ? this.state.smallImg
-                : this.props.src.replace(/\.[^.]*$/, "") +
-                  "_small" +
-                  this.props.src.replace(/.*(?=\.)/, ""),
+                : this.props.smallSrc
+                  ? this.props.smallSrc
+                  : this.props.src.replace(/\.[^.]*$/, "") +
+                    "_small" +
+                    this.props.src.replace(/.*(?=\.)/, ""),
             filter: this.state.largeLoaded
               ? "none"
-              : this.state.smallLoaded ? "blur(20px)" : "none"
+              : this.state.smallLoaded
+                ? "blur(20px)"
+                : "none"
             // backgroundAttachment: this.state.largeLoaded ? "fixed" : "unset"
           }}
           onClick={this.props.onClick}
