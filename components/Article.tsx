@@ -30,6 +30,7 @@ class Placeholder extends Component<any, any> {
 
 interface Props {
   id: any;
+  path: any;
   title: any;
   alt: any;
   official: boolean;
@@ -51,7 +52,7 @@ class Article extends Component<Props, any> {
           <a className={this.props.main ? "Article main" : "Article"}>
             <div className="article-inner">
               <Image
-                src={"/img/articles/" + this.props.id + "/main.jpeg"}
+                src={this.props.path}
                 alt={this.props.alt || ""}
                 onError={(e: any) => {
                   e.target.src = "";

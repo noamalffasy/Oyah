@@ -30,6 +30,7 @@ class Articles extends Component<Props> {
             allArticles {
               id
               title
+              path
               author {
                 id
                 is_team
@@ -79,6 +80,7 @@ class Articles extends Component<Props> {
                   title={elem.title}
                   alt={elem.alt}
                   id={elem.id}
+                  path={elem.path}
                   official={elem.author.is_team}
                   loading={false}
                   key={i}

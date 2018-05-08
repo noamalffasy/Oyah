@@ -1,7 +1,7 @@
 import { ApolloClient } from "apollo-client";
-import { HttpLink } from "apollo-link-http";
-import { RetryLink } from "apollo-link-retry";
-import { onError } from "apollo-link-error";
+// import { HttpLink } from "apollo-link-http";
+// import { RetryLink } from "apollo-link-retry";
+// import { onError } from "apollo-link-error";
 import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { createUploadLink } from "apollo-upload-client";
@@ -24,17 +24,14 @@ if (!process.browser) {
 
 function create(initialState: any, ctx: any = {}, jwt: any = "") {
   const domain =
-    process.env.NODE_ENV === "production"
-      ? "https://www.oyah.xyz"
-      : "http://192.168.1.55:3000";
+    // process.env.NODE_ENV === "production"
+    //   ? "https://www.oyah.xyz"
+    // :
+    "https://oyah.xyz";
+    // "http://localhost:5000";
   const uri = domain + "/graphql";
 
   const authMiddleware = new ApolloLink((operation: any, forward: any) => {
-    // const jwt = process.browser
-    //   ? localStorage.getItem("token")
-    //   : ctx.req && ctx.req.headers.cookie
-    //     ? parseCookie(ctx.req.headers.cookie).token
-    //     : parseCookie(document.cookie).token;
     operation.setContext({
       headers: {
         authorization: jwt || null
@@ -49,7 +46,7 @@ function create(initialState: any, ctx: any = {}, jwt: any = "") {
     ssrMode: !process.browser, // Disables forceFetch on the server (so queries are only run once),
     link: ApolloLink.from([
       authMiddleware,
-      createUploadLink({ uri, credentials: "include", fetch })
+      createUploadLink({ uri, credentials: "same-origin", fetch })
       // new HttpLink({ uri, credentials: "include" })
     ]),
     // link: concat(authMiddleware, new HttpLink({ uri, credentials: "include" })),

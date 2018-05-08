@@ -39,6 +39,19 @@ interface State {
   user: any;
 }
 
+@graphql(
+  gql`
+    mutation getArticlesByUser($authorID: ID) {
+      getArticlesByUser(authorID: $authorID) {
+        id
+        title
+      }
+    }
+  `,
+  {
+    name: "getArticlesByUser"
+  }
+)
 class Profile extends Component<Props, State> {
   state = { articles: [1, 2, 3], user: {} };
 
@@ -75,10 +88,11 @@ class Profile extends Component<Props, State> {
           return await apolloClient
             .mutate({
               mutation: gql`
-                mutation getArticlesByUser($authorID: ID) {
+                mutation getArticlesByUser($authorID: String) {
                   getArticlesByUser(authorID: $authorID) {
                     id
                     title
+                    path
                   }
                 }
               `,
@@ -98,13 +112,13 @@ class Profile extends Component<Props, State> {
             })
             .catch((err: Error) => {
               return {
-                error: err
+                _error: err
               };
             });
         })
         .catch((err: Error) => {
           return {
-            error: err
+            _error: err
           };
         });
     } else {
@@ -115,12 +129,6 @@ class Profile extends Component<Props, State> {
                 query: gql`
                   {
                     currentUser {
-                      ok
-                      jwt
-                      errors {
-                        field
-                        message
-                      }
                       user {
                         id
                         nametag
@@ -142,15 +150,23 @@ class Profile extends Component<Props, State> {
                 `
               })
               .then(res => {
-                return {
-                  ...res.data.currentUser.user,
-                  mains:
-                    typeof res.data.currentUser.user.mains === "string"
-                      ? res.data.currentUser.user.mains.split(", ")
-                      : typeof res.data.currentUser.user.mains === "object"
-                        ? res.data.currentUser.user.mains
-                        : null
-                };
+                if (
+                  !res.errors &&
+                  res.data.currentUser &&
+                  res.data.currentUser.user
+                ) {
+                  return {
+                    ...res.data.currentUser.user,
+                    mains:
+                      typeof res.data.currentUser.user.mains === "string"
+                        ? res.data.currentUser.user.mains.split(", ")
+                        : typeof res.data.currentUser.user.mains === "object"
+                          ? res.data.currentUser.user.mains
+                          : null
+                  };
+                } else {
+                  return undefined;
+                }
               })
               .catch(() => {
                 return undefined;
@@ -165,6 +181,7 @@ class Profile extends Component<Props, State> {
                 getArticlesByUser(authorID: $authorID) {
                   id
                   title
+                  path
                 }
               }
             `,
@@ -178,7 +195,7 @@ class Profile extends Component<Props, State> {
           })
           .catch((err: Error) => {
             return {
-              error: err
+              _error: err
             };
           });
       } else {
@@ -190,15 +207,50 @@ class Profile extends Component<Props, State> {
   }
 
   componentDidMount() {
-    const { profileUser, articles, _error } = this.props;
-    if (!_error) {
+    const { profileUser, articles, _error: error } = this.props;
+
+    if (!error) {
       this.setState(prevState => ({
         ...prevState,
         user: profileUser,
         articles: articles
       }));
     } else {
-      this.setError(_error);
+      console.log("Fetch error", error);
+
+      if (error !== "Not logged in") {
+        this.setError(error);
+      }
+    }
+  }
+
+  async componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.user !== this.props.user &&
+      !nextProps.user.loading &&
+      !this.props.url.query.nametag
+    ) {
+      const articles = await this.props
+        .getArticlesByUser({
+          variables: { authorID: nextProps.user.id }
+        })
+        .then(
+          (getArticlesByUser: any) => getArticlesByUser.data.getArticlesByUser
+        );
+
+      this.setState(prevState => ({
+        ...prevState,
+        articles,
+        user: {
+          ...nextProps.user,
+          mains:
+            typeof nextProps.user.mains === "string"
+              ? nextProps.user.mains.split(", ")
+              : typeof nextProps.user.mains === "object"
+                ? nextProps.user.mains
+                : null
+        }
+      }));
     }
   }
 
@@ -262,31 +314,33 @@ class Profile extends Component<Props, State> {
   );
 
   render() {
-    if (Object.keys(this.props.profileUser).length !== 0) {
+    if (Object.keys(this.state.user).length !== 0) {
       return (
         <App {...this.props}>
           <div className="Profile Content">
             <Head>
-              <title>{this.props.profileUser.nametag + " | Oyah"}</title>
+              <title>{this.state.user.nametag + " | Oyah"}</title>
               <meta
                 name="description"
-                content={this.props.profileUser.nametag + " profile"}
+                content={this.state.user.nametag + " profile"}
               />
             </Head>
             <div className="user">
               <div className="info">
                 <Image
                   src={
-                    this.props.profileUser.image !== null
-                      ? "/img/users/" +
-                        encodeURIComponent(this.props.profileUser.image)
-                      : "/img/User.png"
+                    this.state.user.image
+                      ? this.state.user.image.startsWith("http")
+                        ? this.state.user.image
+                        : "/img/users/" +
+                          encodeURIComponent(this.state.user.image)
+                      : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
                   }
-                  alt={this.props.profileUser.nametag}
+                  alt={this.state.user.nametag}
                 />
                 <h2>
-                  {this.props.profileUser.nametag}
-                  {this.props.profileUser.is_team && (
+                  {this.state.user.nametag}
+                  {this.state.user.is_team && (
                     <Verification
                       isArticle={false}
                       style={{ marginLeft: ".5rem" }}
@@ -294,64 +348,60 @@ class Profile extends Component<Props, State> {
                   )}
                 </h2>
               </div>
-              {this.props.profileUser.bio !== null && (
-                <p>{this.props.profileUser.bio}</p>
-              )}
+              {this.state.user.bio !== null && <p>{this.state.user.bio}</p>}
             </div>
             <table className="other-info">
               <tbody>
-                {this.props.profileUser.name !== null &&
-                  this.props.profileUser.name !== "" && (
+                {this.state.user.name !== null &&
+                  this.state.user.name !== "" && (
                     <tr>
                       <td>Full Name</td>
-                      <td>{this.props.profileUser.name}</td>
+                      <td>{this.state.user.name}</td>
                     </tr>
                   )}
-                {this.props.profileUser.mains !== null &&
-                  this.props.profileUser.mains !== "" && (
+                {this.state.user.mains !== null &&
+                  this.state.user.mains !== "" && (
                     <tr>
                       <td>Mains</td>
-                      <td>{this.props.profileUser.mains.join(", ")}</td>
+                      <td>{this.state.user.mains.join(", ")}</td>
                     </tr>
                   )}
-                {this.props.profileUser.reddit !== null &&
-                  this.props.profileUser.reddit !== "" && (
+                {this.state.user.reddit !== null &&
+                  this.state.user.reddit !== "" && (
                     <tr>
                       <td>Reddit</td>
                       <td>
                         <a
                           href={
-                            "https://reddit.com/u/" +
-                            this.props.profileUser.reddit
+                            "https://reddit.com/u/" + this.state.user.reddit
                           }
                         >
                           <b>u/</b>
-                          {this.props.profileUser.reddit}
+                          {this.state.user.reddit}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.props.profileUser.twitter !== null &&
-                  this.props.profileUser.twitter !== "" && (
+                {this.state.user.twitter !== null &&
+                  this.state.user.twitter !== "" && (
                     <tr>
                       <td>Twitter</td>
                       <td>
                         <a
                           href={
-                            "https://twitter.com/" +
-                            this.props.profileUser.twitter
+                            "https://twitter.com/" + this.state.user.twitter
                           }
                         >
                           <b>@</b>
-                          {this.props.profileUser.twitter}
+                          {this.state.user.twitter}
                         </a>
                       </td>
                     </tr>
                   )}
-                {this.props.profileUser.name === null &&
-                  this.props.profileUser.mains === null &&
-                  this.props.profileUser.reddit === null &&
-                  this.props.profileUser.twitter === null && (
+                {this.state.user.name === null &&
+                  this.state.user.mains === null &&
+                  this.state.user.reddit === null &&
+                  this.state.user.twitter === null && (
                     <tr>
                       <td>No info has been provided yet by the user</td>
                     </tr>
@@ -359,13 +409,14 @@ class Profile extends Component<Props, State> {
               </tbody>
             </table>
             <div className="articles">
-              {this.props.articles.map((elem: any, i: any) => {
+              {this.state.articles.map((elem: any, i: any) => {
                 return (
                   <Article
                     id={elem.id}
                     title={elem.title}
                     alt={elem.title}
-                    official={this.props.profileUser.is_team}
+                    path={elem.path}
+                    official={this.state.user.is_team}
                     loading={elem.id === undefined}
                     key={i}
                   />

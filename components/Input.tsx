@@ -463,7 +463,7 @@ class Input extends Component<Props, State> {
                 top: 50%;
                 right: 0.5rem;
                 transform: translateY(-50%);
-                background-image: url(/img/Arrow.svg);
+                background-image: url(https://storage.googleapis.com/oyah.xyz/assets/img/Arrow.svg);
                 background-size: 0.6rem;
                 background-repeat: no-repeat;
                 background-position: center center;
@@ -771,7 +771,7 @@ class Input extends Component<Props, State> {
                 top: 50%;
                 right: 0.5rem;
                 transform: translateY(-50%);
-                background-image: url(/img/Arrow.svg);
+                background-image: url(https://storage.googleapis.com/oyah.xyz/assets/img/Arrow.svg);
                 background-size: 0.6rem;
                 background-repeat: no-repeat;
                 background-position: center center;

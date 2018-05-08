@@ -155,6 +155,7 @@ class App extends Component<any, any> {
           closeSignInModal={closeSignInModal}
           login={login}
           url={url}
+          user={user}
         />
         <style jsx>{`
           .App {

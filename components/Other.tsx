@@ -15,6 +15,7 @@ class Other extends Component<Props> {
           this.props.articles.slice(3, 8).map((elem: any, i: any) => {
             return (
               <Article
+                path={elem.path}
                 title={elem.title}
                 id={elem.id}
                 alt={elem.alt}

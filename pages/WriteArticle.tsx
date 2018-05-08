@@ -65,6 +65,7 @@ interface State {
       $articleID: String
       $main: Boolean
       $image: String
+      $authInfo: AuthInfo
     ) {
       uploadFile(
         file: $file
@@ -72,6 +73,7 @@ interface State {
         articleID: $articleID
         main: $main
         image: $image
+        authInfo: $authInfo
       ) {
         path
       }
@@ -87,13 +89,15 @@ interface State {
       $id: String!
       $title: String!
       $content: String!
-      $authorID: Int!
+      $authorID: String!
+      $authInfo: AuthInfo
     ) {
       createArticle(
         id: $id
         title: $title
         content: $content
         authorID: $authorID
+        authInfo: $authInfo
       ) {
         id
         title
@@ -107,8 +111,18 @@ interface State {
 )
 @graphql(
   gql`
-    mutation updateArticle($id: String!, $title: String!, $content: String!) {
-      updateArticle(id: $id, title: $title, content: $content) {
+    mutation updateArticle(
+      $id: String!
+      $title: String!
+      $content: String!
+      $authInfo: AuthInfo
+    ) {
+      updateArticle(
+        id: $id
+        title: $title
+        content: $content
+        authInfo: $authInfo
+      ) {
         id
         title
         content
@@ -239,7 +253,7 @@ class WriteArticle extends Component<Props, State> {
                   id,
                   edit: true,
                   title: res.data.getArticle.title,
-                  image: "/img/articles/" + id + "/main.jpeg",
+                  image: res.data.getArticle.path,
                   content: res.data.getArticle.content
                 },
                 user
@@ -325,7 +339,9 @@ class WriteArticle extends Component<Props, State> {
           ...prevState,
           title: saved.title
             ? saved.title
-            : this.state.title ? this.state.title : this.props.newArticle.title,
+            : this.state.title
+              ? this.state.title
+              : this.props.newArticle.title,
           image: saved.image
         }),
         () => {
@@ -377,8 +393,6 @@ class WriteArticle extends Component<Props, State> {
     const imgURL = this.state.image || this.props.newArticle.image;
     const { width, height } = await this.getDimensionsOfImage(imgURL);
     const scaleRatio = `${100 * height / width}%`;
-
-    console.log(scaleRatio);
 
     this.setState(prevState => ({
       ...prevState,
@@ -461,7 +475,10 @@ class WriteArticle extends Component<Props, State> {
             where: "article",
             articleID: this.props.newArticle.id,
             main: true,
-            image
+            image,
+            authInfo: {
+              idToken: this.props.user.idToken
+            }
           }
         })
         .then((res: any) => {
@@ -477,12 +494,15 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     content,
-                    authorID: this.props.user.id
+                    authorID: this.props.user.id,
+                    authInfo: {
+                      idToken: this.props.user.idToken
+                    }
                   }
                 })
                 .then((res: any) => {
                   this.ActionButtons.reset();
-
+                  
                   if (res.errors) {
                     this.setError(
                       res.errors
@@ -492,7 +512,7 @@ class WriteArticle extends Component<Props, State> {
                         .join("\n")
                     );
                   } else {
-                    Router.push("/articles/" + this.props.newArticle.id);
+                    Router.push("/articles/" + res.data.createArticle.id);
                   }
                 })
                 .catch((err: any) => {
@@ -506,7 +526,10 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
-                    content
+                    content,
+                    authInfo: {
+                      idToken: this.props.user.idToken
+                    }
                   }
                 })
                 .then((res: any) => {
@@ -548,7 +571,10 @@ class WriteArticle extends Component<Props, State> {
             file: image,
             where: "article",
             articleID: this.props.newArticle.id,
-            main: true
+            main: true,
+            authInfo: {
+              idToken: this.props.user.idToken
+            }
           }
         })
         .then((res: any) => {
@@ -564,7 +590,10 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     content,
-                    authorID: this.props.user.id
+                    authorID: this.props.user.id,
+                    authInfo: {
+                      idToken: this.props.user.idToken
+                    }
                   }
                 })
                 .then((res: any) => {
@@ -577,7 +606,7 @@ class WriteArticle extends Component<Props, State> {
                         .join("\n")
                     );
                   } else {
-                    Router.push("/articles/" + this.props.newArticle.id);
+                    Router.push("/articles/" + res.data.createArticle.id);
                   }
                 })
                 .catch((err: any) => {
@@ -591,7 +620,10 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
-                    content
+                    content,
+                    authInfo: {
+                      idToken: this.props.user.idToken
+                    }
                   }
                 })
                 .then((res: any) => {
@@ -630,7 +662,10 @@ class WriteArticle extends Component<Props, State> {
               id: this.props.newArticle.id,
               title,
               content,
-              authorID: this.props.user.id
+              authorID: this.props.user.id,
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
             }
           })
           .then((res: any) => {
@@ -645,7 +680,7 @@ class WriteArticle extends Component<Props, State> {
                   .join("\n")
               );
             } else {
-              Router.push("/articles/" + this.props.newArticle.id);
+              Router.push("/articles/" + res.data.createArticle.id);
             }
           })
           .catch((err: any) => {
@@ -659,7 +694,10 @@ class WriteArticle extends Component<Props, State> {
             variables: {
               id: this.props.newArticle.id,
               title,
-              content
+              content,
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
             }
           })
           .then((res: any) => {
@@ -674,7 +712,7 @@ class WriteArticle extends Component<Props, State> {
                   .join("\n")
               );
             } else {
-              Router.push("/articles/" + this.props.newArticle.id);
+              Router.push("/articles/" + res.data.updateArticle.id);
             }
           })
           .catch((err: any) => {

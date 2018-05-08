@@ -34,6 +34,7 @@ class Search extends Component<Props, State> {
           mutation searchArticle($searchTerm: String!) {
             searchArticle(searchTerm: $searchTerm) {
               id
+              path
               title
               author {
                 id
@@ -86,6 +87,7 @@ class Search extends Component<Props, State> {
               {this.props.articles.map((elem: any, i: any) => {
                 return (
                   <Article
+                    path={elem.path}
                     title={elem.title}
                     alt={elem.alt}
                     id={elem.id}

@@ -10,9 +10,33 @@ import * as userActionCreators from "../actions/user";
 import initApollo from "./initApollo";
 import initRedux from "./initRedux";
 
+// import firebase, { app } from "./firebase";
 import { parse as parseCookie } from "../utils/cookie";
 
 import gql from "graphql-tag";
+
+const currentUserQuery = gql`
+  {
+    currentUser {
+      user {
+        id
+        nametag
+        email
+        small_image
+        image
+        likes
+        comment_likes
+        bio
+        name
+        mains
+        reddit
+        twitter
+        editor
+        is_team
+      }
+    }
+  }
+`;
 
 // Gets the display name of a JSX component for dev tools
 function getComponentDisplayName(Component: any) {
@@ -39,61 +63,45 @@ export default (ComposedComponent: any) => {
       let stateRedux = {};
 
       const jwt =
-        ctx.req && ctx.req.headers.cookie
-          ? parseCookie(ctx.req.headers.cookie).token
-          : process.browser
-            ? document && document.cookie
-              ? parseCookie(document.cookie).token
-              : localStorage ? localStorage.getItem("token") : null
-            : null;
+        !process.browser &&
+        ctx.req &&
+        ctx.req.headers.cookie &&
+        parseCookie(ctx.req.headers.cookie)
+          ? parseCookie(ctx.req.headers.cookie).session
+          : null;
 
       // Setup a server-side one-time-use apollo client for initial props and
       // rendering (on server)
       const apollo = initApollo(stateRedux, ctx, jwt);
       const redux = initRedux(stateRedux);
 
-      const user = jwt
-        ? await apollo
-            .query({
-              query: gql`
-                {
-                  currentUser {
-                    ok
-                    jwt
-                    errors {
-                      field
-                      message
-                    }
-                    user {
-                      id
-                      nametag
-                      email
-                      small_image
-                      image
-                      likes
-                      comment_likes
-                      bio
-                      name
-                      mains
-                      reddit
-                      twitter
-                      editor
-                      is_team
-                    }
-                  }
-                }
-              `
-            })
-            .then((res: any) => ({
-              ...res.data.currentUser.user,
+      // const user = app.auth().currentUser
+      //   ? apollo
+      const currentUser = await apollo
+        .query({
+          query: currentUserQuery,
+          variables: {
+            cookie: jwt
+          }
+        })
+        .then(res => res.data.currentUser)
+        .catch(() => null);
+      // : null;
+
+      const user =
+        currentUser && currentUser.user
+          ? {
+              ...currentUser.user,
               mains:
-                typeof res.data.currentUser.user.mains === "string"
-                  ? res.data.currentUser.user.mains.split(", ")
-                  : typeof res.data.currentUser.user.mains === "object"
-                    ? res.data.currentUser.user.mains
+                typeof currentUser.user.mains === "string"
+                  ? currentUser.user.mains.split(", ")
+                  : typeof currentUser.user.mains === "object"
+                    ? currentUser.user.mains
                     : null
-            }))
-        : undefined;
+            }
+          : null;
+
+      apollo.writeQuery({ query: currentUserQuery, data: { currentUser } });
 
       // Evaluate the composed component's getInitialProps()
       let composedInitialProps = {};
@@ -154,6 +162,7 @@ export default (ComposedComponent: any) => {
       this.redux = initRedux(props.stateRedux);
 
       const { dispatch } = this.redux;
+
       const login = bindActionCreators(userActionCreators.login, dispatch);
       if (Object.keys(props.stateRedux.user).length > 0) {
         if (props.stateRedux.user.mains !== undefined) {
@@ -166,46 +175,29 @@ export default (ComposedComponent: any) => {
                   ? props.stateRedux.user.mains
                   : null
           });
-        } else {
-          this.apollo
-            .query({
-              query: gql`
-                {
-                  currentUser {
-                    ok
-                    jwt
-                    errors {
-                      field
-                      message
-                    }
-                    user {
-                      id
-                      nametag
-                      email
-                      small_image
-                      image
-                      bio
-                      name
-                      mains
-                      reddit
-                      twitter
-                      editor
-                    }
-                  }
-                }
-              `
-            })
-            .then((res: any) => {
-              const user = res.data.currentUser.user;
-              login({
-                ...user,
-                mains:
-                  typeof user.mains === "string"
-                    ? user.mains.split(", ")
-                    : typeof user.mains === "object" ? user.mains : null
-              });
-            });
         }
+      } else if (props.stateRedux.user === undefined) {
+        // const user = app.auth().currentUser;
+        // if (user) {
+        this.apollo
+          .query({
+            query: currentUserQuery
+          })
+          .then(res => {
+            if (res.data.currentUser.user) {
+              login({
+                ...res.data.currentUser.user,
+                mains:
+                  typeof res.data.currentUser.user.mains === "string"
+                    ? res.data.currentUser.user.mains.split(", ")
+                    : typeof res.data.currentUser.user.mains === "object"
+                      ? res.data.currentUser.user.mains
+                      : null
+              });
+            }
+          })
+          .catch(() => null);
+        // }
       }
     }
 

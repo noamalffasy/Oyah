@@ -10,10 +10,18 @@ function User(state = initialState, action: any) {
       if (action.user.token) {
         addCookie(document.cookie, "token", action.user.token);
       }
-      return {
-        ...state,
-        ...action.user
-      };
+      if (action.user.startLoading) {
+        return {
+          ...state,
+          loading: true
+        }
+      } else {
+        return {
+          ...state,
+          ...action.user,
+          loading: false
+        };
+      }
     case UserActionTypes.LOGOUT:
       return {};
     default:

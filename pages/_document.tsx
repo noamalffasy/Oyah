@@ -3,6 +3,8 @@ import Document from "next/document";
 import { Head, Main, NextScript } from "next/document";
 import flush from "styled-jsx/server";
 
+import "../lib/firebase";
+
 class MyDocument extends Document {
   static getInitialProps({ renderPage }: any) {
     const { html, head, errorHtml, chunks } = renderPage();
@@ -19,91 +21,51 @@ class MyDocument extends Document {
             name="viewport"
             content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
           />
-          <meta name="theme-color" content="#ffffff" />
-          <link rel="manifest" href="/manifest.json" />
-          <link rel="icon" href="/favicons/favicon.ico" type="image/x-icon" />
-          <link
-            rel="shortcut icon"
-            href="/favicons/favicon.ico"
-            type="image/x-icon"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="57x57"
-            href="/favicons/apple-icon-57x57.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="60x60"
-            href="/favicons/apple-icon-60x60.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="72x72"
-            href="/favicons/apple-icon-72x72.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="76x76"
-            href="/favicons/apple-icon-76x76.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="114x114"
-            href="/favicons/apple-icon-114x114.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="120x120"
-            href="/favicons/apple-icon-120x120.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="144x144"
-            href="/favicons/apple-icon-144x144.png"
-          />
-          <link
-            rel="apple-touch-icon"
-            sizes="152x152"
-            href="/favicons/apple-icon-152x152.png"
-          />
+
           <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="/favicons/apple-icon-180x180.png"
-          />
-          <link
-            rel="icon"
-            type="image/png"
-            sizes="192x192"
-            href="/favicons/android-icon-192x192.png"
+            href="https://storage.googleapis.com/oyah.xyz/assets/favicons/apple-touch-icon.png"
           />
           <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="/favicons/favicon-32x32.png"
-          />
-          <link
-            rel="icon"
-            type="image/png"
-            sizes="96x96"
-            href="/favicons/favicon-96x96.png"
+            href="https://storage.googleapis.com/oyah.xyz/assets/favicons/favicon-32x32.png"
           />
           <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="/favicons/favicon-16x16.png"
+            href="https://storage.googleapis.com/oyah.xyz/assets/favicons/favicon-16x16.png"
           />
-          <link rel="manifest" href="/favicons/manifest.json" />
-          <meta name="msapplication-TileColor" content="#ffffff" />
+          <link
+            rel="manifest"
+            href="https://storage.googleapis.com/oyah.xyz/assets/manifest.json"
+          />
+          <link
+            rel="mask-icon"
+            href="https://storage.googleapis.com/oyah.xyz/assets/favicons/safari-pinned-tab.svg"
+            color="#cc0000"
+          />
+          <link
+            rel="shortcut icon"
+            href="https://storage.googleapis.com/oyah.xyz/assets/favicons/favicon.ico"
+          />
+          <meta name="apple-mobile-web-app-title" content="Oyah" />
+          <meta name="application-name" content="Oyah" />
+          <meta name="msapplication-TileColor" content="#cc0000" />
           <meta
-            name="msapplication-TileImage"
-            content="/favicons/ms-icon-144x144.png"
+            name="msapplication-config"
+            content="https://storage.googleapis.com/oyah.xyz/assets/favicons/browserconfig.xml"
           />
+          <meta name="theme-color" content="#ffffff" />
+
           <link rel="stylesheet" href="/_next/static/style.css" />
-          <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+          <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          />
         </Head>
         <body>
           <Main />

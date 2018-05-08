@@ -34,6 +34,7 @@ class Index extends Component<Props> {
           {
             allArticles {
               id
+              path
               title
               author {
                 id
@@ -72,7 +73,10 @@ class Index extends Component<Props> {
   }
 
   render() {
-    const { quote: { quote, author }, articles } = this.props;
+    const {
+      quote: { quote, author },
+      articles
+    } = this.props;
     return (
       <App {...this.props}>
         <div className="Home Content">
@@ -80,8 +84,12 @@ class Index extends Component<Props> {
             <title>Home | Oyah</title>
             <meta name="description" content="Homepage of Oyah" />
           </Head>
-          <Highlights articles={articles} />
-          <Other articles={articles} />
+          {articles.length > 0 && (
+            <React.Fragment>
+              <Highlights articles={articles} />
+              <Other articles={articles} />
+            </React.Fragment>
+          )}
           <Quote author={author} quote={quote} />
         </div>
         <style jsx global>{`

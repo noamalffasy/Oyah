@@ -124,7 +124,7 @@ class AuthorPlaceholder extends Component {
 }
 
 interface User {
-  token?: string;
+  idToken?: string;
   id?: string;
   name?: string;
   nametag?: string;
@@ -143,6 +143,7 @@ interface User {
 
 interface Article {
   id: string;
+  path: string;
   title: string;
   content: string;
   comments: object[];
@@ -174,8 +175,8 @@ interface State {
 
 @graphql(
   gql`
-    mutation deleteArticle($id: String!) {
-      deleteArticle(id: $id) {
+    mutation deleteArticle($id: String!, $authInfo: AuthInfo) {
+      deleteArticle(id: $id, authInfo: $authInfo) {
         status
       }
     }
@@ -210,7 +211,7 @@ class ArticlePage extends Component<Props, State> {
   static async getInitialProps(
     { query: { id } }: any,
     apolloClient: any,
-    user: User
+    user
   ) {
     return await apolloClient
       .mutate({
@@ -218,6 +219,7 @@ class ArticlePage extends Component<Props, State> {
           mutation getArticle($id: String!) {
             getArticle(id: $id) {
               id
+              path
               title
               content
               author {
@@ -271,9 +273,7 @@ class ArticlePage extends Component<Props, State> {
             article: getArticle.data.getArticle,
             author: {
               ...getArticle.data.getArticle.author,
-              image:
-                "/img/users/" +
-                encodeURIComponent(getArticle.data.getArticle.author.image)
+              image: getArticle.data.getArticle.author.image
             }
           };
         } else {
@@ -281,9 +281,7 @@ class ArticlePage extends Component<Props, State> {
             article: getArticle.data.getArticle,
             author: {
               ...getArticle.data.getArticle.author,
-              image:
-                "/img/users/" +
-                encodeURIComponent(getArticle.data.getArticle.author.image)
+              image: getArticle.data.getArticle.author.image
             }
           };
         }
@@ -471,7 +469,10 @@ class ArticlePage extends Component<Props, State> {
     this.props
       .deleteArticle({
         variables: {
-          id: this.props.article.id
+          id: this.props.article.id,
+          authInfo: {
+            idToken: this.props.user.idToken
+          }
         }
       })
       .then((res: any) => {
@@ -545,7 +546,10 @@ class ArticlePage extends Component<Props, State> {
                             this.props.author
                               ? this.props.author.image !== null &&
                                 this.props.author.image !== undefined
-                                ? this.props.author.image
+                                ? this.props.author.image.startsWith("http")
+                                  ? this.props.author.image
+                                  : "/img/users/" +
+                                    encodeURIComponent(this.props.author.image)
                                 : ""
                               : ""
                           }
@@ -601,8 +605,9 @@ class ArticlePage extends Component<Props, State> {
                       </div>
                     </div>
                   </ReactPlaceholder>
-                  {(Object.keys(this.props.user).length > 0 ||
-                    this.props.profile) &&
+                  {this.props.user &&
+                    (Object.keys(this.props.user).length > 0 ||
+                      this.props.profile) &&
                     this.props.author &&
                     this.props.author.id === this.props.user.id && (
                       <div
@@ -610,7 +615,7 @@ class ArticlePage extends Component<Props, State> {
                         ref={div => (this.ctrls.more = div)}
                       >
                         <img
-                          src="/img/more.svg"
+                          src="https://storage.googleapis.com/oyah.xyz/assets/img/more.svg"
                           onClick={e => {
                             e.preventDefault();
 
@@ -669,7 +674,8 @@ class ArticlePage extends Component<Props, State> {
 
             <Image
               className="article-image"
-              src={`/articles/${this.props.article.id}/main.jpeg`}
+              src={this.props.article.path}
+              alt=""
               fixed
             />
             {/* <div
@@ -708,6 +714,7 @@ class ArticlePage extends Component<Props, State> {
               </div>
             </div>
             <DeletePopup
+              user={this.props.user}
               isOpen={this.state.deletePopup}
               deleteArticle={this.deleteArticle}
               deleteCommentFromDOM={this.deleteComment}
@@ -932,8 +939,12 @@ interface BottombarState {
 
 @graphql(
   gql`
-    mutation likeArticle($articleID: String!, $liked: Boolean!) {
-      likeArticle(articleID: $articleID, liked: $liked) {
+    mutation likeArticle(
+      $articleID: String!
+      $liked: Boolean!
+      $authInfo: AuthInfo
+    ) {
+      likeArticle(articleID: $articleID, liked: $liked, authInfo: $authInfo) {
         likes
       }
     }
@@ -944,8 +955,18 @@ interface BottombarState {
 )
 @graphql(
   gql`
-    mutation likeComment($id: String!, $articleID: String!, $liked: Boolean!) {
-      likeComment(id: $id, articleID: $articleID, liked: $liked) {
+    mutation likeComment(
+      $id: String!
+      $articleID: String!
+      $liked: Boolean!
+      $authInfo: AuthInfo
+    ) {
+      likeComment(
+        id: $id
+        articleID: $articleID
+        liked: $liked
+        authInfo: $authInfo
+      ) {
         likes
       }
     }
@@ -1079,7 +1100,10 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           .likeArticle({
             variables: {
               articleID: id,
-              liked: !liked.includes(id)
+              liked: !liked.includes(id),
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
             }
           })
           .then((res: any) => {
@@ -1119,7 +1143,10 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
             variables: {
               id,
               articleID,
-              liked: !liked.includes(commentID)
+              liked: !liked.includes(commentID),
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
             }
           })
           .then((res: any) => {
@@ -1155,7 +1182,10 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           .likeArticle({
             variables: {
               articleID: id,
-              liked: !liked.includes(id)
+              liked: !liked.includes(id),
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
             }
           })
           .then((res: any) => {
@@ -1228,16 +1258,24 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
               icon="heart"
               style={
                 this.props.where === "comment"
-                  ? this.state.isLiked ? { opacity: 1 } : {}
-                  : this.state.isLiked ? { opacity: 1 } : {}
+                  ? this.state.isLiked
+                    ? { opacity: 1 }
+                    : {}
+                  : this.state.isLiked
+                    ? { opacity: 1 }
+                    : {}
               }
             />
             <FontAwesomeIcon
               icon={["far", "heart"]}
               style={
                 this.props.where === "comment"
-                  ? !this.state.isLiked ? { opacity: 1 } : {}
-                  : !this.state.isLiked ? { opacity: 1 } : {}
+                  ? !this.state.isLiked
+                    ? { opacity: 1 }
+                    : {}
+                  : !this.state.isLiked
+                    ? { opacity: 1 }
+                    : {}
               }
             />
           </button>
@@ -1375,8 +1413,18 @@ interface ResponsesState {
 
 @graphql(
   gql`
-    mutation sendComment($id: String!, $articleID: String!, $message: String!) {
-      sendComment(id: $id, articleID: $articleID, message: $message) {
+    mutation sendComment(
+      $id: String!
+      $articleID: String!
+      $message: String!
+      $authInfo: AuthInfo
+    ) {
+      sendComment(
+        id: $id
+        articleID: $articleID
+        message: $message
+        authInfo: $authInfo
+      ) {
         id
         articleID
         author {
@@ -1400,8 +1448,14 @@ interface ResponsesState {
       $id: String!
       $articleID: String!
       $message: String!
+      $authInfo: AuthInfo
     ) {
-      updateComment(id: $id, articleID: $articleID, message: $message) {
+      updateComment(
+        id: $id
+        articleID: $articleID
+        message: $message
+        authInfo: $authInfo
+      ) {
         id
         articleID
         author {
@@ -1493,7 +1547,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           variables: {
             id: uuid(),
             articleID: this.props.articleID,
-            message: this.input.input.value.trim()
+            message: this.input.input.value.trim(),
+            authInfo: {
+              idToken: this.props.user.idToken
+            }
           }
         })
         .then((res: any) => {
@@ -1541,7 +1598,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           variables: {
             id,
             articleID: this.props.articleID,
-            message: this["edit_" + id].input.value.trim()
+            message: this["edit_" + id].input.value.trim(),
+            authInfo: {
+              idToken: this.props.user.idToken
+            }
           }
         })
         .then(res => {
@@ -1582,8 +1642,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                   this.props.user
                     ? this.props.user.image !== null &&
                       this.props.user.image !== undefined
-                      ? "/img/users/" +
-                        encodeURIComponent(this.props.user.image)
+                      ? this.props.user.image.startsWith("http")
+                        ? this.props.user.image
+                        : "/img/users/" +
+                          encodeURIComponent(this.props.user.image)
                       : "/img/User.png"
                     : "/img/User.png"
                 }
@@ -1649,8 +1711,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                         elem.author
                           ? elem.author.image !== null &&
                             elem.author.image !== undefined
-                            ? "/img/users/" +
-                              encodeURIComponent(elem.author.image)
+                            ? elem.author.image.startsWith("http")
+                              ? elem.author.image
+                              : "/img/users/" +
+                                encodeURIComponent(elem.author.image)
                             : "/img/User.png"
                           : "/img/User.png"
                       }
@@ -1991,7 +2055,7 @@ class MoreMenu extends Component<MenuProps, MenuState> {
     return (
       <div className="more" tabIndex={0}>
         <img
-          src="/img/more.svg"
+          src="https://storage.googleapis.com/oyah.xyz/assets/img/more.svg"
           onClick={() => {
             this.setState(prevState => ({
               ...prevState,
@@ -2032,24 +2096,22 @@ class MoreMenu extends Component<MenuProps, MenuState> {
             </a>
           </li>
         </Popup>
-        <style jsx>
-          {`
-            .more {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0 0.5rem;
-              outline: 0;
-            }
+        <style jsx>{`
+          .more {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 0.5rem;
+            outline: 0;
+          }
 
-            .more img {
-              width: 1.7rem;
-              -webkit-user-draq: none;
-              user-select: none;
-              cursor: pointer;
-            }
-          `}
-        </style>
+          .more img {
+            width: 1.7rem;
+            -webkit-user-draq: none;
+            user-select: none;
+            cursor: pointer;
+          }
+        `}</style>
         <style jsx global>{`
           .more .popup-wrapper {
             width: 90% !important;
@@ -2113,6 +2175,7 @@ class MoreMenu extends Component<MenuProps, MenuState> {
 
 interface DeletePopupProps {
   id: any;
+  user: User;
   isOpen: any;
   deleteArticle: any;
   deleteCommentFromDOM: any;
@@ -2127,8 +2190,12 @@ interface DeletePopupState {
 
 @graphql(
   gql`
-    mutation deleteComment($id: String, $articleID: String) {
-      deleteComment(id: $id, articleID: $articleID) {
+    mutation deleteComment(
+      $id: String
+      $articleID: String
+      $authInfo: AuthInfo
+    ) {
+      deleteComment(id: $id, articleID: $articleID, authInfo: $authInfo) {
         status
       }
     }
@@ -2172,10 +2239,17 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
     switch (this.state.what) {
       case "article":
         this.props.deleteArticle(this.ActionButtons);
+        break;
       case "comment":
         this.props
           .deleteComment({
-            variables: { id: this.state.id, articleID: this.props.id }
+            variables: {
+              id: this.state.id,
+              articleID: this.props.id,
+              authInfo: {
+                idToken: this.props.user.idToken
+              }
+            }
           })
           .then((res: any) => {
             this.ActionButtons.reset();
@@ -2184,6 +2258,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           .catch((err: any) => {
             console.error(err);
           });
+        break;
     }
   }
 
@@ -2196,14 +2271,13 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           visibility: this.state.popup ? "visible" : "collapse",
           opacity: this.state.popup ? 1 : 0
         }}
-        onClick={() => {
-          this.setState(prevState => ({
-            ...prevState,
-            popup: false
-          }));
-        }}
-        ref={div => {
-          this.popup = div;
+        onClick={e => {
+          if (this.popup.contains(e.target)) {
+            this.setState(prevState => ({
+              ...prevState,
+              popup: false
+            }));
+          }
         }}
       >
         <div

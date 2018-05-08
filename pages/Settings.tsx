@@ -17,6 +17,7 @@ import ActionButtons from "../components/ActionButtons";
 import Head from "next/head";
 import Router from "next/router";
 
+import { withApollo } from "react-apollo";
 import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
@@ -45,54 +46,23 @@ interface State {
       $nametag: String
       $bio: String
       $name: String
+      $image: String
       $mains: [String]
       $reddit: String
       $twitter: String
+      $email: String
+      $authInfo: AuthInfo
     ) {
       updateUser(
         nametag: $nametag
         bio: $bio
         name: $name
+        image: $image
         mains: $mains
         reddit: $reddit
         twitter: $twitter
-      ) {
-        user {
-          id
-          image
-          nametag
-          email
-          bio
-          name
-          mains
-          reddit
-          twitter
-        }
-        token
-      }
-    }
-  `,
-  {
-    name: "updateUserPassword"
-  }
-)
-@graphql(
-  gql`
-    mutation updateUser(
-      $nametag: String
-      $bio: String
-      $name: String
-      $mains: [String]
-      $reddit: String
-      $twitter: String
-    ) {
-      updateUser(
-        nametag: $nametag
-        bio: $bio
-        name: $name
-        mains: $mains
-        reddit: $reddit
-        twitter: $twitter
+        email: $email
+        authInfo: $authInfo
       ) {
         user {
           id
@@ -203,7 +173,7 @@ class Settings extends Component<Props, State> {
     fr.readAsDataURL(imageDialog.files[0]);
   }
 
-  update(e: any, triggerLoading: any) {
+  async update(e: any, triggerLoading: any) {
     const image = this.image.src.startsWith("data:image")
       ? findDOMNode(this.imageDialog).files[0]
       : null;
@@ -214,20 +184,18 @@ class Settings extends Component<Props, State> {
     const reddit = this.reddit.input.value;
     const twitter = this.twitter.input.value;
     const email = this.email.input.value;
-    const password = this.password.input.value;
-    const confirmPassword = this.confirmPassword.input.value;
 
     if (image !== null) {
       triggerLoading();
 
-      this.props
+      await this.props
         .uploadFile({
           variables: {
             file: image,
             where: "user"
           }
         })
-        .then((res: any) => {
+        .then(async (res: any) => {
           if (res.error) {
             // console.error(res.error);
             this.setError(res.error);
@@ -235,44 +203,51 @@ class Settings extends Component<Props, State> {
             const data = res.data.uploadFile;
 
             this.login({ ...this.props.user, image: data.path });
+
+            await this.props
+              .updateUser({
+                variables: {
+                  nametag,
+                  email,
+                  bio,
+                  name,
+                  image: data.path,
+                  mains,
+                  reddit,
+                  twitter,
+                  authInfo: {
+                    idToken: this.props.user.idToken
+                  }
+                }
+              })
+              .then((res: any) => {
+                this.ActionButtons.reset();
+
+                if (res.error) {
+                  // console.error(res.error);
+                  this.setError(res.error);
+                } else {
+                  const data = res.data.updateUser;
+
+                  this.props.client.cache.reset().then(() => {
+                    this.login({
+                      ...data.user,
+                      mains:
+                        data.user.mains !== null
+                          ? data.user.mains.split(", ")
+                          : null
+                    });
+
+                    Router.push("/Profile", "/profile");
+                  });
+                }
+              });
           }
         });
-    }
-
-    if (password !== "" && password !== undefined) {
-      if (password === confirmPassword) {
-        triggerLoading();
-
-        this.props
-          .updateUserPassword({
-            variables: {
-              nametag,
-              email,
-              bio,
-              name,
-              mains,
-              reddit,
-              twitter,
-              password
-            }
-          })
-          .then((res: any) => {
-            this.ActionButtons.reset();
-
-            if (res.error) {
-              // console.error(res.error);
-              this.setError(res.error);
-            } else {
-              const data = res.data.updateUser;
-
-              this.login({ ...data.user, token: data.token });
-            }
-          });
-      }
     } else {
       triggerLoading();
 
-      this.props
+      await this.props
         .updateUser({
           variables: {
             nametag,
@@ -281,7 +256,10 @@ class Settings extends Component<Props, State> {
             name,
             mains,
             reddit,
-            twitter
+            twitter,
+            authInfo: {
+              idToken: this.props.user.idToken
+            }
           }
         })
         .then((res: any) => {
@@ -293,21 +271,22 @@ class Settings extends Component<Props, State> {
           } else {
             const data = res.data.updateUser;
 
-            this.login({
-              ...data.user,
-              mains:
-                data.user.mains !== null ? data.user.mains.split(", ") : null,
-              token: data.token
+            this.props.client.cache.reset().then(() => {
+              this.login({
+                ...data.user,
+                mains:
+                  data.user.mains !== null ? data.user.mains.split(", ") : null
+              });
+
+              Router.push("/Profile", "/profile");
             });
           }
         });
     }
-
-    Router.push("/Profile", "/profile");
   }
 
   render() {
-    if (Object.keys(this.props.user).length !== 0) {
+    if (Object.keys(this.props.user).length !== 0 && !this.props.user.loading) {
       return (
         <App {...this.props}>
           <div className="Settings Content">
@@ -325,7 +304,7 @@ class Settings extends Component<Props, State> {
                   src={
                     this.props.user.image ||
                     this.state.userImg ||
-                    "/img/User.png"
+                    "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
                   }
                   ref={img => (this.image = img)}
                 /> */}
@@ -334,9 +313,11 @@ class Settings extends Component<Props, State> {
                       this.state.userImg
                         ? this.state.userImg
                         : this.props.user.image !== null
-                          ? "/img/users/" +
-                            encodeURIComponent(this.props.user.image)
-                          : "/img/User.png"
+                          ? this.props.user.image.startsWith("http")
+                            ? this.props.user.image
+                            : "/img/users/" +
+                              encodeURIComponent(this.props.user.image)
+                          : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
                     }
                     ref={img => (this.image = img)}
                   />
@@ -459,9 +440,9 @@ class Settings extends Component<Props, State> {
                     />
                   </td>
                 </tr>
-                <tr>
+                {/* <tr>
                   <td style={{ padding: "0 0 2rem" }} />
-                </tr>
+                </tr> */}
                 <tr>
                   <td>Email</td>
                   <td>
@@ -472,32 +453,6 @@ class Settings extends Component<Props, State> {
                       value={this.props.user.email}
                       ref={input => {
                         this.email = input;
-                      }}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Password</td>
-                  <td>
-                    <Input
-                      className="password"
-                      label="Your password"
-                      type="text"
-                      ref={input => {
-                        this.password = input;
-                      }}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Confirm password</td>
-                  <td>
-                    <Input
-                      className="confirm-password"
-                      label="Confirm password"
-                      type="text"
-                      ref={input => {
-                        this.confirmPassword = input;
                       }}
                     />
                   </td>
@@ -788,4 +743,4 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(Settings));
+export default withData(connect(mapStateToProps, null)(withApollo(Settings)));

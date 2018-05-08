@@ -19,7 +19,7 @@ In order to use some of our services, you need to have an Oyah Account.
 
 You may choose to display your real name in your profile. We are not responsible for anything that might happen as consequence of displaying this information on your profile.
 
-To protect your Oyah Account, keep your password to yourself. You are responsible for any activity that happens on or through your Oyah Account.
+To protect your Oyah Account, keep your linked account (Google account, Facebook account, etc.) credentials to yourself. You are responsible for any activity that happens on or through your Oyah Account.
 
 When you upload to our site, please use your own content and non-copyrighted images to protect yourself from a potential ban.
 

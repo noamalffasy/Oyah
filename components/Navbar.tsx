@@ -11,11 +11,13 @@ import { Collapse, NavbarToggler } from "reactstrap";
 import Image from "./Image";
 import Input from "./Input";
 import Verification from "./Verification";
+import Loading from "./Loading";
 
 // GraphQL
 import { withApollo } from "react-apollo";
 
 import { remove as removeCookie } from "../utils/cookie";
+import { app } from "../lib/firebase";
 
 interface Props {
   client?: any;
@@ -319,12 +321,18 @@ class Account extends Component<any, any> {
         editor: false,
         image: null
       },
-      infoOpen: false
+      infoOpen: false,
+      nametagHeight: "1.5rem",
+      loading: false
     };
 
     this.openInfo = this.openInfo.bind(this);
     this.toggleInfo = this.toggleInfo.bind(this);
   }
+
+  ctrls: {
+    nametag?: HTMLHeadingElement;
+  } = {};
 
   componentWillMount() {
     if (Object.keys(this.props.user).length > 0) {
@@ -336,7 +344,11 @@ class Account extends Component<any, any> {
     }
   }
 
-  componentWillReceiveProps(nextProps: any) {
+  componentDidMount() {
+    this.fixNametagHeight(this.state);
+  }
+
+  componentWillReceiveProps(nextProps: any, nextState: any) {
     // if (
     //   nextProps.data &&
     //   nextProps.data.currentUser &&
@@ -375,8 +387,9 @@ class Account extends Component<any, any> {
     //   }
     // }
     if (
-      nextProps.user !== this.props.user ||
-      Object.keys(nextProps.user).length > 0
+      (nextProps.user !== this.props.user ||
+        Object.keys(nextProps.user).length > 0) &&
+      !nextProps.user.loading
     ) {
       this.setState((prevState: any) => ({
         ...prevState,
@@ -399,7 +412,33 @@ class Account extends Component<any, any> {
         }
       }));
     }
+
+    if (
+      (nextProps.user !== this.props.user ||
+        Object.keys(nextProps.user).length > 0) &&
+      nextProps.user.loading
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        loading: true
+      }));
+    }
   }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.user.nametag !== prevProps.user.nametag) {
+      this.fixNametagHeight(this.state);
+    }
+  }
+
+  fixNametagHeight = state => {
+    if (state.loggedIn) {
+      this.setState(prevState => ({
+        ...prevState,
+        nametagHeight: `${this.ctrls.nametag.clientHeight}px`
+      }));
+    }
+  };
 
   openInfo(e: any) {
     e.preventDefault();
@@ -429,7 +468,11 @@ class Account extends Component<any, any> {
     if (!this.state.loggedIn) {
       return (
         <div className="Account">
-          <a onClick={() => this.props.openSignInModal("login")}>Sign in</a>
+          {!this.state.loading ? (
+            <a onClick={() => this.props.openSignInModal("login")}>Sign in</a>
+          ) : (
+            <Loading />
+          )}
           <style jsx>{`
             .Account {
               text-align: center;
@@ -472,8 +515,13 @@ class Account extends Component<any, any> {
               className="user"
               src={
                 this.state.user.image !== null
-                  ? "/img/users/" + encodeURIComponent(this.state.user.image)
-                  : "/img/User.png"
+                  ? this.state.user.image
+                  : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
+              }
+              smallSrc={
+                this.state.user.small_image !== null
+                  ? this.state.user.small_image
+                  : "https://storage.googleapis.com/oyah.xyz/assets/img/User_small.png"
               }
               alt={this.state.user.nametag}
               customPlaceholder={
@@ -482,9 +530,8 @@ class Account extends Component<any, any> {
                   color="#e0e0e0"
                   style={{
                     display: "inline-block",
-                    width: "4rem",
-                    height: "4rem",
-                    transform: "scale(0.89)",
+                    width: "3.56rem",
+                    height: "3.56rem",
                     borderRadius: "50%",
                     animation: "loading 1.5s infinite"
                   }}
@@ -493,18 +540,16 @@ class Account extends Component<any, any> {
               style={
                 this.state.infoOpen
                   ? {
-                      width: "4rem",
-                      height: "4rem",
+                      width: "3.56rem",
+                      height: "3.56rem",
                       userSelect: "none",
-                      transform: "scale(0.89)",
                       borderRadius: "50%",
                       cursor: "default"
                     }
                   : {
-                      width: "4rem",
-                      height: "4rem",
+                      width: "3.56rem",
+                      height: "3.56rem",
                       userSelect: "none",
-                      transform: "scale(0.89)",
                       borderRadius: "50%",
                       cursor: "pointer"
                     }
@@ -513,14 +558,14 @@ class Account extends Component<any, any> {
           </div>
           <div className="Info">
             <div className="user">
-              <h2>
+              <h2 ref={h2 => (this.ctrls.nametag = h2)}>
                 {this.state.user.nametag}
-                {
+                {this.state.user.is_team && (
                   <Verification
                     isArticle={false}
                     style={{ marginLeft: ".5rem" }}
                   />
-                }
+                )}
               </h2>
               <p>{this.state.user.email}</p>
             </div>
@@ -543,7 +588,8 @@ class Account extends Component<any, any> {
                 onClick={e => {
                   e.preventDefault();
 
-                  removeCookie(document.cookie, "token");
+                  // removeCookie(document.cookie, "token");
+                  app.auth().signOut();
 
                   this.props.client.cache.reset().then(() => {
                     window.location.href = `${window.location.protocol}//${
@@ -567,7 +613,7 @@ class Account extends Component<any, any> {
           </div>
           <img
             className="arrow"
-            src="/img/Arrow.svg"
+            src="https://storage.googleapis.com/oyah.xyz/assets/img/Arrow.svg"
             onClick={this.toggleInfo}
           />
           <style jsx>{`
@@ -638,6 +684,9 @@ class Account extends Component<any, any> {
 
             .Account .Info .user h2 {
               font-size: 1.5rem;
+              white-space: ${this.state.nametagHeight === "1.5rem"
+                ? "nowrap"
+                : "initial"};
             }
 
             .Account .Info .user p {
@@ -688,8 +737,8 @@ class Account extends Component<any, any> {
               filter: FlipV;
               order: 5;
               top: calc(
-                4rem + 1.5rem + 0.5rem + 1rem + 1rem + 1rem + 0.2rem +
-                  ((1rem + (0.2rem * 2)) * 3) + 3rem
+                4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem + 1rem +
+                  0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
               );
               height: 2rem;
             }
@@ -733,8 +782,8 @@ class Account extends Component<any, any> {
                 /* opacity: 1; */
                 /* visibility: visible; */
                 max-height: calc(
-                  4rem + 1.5rem + 0.5rem + 1rem + 1rem + 1rem + 0.2rem +
-                    ((1rem + (0.2rem * 2)) * 3) + 3rem
+                  4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem +
+                    1rem + 0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
                 );
               }
               .Account.active .Info::before {
