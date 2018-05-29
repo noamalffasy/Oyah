@@ -1,10 +1,11 @@
 node_modules/
 .next/
+firebase-debug.log
+cloud-functions-emulator.log
 dist/
 static/css/App.css
 static/img
-server/
-server/db/config.ts
+functions/src/config.ts
 functions/src/static/img/articles/
 functions/src/static/img/users/
 functions/src/static/css/App.css
