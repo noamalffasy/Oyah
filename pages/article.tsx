@@ -31,6 +31,7 @@ import Image from "../components/Image";
 import Popup from "../components/Popup";
 import Input from "../components/Input";
 import ActionButtons from "../components/ActionButtons";
+import MoreSvg from "../components/MoreSvg";
 
 import Error from "./_error";
 
@@ -534,40 +535,43 @@ class ArticlePage extends Component<Props, State> {
                     }
                   >
                     <div className="author">
-                      <a
+                      <Link
                         href={
                           "/users/" +
                           (this.props.author ? this.props.author.nametag : "")
                         }
-                        style={{ opacity: 1 }}
                       >
-                        <Image
-                          src={
-                            this.props.author
-                              ? this.props.author.image !== null &&
-                                this.props.author.image !== undefined
-                                ? this.props.author.image.startsWith("http")
-                                  ? this.props.author.image
-                                  : "/img/users/" +
-                                    encodeURIComponent(this.props.author.image)
+                        <a style={{ opacity: 1 }}>
+                          <Image
+                            src={
+                              this.props.author
+                                ? this.props.author.image !== null &&
+                                  this.props.author.image !== undefined
+                                  ? this.props.author.image.startsWith("http")
+                                    ? this.props.author.image
+                                    : "/img/users/" +
+                                      encodeURIComponent(
+                                        this.props.author.image
+                                      )
+                                  : ""
                                 : ""
-                              : ""
-                          }
-                          alt={
-                            this.props.author
-                              ? this.props.author.nametag
-                              : "Loading"
-                          }
-                          style={{
-                            display: "inline-block",
-                            width: "4rem",
-                            height: "4rem",
-                            marginRight: "0.5rem",
-                            borderRadius: "50%"
-                          }}
-                          customPlaceholder={<AuthorImagePlaceholder />}
-                        />
-                      </a>
+                            }
+                            alt={
+                              this.props.author
+                                ? this.props.author.nametag
+                                : "Loading"
+                            }
+                            style={{
+                              display: "inline-block",
+                              width: "4rem",
+                              height: "4rem",
+                              marginRight: "0.5rem",
+                              borderRadius: "50%"
+                            }}
+                            customPlaceholder={<AuthorImagePlaceholder />}
+                          />
+                        </a>
+                      </Link>
                       <div
                         style={{
                           display: "flex",
@@ -614,8 +618,7 @@ class ArticlePage extends Component<Props, State> {
                         className="more"
                         ref={div => (this.ctrls.more = div)}
                       >
-                        <img
-                          src="https://storage.googleapis.com/oyah.xyz/assets/img/more.svg"
+                        <MoreSvg
                           onClick={e => {
                             e.preventDefault();
 
@@ -772,14 +775,6 @@ class ArticlePage extends Component<Props, State> {
               outline: 0;
             }
 
-            .ArticlePage .top .more img {
-              width: 1.7rem;
-              margin: 0 2rem 0 0;
-              -webkit-user-draq: none;
-              user-select: none;
-              cursor: pointer;
-            }
-
             .ArticlePage h1 {
               text-align: center;
               font-size: 3rem;
@@ -804,6 +799,14 @@ class ArticlePage extends Component<Props, State> {
             }
           `}</style>
           <style jsx global>{`
+            .ArticlePage .top .more svg {
+              width: 1.7rem;
+              margin: 0 2rem 0 0;
+              -webkit-user-draq: none;
+              user-select: none;
+              cursor: pointer;
+            }
+
             .ArticlePage .top .more .popup-wrapper {
               width: 90%;
             }
@@ -1736,28 +1739,29 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                       flexDirection: "column"
                     }}
                   >
-                    <a
+                    <Link
                       href={
                         "/users/" + (elem.author ? elem.author.nametag : "")
                       }
-                      style={{ opacity: 1 }}
                     >
-                      <h3
-                        style={{
-                          display: "inline-block",
-                          color: "#212529",
-                          cursor: "pointer"
-                        }}
-                      >
-                        {elem.author ? elem.author.nametag : "Loading"}
-                      </h3>
-                      {elem.author.is_team && (
-                        <Verification
-                          isArticle={false}
-                          style={{ marginLeft: ".5rem" }}
-                        />
-                      )}
-                    </a>
+                      <a style={{ opacity: 1 }}>
+                        <h3
+                          style={{
+                            display: "inline-block",
+                            color: "#212529",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {elem.author ? elem.author.nametag : "Loading"}
+                        </h3>
+                        {elem.author.is_team && (
+                          <Verification
+                            isArticle={false}
+                            style={{ marginLeft: ".5rem" }}
+                          />
+                        )}
+                      </a>
+                    </Link>
                     <span
                       style={{
                         color: "rgba(0,0,0,.5)",
@@ -2054,8 +2058,7 @@ class MoreMenu extends Component<MenuProps, MenuState> {
   render() {
     return (
       <div className="more" tabIndex={0}>
-        <img
-          src="https://storage.googleapis.com/oyah.xyz/assets/img/more.svg"
+        <MoreSvg
           onClick={() => {
             this.setState(prevState => ({
               ...prevState,
@@ -2104,15 +2107,15 @@ class MoreMenu extends Component<MenuProps, MenuState> {
             margin: 0 0.5rem;
             outline: 0;
           }
-
-          .more img {
+        `}</style>
+        <style jsx global>{`
+          .more svg {
             width: 1.7rem;
             -webkit-user-draq: none;
             user-select: none;
             cursor: pointer;
           }
-        `}</style>
-        <style jsx global>{`
+
           .more .popup-wrapper {
             width: 90% !important;
           }

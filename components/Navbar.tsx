@@ -2,6 +2,7 @@ import * as React from "react";
 import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
+import { withRouter, SingletonRouter } from "next/router";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RoundShape } from "react-placeholder/lib/placeholders";
@@ -12,11 +13,12 @@ import Image from "./Image";
 import Input from "./Input";
 import Verification from "./Verification";
 import Loading from "./Loading";
+import ArrowSvg from "./ArrowSvg";
 
 // GraphQL
 import { withApollo } from "react-apollo";
 
-import { remove as removeCookie } from "../utils/cookie";
+// import { remove as removeCookie } from "../utils/cookie";
 import { app } from "../lib/firebase";
 
 interface Props {
@@ -25,6 +27,7 @@ interface Props {
   container: any;
   login: any;
   user: any;
+  router: SingletonRouter;
   searchTerm: any;
   openSignInModal: any;
   closeSignInModal: any;
@@ -121,7 +124,7 @@ class Navbar extends Component<Props, State> {
 
     const searchTerm = this.input.input.value;
 
-    this.props.url.push("/search?q=" + encodeURI(searchTerm));
+    this.props.router.push(`/search?q=${encodeURI(searchTerm)}`);
 
     // this.props
     //   .searchArticle({
@@ -175,17 +178,6 @@ class Navbar extends Component<Props, State> {
               >
                 <Link href="/Articles" as="/articles">
                   <a className="nav-link">Articles</a>
-                </Link>
-              </li>
-              <li
-                className={
-                  this.props.url.pathname === "/Contact"
-                    ? "nav-item active"
-                    : "nav-item"
-                }
-              >
-                <Link href="/Contact" as="/contact">
-                  <a className="nav-link">Contact us</a>
                 </Link>
               </li>
             </ul>
@@ -575,7 +567,10 @@ class Account extends Component<any, any> {
                   Write article
                 </a>
               </Link>
-              <Link href="/Profile" as="/profile">
+              <Link
+                href={`/Profile?nametag=${this.state.user.nametag}`}
+                as={`/users/${this.state.user.nametag}`}
+              >
                 <a onClick={() => findDOMNode(this.Account).focus()}>Profile</a>
               </Link>
               <Link href="/Settings" as="/settings">
@@ -611,11 +606,7 @@ class Account extends Component<any, any> {
               alt=""
             /> */}
           </div>
-          <img
-            className="arrow"
-            src="https://storage.googleapis.com/oyah.xyz/assets/img/Arrow.svg"
-            onClick={this.toggleInfo}
-          />
+          <ArrowSvg className="arrow" onClick={this.toggleInfo} />
           <style jsx>{`
             .Account {
               --border-radius: 0;
@@ -714,35 +705,6 @@ class Account extends Component<any, any> {
               margin-top: 0;
             }
 
-            .Account img.arrow {
-              position: absolute;
-              top: calc(0.2rem + 4rem);
-              left: 0;
-              right: 0;
-              width: 1.2rem;
-              height: 1.2rem;
-              color: #cc0000;
-              margin: 0 auto;
-              order: 1;
-              opacity: 1;
-              z-index: 20;
-              visibility: hidden;
-              cursor: pointer;
-              user-select: none;
-              transition: all 0.3s;
-            }
-
-            .Account.active img.arrow {
-              transform: scaleY(-1);
-              filter: FlipV;
-              order: 5;
-              top: calc(
-                4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem + 1rem +
-                  0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
-              );
-              height: 2rem;
-            }
-
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Account {
@@ -789,7 +751,40 @@ class Account extends Component<any, any> {
               .Account.active .Info::before {
                 opacity: 1;
               }
-              .Account img.arrow {
+            }
+          `}</style>
+          <style jsx global>{`
+            .Account svg.arrow {
+              position: absolute;
+              top: calc(0.2rem + 4rem);
+              left: 0;
+              right: 0;
+              width: 1.2rem;
+              height: 1.2rem;
+              color: #cc0000;
+              margin: 0 auto;
+              order: 1;
+              opacity: 1;
+              z-index: 20;
+              visibility: hidden;
+              cursor: pointer;
+              user-select: none;
+              transition: all 0.3s;
+            }
+
+            .Account.active svg.arrow {
+              transform: scaleY(-1);
+              filter: FlipV;
+              order: 5;
+              top: calc(
+                4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem + 1rem +
+                  0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
+              );
+              height: 2rem;
+            }
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .Account svg.arrow {
                 visibility: visible;
               }
             }
@@ -800,4 +795,4 @@ class Account extends Component<any, any> {
   }
 }
 
-export default withApollo(Navbar);
+export default withRouter(withApollo(Navbar));
