@@ -64,10 +64,9 @@ class MyDocument extends Document {
         <body>
           <Main />
           <NextScript />
-          <script src="/js/jquery.min.js" />
+          {/* <script src="/js/jquery.min.js" />
           <script src="/js/popper.min.js" />
-          <script src="/js/bootstrap.bundle.min.js" />
-          <link rel="stylesheet" href="/_next/static/style.css" />
+          <script src="/js/bootstrap.bundle.min.js" /> */}
           <link
             rel="stylesheet"
             href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -82,27 +81,36 @@ class MyDocument extends Document {
             height: 100%;
           }
 
-          .pace {
-            -webkit-pointer-events: none;
+          /* Make clicks pass-through */
+          #nprogress {
             pointer-events: none;
-
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
           }
 
-          .pace-inactive {
-            display: none;
-          }
+          #nprogress .bar {
+            background: #cc0000;
 
-          .pace .pace-progress {
-            background: #29d;
             position: fixed;
-            z-index: 2000;
+            z-index: 1031;
             top: 0;
-            right: 100%;
+            left: 0;
+
             width: 100%;
             height: 2px;
+          }
+
+          /* Fancy blur effect */
+          #nprogress .peg {
+            display: block;
+            position: absolute;
+            right: 0px;
+            width: 100px;
+            height: 100%;
+            box-shadow: 0 0 10px #cc0000, 0 0 5px #cc0000;
+            opacity: 1;
+
+            -webkit-transform: rotate(3deg) translate(0px, -4px);
+            -ms-transform: rotate(3deg) translate(0px, -4px);
+            transform: rotate(3deg) translate(0px, -4px);
           }
         `}</style>
       </html>

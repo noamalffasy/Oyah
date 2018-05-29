@@ -14,6 +14,8 @@ import Footer from "./Footer";
 import LoginPopup from "./LoginPopup";
 import ErrorAlert from "./ErrorAlert";
 
+import configureLoadingProgressBar from "../lib/progressBar";
+
 import * as fontawesome from "@fortawesome/fontawesome";
 import {
   faSearch,
@@ -55,6 +57,10 @@ class App extends Component<any, any> {
       this.props.url.pathname !== "/article" &&
       this.props.url.pathname !== "/WriteArticle"
   };
+
+  componentDidMount() {
+    configureLoadingProgressBar();
+  }
 
   componentWillReceiveProps(nextProps: any) {
     // if (nextProps.user !== this.props.user) {

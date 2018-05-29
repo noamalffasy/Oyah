@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as uuid from "uuid/v4";
 
 // import "react-simplemde-editor/dist/simplemde.min.css";
-import { prototype } from "react-markdown";
+// import { prototype } from "react-markdown";
 
 import Head from "next/head";
 import Router from "next/router";
@@ -173,12 +173,6 @@ class WriteArticle extends Component<Props, State> {
               query: gql`
                 {
                   currentUser {
-                    ok
-                    jwt
-                    errors {
-                      field
-                      message
-                    }
                     user {
                       id
                       nametag
@@ -502,7 +496,7 @@ class WriteArticle extends Component<Props, State> {
                 })
                 .then((res: any) => {
                   this.ActionButtons.reset();
-                  
+
                   if (res.errors) {
                     this.setError(
                       res.errors
@@ -737,6 +731,8 @@ class WriteArticle extends Component<Props, State> {
             <Head>
               <title>Write a new article | Oyah</title>
               <meta name="description" content="Write a new article in Oyah" />
+
+              <link rel="stylesheet" href="/_next/static/style.css" />
               {/* <base href="http://localhost:8081/" /> */}
             </Head>
             <div className="container">
