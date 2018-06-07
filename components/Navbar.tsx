@@ -27,7 +27,7 @@ interface Props {
   container: any;
   login: any;
   user: any;
-  router: SingletonRouter;
+  router?: SingletonRouter;
   searchTerm: any;
   openSignInModal: any;
   closeSignInModal: any;
