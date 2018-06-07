@@ -133,7 +133,7 @@ class App extends Component<any, any> {
       dispatch
     );
     const login = bindActionCreators(userActionCreators.login, dispatch);
-    const logout = bindActionCreators(userActionCreators.logout, dispatch);
+    // const logout = bindActionCreators(userActionCreators.logout, dispatch);
     const setError = bindActionCreators(errorActionCreators.setError, dispatch);
     return (
       <div className={this.state.container ? "App container" : "App"}>
@@ -141,7 +141,7 @@ class App extends Component<any, any> {
         <Navbar
           url={url}
           container={this.state.container}
-          logout={logout}
+          // logout={logout}
           login={login}
           user={user}
           searchTerm={searchTerm}
