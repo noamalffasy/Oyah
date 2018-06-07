@@ -11,7 +11,7 @@ import initApollo from "./initApollo";
 import initRedux from "./initRedux";
 
 // import firebase, { app } from "./firebase";
-import { parse as parseCookie } from "../utils/cookie";
+// import { parse as parseCookie } from "../utils/cookie";
 
 import gql from "graphql-tag";
 
@@ -62,27 +62,17 @@ export default (ComposedComponent: any) => {
       // Initial stateRedux with apollo (empty)
       let stateRedux = {};
 
-      const jwt =
-        !process.browser &&
-        ctx.req &&
-        ctx.req.headers.cookie &&
-        parseCookie(ctx.req.headers.cookie)
-          ? parseCookie(ctx.req.headers.cookie).session
-          : null;
-
       // Setup a server-side one-time-use apollo client for initial props and
       // rendering (on server)
-      const apollo = initApollo(stateRedux, ctx, jwt);
+      const apollo = initApollo(stateRedux, ctx);
       const redux = initRedux(stateRedux);
 
       // const user = app.auth().currentUser
       //   ? apollo
+
       const currentUser = await apollo
         .query({
-          query: currentUserQuery,
-          variables: {
-            cookie: jwt
-          }
+          query: currentUserQuery
         })
         .then(res => res.data.currentUser)
         .catch(() => null);
@@ -101,7 +91,7 @@ export default (ComposedComponent: any) => {
             }
           : null;
 
-      apollo.writeQuery({ query: currentUserQuery, data: { currentUser } });
+      // apollo.writeQuery({ query: currentUserQuery, data: { currentUser } });
 
       // Evaluate the composed component's getInitialProps()
       let composedInitialProps = {};
@@ -184,6 +174,8 @@ export default (ComposedComponent: any) => {
             query: currentUserQuery
           })
           .then(res => {
+            console.log(res);
+
             if (res.data.currentUser.user) {
               login({
                 ...res.data.currentUser.user,

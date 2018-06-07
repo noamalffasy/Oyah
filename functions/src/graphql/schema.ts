@@ -606,6 +606,9 @@ const Mutation = new GraphQLObjectType({
           title: {
             type: GraphQLString
           },
+          path: {
+            type: GraphQLString
+          },
           content: {
             type: GraphQLString
           },

@@ -114,12 +114,14 @@ interface State {
     mutation updateArticle(
       $id: String!
       $title: String!
+      $path: String
       $content: String!
       $authInfo: AuthInfo
     ) {
       updateArticle(
         id: $id
         title: $title
+        path: $path
         content: $content
         authInfo: $authInfo
       ) {
@@ -164,42 +166,8 @@ class WriteArticle extends Component<Props, State> {
   static async getInitialProps(
     { pathname, query: { id: _id } }: any,
     apolloClient: any,
-    _user: any
+    user: any
   ) {
-    const user =
-      _user === undefined
-        ? await apolloClient
-            .query({
-              query: gql`
-                {
-                  currentUser {
-                    user {
-                      id
-                      nametag
-                      email
-                      small_image
-                      image
-                      likes
-                      comment_likes
-                      bio
-                      name
-                      mains
-                      reddit
-                      twitter
-                      editor
-                      is_team
-                    }
-                  }
-                }
-              `
-            })
-            .then(res => {
-              return res.data.currentUser.user;
-            })
-            .catch(() => {
-              return undefined;
-            })
-        : _user;
     const id =
       _id === undefined
         ? uuid()
@@ -221,6 +189,7 @@ class WriteArticle extends Component<Props, State> {
               getArticle(id: $id) {
                 id
                 title
+                path
                 content
                 author {
                   id
@@ -296,10 +265,10 @@ class WriteArticle extends Component<Props, State> {
         });
     } else {
       return {
-        newArticle: {
-          id
-        },
-        notAuthorized: false
+        // newArticle: {
+        //   id
+        // },
+        notAuthorized: true
       };
     }
   }
@@ -386,7 +355,7 @@ class WriteArticle extends Component<Props, State> {
   async setImageScaleRatio() {
     const imgURL = this.state.image || this.props.newArticle.image;
     const { width, height } = await this.getDimensionsOfImage(imgURL);
-    const scaleRatio = `${100 * height / width}%`;
+    const scaleRatio = `${(100 * height) / width}%`;
 
     this.setState(prevState => ({
       ...prevState,
@@ -447,9 +416,7 @@ class WriteArticle extends Component<Props, State> {
     const image = this.state.image
       ? this.imageDialog.files.length > 0
         ? this.imageDialog.files[0]
-        : this.state.image.startsWith("/img/articles/")
-          ? this.state.image
-          : this.state.image
+        : this.state.image
       : null;
     const content = this.editor.text() || this.editor.props.value || "";
     let imagePath = null;
@@ -487,6 +454,7 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
+                    path: res.data.uploadFile.path,
                     content,
                     authorID: this.props.user.id,
                     authInfo: {
@@ -520,6 +488,7 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
+                    path: res.data.uploadFile.path,
                     content,
                     authInfo: {
                       idToken: this.props.user.idToken
@@ -583,6 +552,7 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
+                    path: res.data.uploadFile.path,
                     content,
                     authorID: this.props.user.id,
                     authInfo: {
@@ -614,6 +584,7 @@ class WriteArticle extends Component<Props, State> {
                   variables: {
                     id: this.props.newArticle.id,
                     title,
+                    path: res.data.uploadFile.path,
                     content,
                     authInfo: {
                       idToken: this.props.user.idToken
@@ -1025,4 +996,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(WriteArticle));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(WriteArticle)
+);

@@ -1,4 +1,4 @@
-import * as sequelize from "sequelize";
+// import * as sequelize from "sequelize";
 // import jwt from "express-jwt";
 import * as toArray from "stream-to-array";
 import * as sharp from "sharp";
@@ -26,36 +26,43 @@ const MAGIC_NUMBERS = {
   gif: "47494638"
 };
 
+async function saveCookie({ res }, idToken) {
+  const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
+
+  await admin
+    .auth()
+    .createSessionCookie(idToken, { expiresIn })
+    .then(
+      async cookie => {
+        const options = {
+          maxAge: expiresIn,
+          httpOnly: true,
+          secure: false
+          // secure: true
+        };
+
+        res.cookie("__session", cookie, options);
+      },
+      err => {
+        throw err;
+      }
+    );
+}
+
 async function isLoggedIn(
   { req, res },
-  { idToken, cookie } = { idToken: null, cookie: null }
+  { cookie: _cookie } = { cookie: null }
 ) {
   return new Promise(async (resolve, reject) => {
-    if (idToken !== null) {
-      await admin
-        .auth()
-        .verifyIdToken(idToken, true)
-        .then(async decodedToken => {
-          const { uid } = decodedToken;
+    const cookie = _cookie
+      ? _cookie
+      : req && req.cookies && Object.keys(req.cookies).length !== 0
+        ? req.cookies["__session"]
+        : res.locals && res.locals.sessCookie
+          ? res.locals.sessCookie
+          : null;
 
-          const user = await User.get({ id: uid })
-            .then((user: any) => {
-              if (user !== null) {
-                return user;
-              } else {
-                reject("User doesn't exist");
-              }
-            })
-            .catch((err: Error) => {
-              reject(err);
-            });
-
-          resolve(user);
-        })
-        .catch(err => {
-          reject("Not logged in");
-        });
-    } else if (cookie !== null) {
+    if (cookie) {
       await admin
         .auth()
         .verifySessionCookie(cookie, true)
@@ -70,83 +77,16 @@ async function isLoggedIn(
                 reject("User doesn't exist");
               }
             })
-            .catch(async err => {
-              if (err.code === "") {
-                const cookie =
-                  req.cookies && req.cookies.session
-                    ? req.cookies.session
-                    : res.locals && res.locals.jwt
-                      ? res.locals.jwt
-                      : req.headers.cookie &&
-                        parseCookie(req.headers.cookie) &&
-                        parseCookie(req.headers.cookie).session
-                        ? parseCookie(req.headers.cookie).session
-                        : "";
-
-                await admin
-                  .auth()
-                  .verifySessionCookie(cookie, true)
-                  .then(async decodedClaims => {
-                    const { uid } = decodedClaims;
-
-                    const user = await User.get({ id: uid })
-                      .then((user: any) => {
-                        if (user !== null) {
-                          return user;
-                        } else {
-                          reject("User doesn't exist");
-                        }
-                      })
-                      .catch((err: Error) => {
-                        reject(err);
-                      });
-                    resolve(user);
-                  })
-                  .catch(err => {
-                    reject("Not logged in");
-                  });
-              } else {
-                reject(err);
-              }
+            .catch((err: Error) => {
+              reject(err);
             });
           resolve(user);
         })
-        .catch(err => {
+        .catch(() => {
           reject("Not logged in");
         });
     } else {
-      const cookie =
-        req.cookies && req.cookies.session
-          ? req.cookies.session
-          : res.locals && res.locals.jwt
-            ? res.locals.jwt
-            : parseCookie(req.headers.cookie) &&
-              parseCookie(req.headers.cookie).session
-              ? parseCookie(req.headers.cookie).session
-              : "";
-
-      await admin
-        .auth()
-        .verifySessionCookie(cookie, true)
-        .then(async decodedClaims => {
-          const { uid } = decodedClaims;
-
-          const user = await User.get({ id: uid })
-            .then((user: any) => {
-              if (user !== null) {
-                return user;
-              } else {
-                reject("User doesn't exist");
-              }
-            })
-            .catch((err: Error) => {
-              reject(err);
-            });
-          resolve(user);
-        })
-        .catch(err => {
-          reject("Not logged in");
-        });
+      reject("Not logged in");
     }
   });
 }
@@ -235,7 +175,7 @@ export default {
   },
 
   currentUser: async (_: any, params, ctx: any) => {
-    return await isLoggedIn(ctx)
+    return await isLoggedIn(ctx, params.authInfo)
       .then(async user => {
         return { user };
       })
@@ -253,7 +193,7 @@ export default {
     //   throw err;
     // });
   },
-  allArticles: async () => {
+  allArticles: async (_: any, params, ctx: any) => {
     return await Article.getAll()
       .then((articles: any) => articles)
       .catch(err => {
@@ -311,19 +251,8 @@ export default {
     return await isLoggedIn(ctx, authInfo)
       .then(async user => {
         const { idToken } = authInfo;
-        const expiresIn = 60 * 60 * 24 * 5 * 1000;
 
-        await admin
-          .auth()
-          .createSessionCookie(idToken, { expiresIn })
-          .then(cookie => {
-            const options = {
-              maxAge: expiresIn,
-              httpOnly: true
-              // secure: true
-            };
-            ctx.res.cookie("session", cookie, options);
-          });
+        await saveCookie(ctx, idToken);
 
         return { user };
       })
@@ -367,18 +296,7 @@ export default {
             throw err;
           });
 
-        const expiresIn = 60 * 60 * 24 * 5 * 1000;
-        await admin
-          .auth()
-          .createSessionCookie(idToken, { expiresIn })
-          .then(cookie => {
-            const options = {
-              maxAge: expiresIn,
-              httpOnly: true
-              // secure: true
-            };
-            ctx.res.cookie("session", cookie, options);
-          });
+        await saveCookie(ctx, idToken);
 
         return {
           user: {
@@ -767,17 +685,17 @@ export default {
   },
   updateArticle: async (
     _: any,
-    { id, title, content, authInfo }: any,
+    { id, title, path: _path, content, authInfo }: any,
     ctx: any
   ) => {
     return await isLoggedIn(ctx, authInfo)
       .then(async (user: any) => {
         const article: any = await Article.get({ id });
         if (article.authorID.toString() === user.id) {
-          const path = `https://storage.googleapis.com/oyah.xyz/articles/${id}/main.jpeg`;
+          const path = _path ? _path : article.path;
 
           return await Article.update({ id, title, path, content })
-            .then((result: any) => {
+            .then(() => {
               return {
                 id,
                 title,
@@ -830,7 +748,7 @@ export default {
     // const req = root.rootValue.req;
     return await isLoggedIn(ctx, authInfo)
       .then(async (user: any) => {
-        const path = require("path");
+        // const path = require("path");
         const util = require("util");
         const shortid = require("shortid");
         const _file = await file;
@@ -866,10 +784,10 @@ export default {
               buffer,
               "binary"
             )
-              .then(async result => {
+              .then(async () => {
                 if (where === "user") {
                   return await User.update({ id: user.id, image: filename })
-                    .then(async (result: any) => {
+                    .then(async () => {
                       saveResizedImages(buffer, `users/${filename}`);
                     })
                     .catch((err: any) => {
@@ -878,6 +796,10 @@ export default {
                 } else {
                   saveResizedImages(buffer, `articles/${filename}`);
                 }
+
+                console.log(
+                  `https://storage.googleapis.com/oyah.xyz/articles/${filename}`
+                );
 
                 return {
                   path:
