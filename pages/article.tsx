@@ -517,12 +517,7 @@ class ArticlePage extends Component<Props, State> {
                 {(this.props.article.title || "Article") + ` | Oyah`}
               </title>
               <meta name="description" content={this.props.article.content} />
-              <meta
-                name="og:image"
-                content={`https://oyah.xyz/articles/${
-                  this.props.article.id
-                }/main.jpeg`}
-              />
+              <meta name="og:image" content={this.props.article.path} />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>
               <div className="Content" style={{ paddingBottom: "2rem" }}>
@@ -2387,4 +2382,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(ArticlePage));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(ArticlePage)
+);
