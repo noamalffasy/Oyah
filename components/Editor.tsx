@@ -322,6 +322,15 @@ class CustomEditor extends Component<Props, State> {
               "segoe ui emoji", "segoe ui symbol";
           }
 
+          .Editor .DraftEditor-editorContainer h1 span,
+          .Editor .DraftEditor-editorContainer h2 span,
+          .Editor .DraftEditor-editorContainer h3 span,
+          .Editor .DraftEditor-editorContainer h4 span,
+          .Editor .DraftEditor-editorContainer h5 span,
+          .Editor .DraftEditor-editorContainer h6 span {
+            font-weight: 600;
+          }
+
           .Editor .DraftEditor-editorContainer a {
             cursor: text;
           }

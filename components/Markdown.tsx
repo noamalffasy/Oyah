@@ -60,6 +60,10 @@ class Markdown extends Component<Props> {
             text-align: left;
           }
 
+          ${this.props.className || ".body"} h1 > strong {
+            font-weight: 600;
+          }
+
           ${this.props.className || ".body"} p {
             margin-bottom: 1.5rem;
           }
