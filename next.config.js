@@ -4,6 +4,8 @@ const withTypescript = require("@zeit/next-typescript");
 const withCSS = require("@zeit/next-css");
 const SWPrecacheWebpackPlugin = require("sw-precache-webpack-plugin");
 
+const dev = process.env.NODE_ENV !== "production"
+
 module.exports = withCSS(
   withTypescript({
     cssModules: true,
@@ -13,14 +15,16 @@ module.exports = withCSS(
       localIdentName: "[local]___[hash:base64:5]"
     },
     useFileSystemPublicRoutes: false,
-    distDir: "./dist/functions/next",
-    webpack: (config, { dev }) => {
+    distDir: dev ? ".next" : "next",
+    webpack: (config, {
+      dev
+    }) => {
       const prevEntry = config.entry;
       // Service worker
       config.entry = () =>
         prevEntry().then(entry => {
           if (entry["main.js"]) {
-            entry["main.js"].push(path.resolve("./utils/offline"));
+            entry["main.js"].push(path.resolve("../../utils/offline"));
           }
           return entry;
         });
@@ -28,11 +32,10 @@ module.exports = withCSS(
         config.plugins.push(
           new SWPrecacheWebpackPlugin({
             cacheId: "oyah",
-            filepath: path.resolve("./public/sw.js"),
+            filepath: path.resolve("../../public/sw.js"),
             minify: true,
             staticFileGlobsIgnorePatterns: [/next\//, /bundles/],
-            runtimeCaching: [
-              {
+            runtimeCaching: [{
                 handler: "fastest",
                 urlPattern: /[.](.[[png|jpg|jpeg|css]])/
               },

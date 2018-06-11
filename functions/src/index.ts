@@ -6,7 +6,7 @@ import nextRoutes from "./nextRoutes";
 import apiRoutes from "./apiRoutes";
 
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev, conf: { distDir: "next" } });
+const app = next({ dev, dir: "../../" });
 const handle = app.getRequestHandler();
 
 const nextServer = express();
