@@ -839,6 +839,8 @@ class Login extends Component<LoginProps, LoginState> {
   }
 
   loginWith(provider) {
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
     firebase
       .auth()
       .signInWithPopup(provider)
@@ -877,7 +879,7 @@ class Login extends Component<LoginProps, LoginState> {
               }}
               onClick={() => this.loginWith(this.GoogleProvider)}
             />
-            <FacebookLoginButton
+            {/* <FacebookLoginButton
               text="Sign in with Facebook"
               size="40px"
               iconSize="18px"
@@ -888,7 +890,7 @@ class Login extends Component<LoginProps, LoginState> {
                 background: "rgb(59, 89, 152)"
               }}
               onClick={() => this.loginWith(this.FacebookProvider)}
-            />
+            /> */}
             <TwitterLoginButton
               text="Sign in with Twitter"
               size="40px"
@@ -1006,6 +1008,8 @@ class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
   }
 
   loginWith(provider) {
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
     firebase
       .auth()
       .signInWithPopup(provider)
@@ -1047,7 +1051,7 @@ class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
               }}
               onClick={() => this.loginWith(this.GoogleProvider)}
             />
-            <FacebookLoginButton
+            {/* <FacebookLoginButton
               text="Sign up with Facebook"
               size="40px"
               iconSize="18px"
@@ -1058,7 +1062,7 @@ class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
                 background: "rgb(59, 89, 152)"
               }}
               onClick={() => this.loginWith(this.FacebookProvider)}
-            />
+            /> */}
             <TwitterLoginButton
               text="Sign up with Twitter"
               size="40px"
