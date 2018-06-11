@@ -4,25 +4,50 @@ import { Component } from "react";
 import { connect } from "react-redux";
 
 import Head from "next/head";
+import Router from "next/router";
 import Error from "./_error";
 
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import App from "../components/App";
+import Input from "../components/Input";
 import Article from "../components/Article";
 
 // GraphQL
 import gql from "graphql-tag";
+import graphql from "../utils/graphql";
 
 import withData from "../lib/withData";
 
 interface Props {
   searchTerm: any;
   articles: any;
-  url?: any;
-}
-interface State {
-  articles: any[];
+  searchArticle?: any;
 }
 
+interface State {
+  articles: any[];
+  searchTerm: string;
+}
+
+@graphql(
+  gql`
+    mutation searchArticle($searchTerm: String!) {
+      searchArticle(searchTerm: $searchTerm) {
+        id
+        path
+        title
+        author {
+          id
+          is_team
+        }
+      }
+    }
+  `,
+  {
+    name: "searchArticle"
+  }
+)
 class Search extends Component<Props, State> {
   static async getInitialProps(
     { query: { q: searchTerm } }: any,
@@ -50,7 +75,7 @@ class Search extends Component<Props, State> {
       .then((res: any) => {
         if (res.error) {
           return {
-            searchTerm,
+            searchTerm: decodeURI(searchTerm),
             error: res.error
           };
         } else {
@@ -70,34 +95,132 @@ class Search extends Component<Props, State> {
       });
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.searchTerm !== this.props.searchTerm) {
+      this.props
+        .searchArticle({
+          variables: {
+            searchTerm: nextProps.searchTerm
+          }
+        })
+        .then((res: any) => {
+          if (res.errors) {
+            res.errors.forEach((error: any) => {
+              console.error(error);
+            });
+          } else {
+            const articles = res.data.searchArticle;
+
+            this.setState(prevState => ({
+              ...prevState,
+              searchTerm: nextProps.searchTerm,
+              articles
+            }));
+          }
+        });
+    }
+  }
+
+  state = {
+    searchTerm: this.props.searchTerm,
+    articles: this.props.articles
+  };
+
+  search = e => {
+    const searchTerm = e.target.value;
+
+    setTimeout(() => {
+      searchTerm.length > 0
+        ? Router.push(
+            `/Search?q=${encodeURI(searchTerm)}`,
+            `/search?q=${encodeURI(searchTerm)}`
+          )
+        : Router.push("/Search", "/search");
+
+      this.setState(prevState => ({
+        ...prevState,
+        searchTerm
+      }));
+
+      if (searchTerm.length > 0) {
+        this.props
+          .searchArticle({
+            variables: {
+              searchTerm
+            }
+          })
+          .then((res: any) => {
+            if (res.errors) {
+              res.errors.forEach((error: any) => {
+                console.error(error);
+              });
+            } else {
+              const articles = res.data.searchArticle;
+
+              this.setState(prevState => ({
+                ...prevState,
+                articles
+              }));
+            }
+          });
+      }
+    }, 1500);
+  };
+
   render() {
-    const { searchTerm, articles } = this.props;
+    const { searchTerm, articles } = this.state;
     if (articles) {
-      if (articles.length > 0) {
-        return (
-          <App {...this.props}>
-            <div className="Search Content">
-              <Head>
-                <title>Search '{searchTerm}' | Oyah</title>
-                <meta
-                  name="description"
-                  content={`Searching '${searchTerm}' on Oyah`}
-                />
-              </Head>
-              {this.props.articles.map((elem: any, i: any) => {
-                return (
-                  <Article
-                    path={elem.path}
-                    title={elem.title}
-                    alt={elem.alt}
-                    id={elem.id}
-                    official={elem.author.is_team}
-                    loading={false}
-                    key={i}
-                  />
-                );
-              })}
+      return (
+        <App {...this.props}>
+          <div className="Search Content">
+            <Head>
+              <title>Search '{searchTerm}' | Oyah</title>
+              <meta
+                name="description"
+                content={`Searching '${searchTerm}' on Oyah`}
+              />
+            </Head>
+            <div className="searchbox">
+              {/* <button className="btn my-2 my-sm-0" type="submit">
+                  <FontAwesomeIcon icon="search" />
+                </button> */}
+              <Input
+                label="Search for an article"
+                type="search"
+                value={searchTerm}
+                autocomplete="off"
+                onChange={this.search}
+                // style={{
+                //   flex: "1 1",
+                //   margin: "0 1.5rem 0 0.5rem"
+                // }}
+              />
             </div>
+            {searchTerm.length > 0 && articles.length > 0 ? (
+              <div className="articles">
+                {articles.map((elem: any, i: any) => {
+                  return (
+                    <Article
+                      path={elem.path}
+                      title={elem.title}
+                      alt={elem.alt}
+                      id={elem.id}
+                      official={elem.author.is_team}
+                      loading={false}
+                      key={i}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              searchTerm.length > 0 && (
+                <div className="NotFound">
+                  {/* <h2>No Results</h2> */}
+                  {/* <p>Your search '{searchTerm}' didn't match any article</p> */}
+                  <p>We couldn't find any matching article</p>
+                </div>
+              )
+            )}
             <style jsx>{`
               .Content {
                 padding-bottom: 4.5rem;
@@ -109,11 +232,21 @@ class Search extends Component<Props, State> {
                 display: block;
               }
 
-              .Search {
+              .Search .searchbox {
+                width: 100%;
+                font-size: 2rem;
+                margin-top: 0.5rem;
+              }
+
+              .Search .articles {
                 margin: 0 0 4rem;
                 display: flex;
                 flex-direction: row;
                 flex-wrap: wrap;
+              }
+
+              .Search .NotFound {
+                text-align: center;
               }
               @media (min-width: 576px),
                 @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
@@ -124,62 +257,44 @@ class Search extends Component<Props, State> {
               }
             `}</style>
             <style jsx global>{`
-              .Search .Article {
+              .Search .searchbox .Input span::after {
+                margin: -0.3rem 0 0 0;
+              }
+
+              .Search .articles .Article {
                 /* flex: 1 1; */
                 /* margin: 0 0.5rem; */
                 /* margin: 0.5rem; */
                 /* margin: 0 0.5rem 0.5rem 0; */
                 margin: 0 auto 0.7rem;
+                width: 100%;
                 /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
                 /* width: calc(1/2*100% - 1/2*2.5rem); */
               }
-              .Search .Article .image {
+
+              .Search .articles .Article .image {
                 min-height: 20rem;
               }
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-                .Search .Article {
+                .Search .articles .Article {
                   width: calc(1 / 2 * 100% - 1 / 2 * 2.5rem);
                 }
               }
               @media (min-width: 992px),
                 @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
-                .Search .Article {
+                .Search .articles .Article {
                   width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
                   height: 15rem;
                   overflow: hidden;
                 }
               }
             `}</style>
-          </App>
-        );
-      } else {
-        return (
-          <App {...this.props}>
-            <div className="NotFound Content">
-              <h2>No Results</h2>
-              <p>Your search '{searchTerm}' didn't match any article</p>
-            </div>
-            <style jsx>{`
-              .NotFound {
-                text-align: center;
-              }
-
-              .NotFound > h2 {
-                font-size: 4rem;
-                color: #cc0000;
-              }
-
-              .NotFound > p {
-                font-size: 2rem;
-              }
-            `}</style>
-          </App>
-        );
-      }
-    } else {
-      return <Error {...this.props} statusCode={501} />;
+          </div>
+        </App>
+      );
     }
+    return <Error {...this.props} statusCode={501} />;
   }
 }
 
@@ -189,4 +304,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(Search));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(Search)
+);

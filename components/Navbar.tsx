@@ -2,7 +2,7 @@ import * as React from "react";
 import { Component } from "react";
 import { findDOMNode } from "react-dom";
 
-import { withRouter, SingletonRouter } from "next/router";
+import Router from "next/router";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RoundShape } from "react-placeholder/lib/placeholders";
@@ -27,8 +27,6 @@ interface Props {
   container: any;
   login: any;
   user: any;
-  router?: SingletonRouter;
-  searchTerm: any;
   openSignInModal: any;
   closeSignInModal: any;
 }
@@ -37,6 +35,7 @@ interface State {
   focus: boolean;
   container: boolean;
   navOpen: boolean;
+  searchOpen: boolean;
   searchTerm: any;
 }
 
@@ -48,6 +47,7 @@ class Navbar extends Component<Props, State> {
       focus: false,
       container: props.container,
       navOpen: false,
+      searchOpen: false,
       searchTerm: ""
     };
 
@@ -58,16 +58,12 @@ class Navbar extends Component<Props, State> {
     this.search = this.search.bind(this);
   }
 
+  input: Input;
+
+  searchbox: HTMLDivElement;
+
   componentDidMount() {
     this.addContainer(this.props);
-
-    if (this.props.url.pathname === "/Search") {
-      const { searchTerm } = this.props;
-      this.setState((prevState: any) => ({
-        ...prevState,
-        searchTerm
-      }));
-    }
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -122,9 +118,30 @@ class Navbar extends Component<Props, State> {
   search(e: any) {
     e.preventDefault();
 
-    const searchTerm = this.input.input.value;
+    if (this.state.searchOpen) {
+      const searchTerm = this.input.input.value;
 
-    this.props.router.push(`/search?q=${encodeURI(searchTerm)}`);
+      Router.push(
+        `/Search?q=${encodeURI(searchTerm)}`,
+        `/search?q=${encodeURI(searchTerm)}`
+      ).then(() => {
+        this.input.input.value = "";
+
+        this.setState(prevState => ({
+          ...prevState,
+          searchOpen: false
+        }));
+      });
+    } else {
+      this.setState(prevState => ({
+        ...prevState,
+        searchOpen: true
+      }));
+
+      this.input.input.focus();
+    }
+    // .then(res => console.log(res))
+    // .catch(err => console.log(err));
 
     // this.props
     //   .searchArticle({
@@ -181,26 +198,45 @@ class Navbar extends Component<Props, State> {
                 </Link>
               </li>
             </ul>
-            <form
+            <div
               className="search form-inline my-2 my-lg-0"
-              onSubmit={this.search}
+              tabIndex={99999}
+              onFocus={() => {
+                this.input.input.focus();
+
+                this.setState(prevState => ({
+                  ...prevState,
+                  searchOpen: true
+                }));
+              }}
+              onBlur={() => {
+                this.input.input.blur();
+
+                this.setState(prevState => ({
+                  ...prevState,
+                  searchOpen: false
+                }));
+              }}
+              ref={div => (this.searchbox = div)}
             >
-              <button className="btn my-2 my-sm-0" type="submit">
+              <button className="btn my-2 my-sm-0" onClick={this.search}>
                 <FontAwesomeIcon icon="search" />
               </button>
               <Input
                 label="Search for an article"
                 type="search"
                 value={this.state.searchTerm}
-                style={{
-                  flex: "1 1",
-                  margin: "0 1.5rem 0 0.5rem"
+                onKeyPress={e => {
+                  if (e.key === "Enter") {
+                    this.search(e);
+                  }
                 }}
+                style={this.state.searchOpen ? {} : { width: 0 }}
                 ref={input => {
                   this.input = input;
                 }}
               />
-            </form>
+            </div>
             <Account
               client={this.props.client}
               login={this.props.login}
@@ -251,14 +287,22 @@ class Navbar extends Component<Props, State> {
             }
 
             .navbar .search {
+              display: flex;
               margin: 0 auto;
               width: 15rem;
-              display: flex;
+              outline: 0;
             }
 
             .navbar .search button {
               background: none;
               color: #cc0000;
+              transition: all 0.3s;
+            }
+            @media (min-width: 768px),
+              @media(min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+              .navbar .search button {
+                padding-right: 0;
+              }
             }
 
             @media (min-width: 992px),
@@ -287,11 +331,26 @@ class Navbar extends Component<Props, State> {
             .navbar .navbar-toggler span {
               background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
             }
+
             .navbar .search button svg {
               max-width: 1rem;
             }
+
+            .navbar .search .Input {
+              flex: 1 1;
+              padding: 1rem 0 0.15rem 0;
+              margin: -1rem 1.5rem 0 0.5rem;
+              width: 12rem;
+              overflow: hidden;
+              transition: all 0.3s;
+            }
+
             .navbar .search .Input span input {
               padding: 0;
+            }
+
+            .navbar .search .Input span::after {
+              margin: -0.05rem 0 0 0;
             }
           `}</style>
         </nav>
@@ -304,7 +363,6 @@ class Account extends Component<any, any> {
   constructor(props: any) {
     super(props);
 
-    this.Account = null;
     this.state = {
       loggedIn: false,
       user: {
@@ -321,6 +379,8 @@ class Account extends Component<any, any> {
     this.openInfo = this.openInfo.bind(this);
     this.toggleInfo = this.toggleInfo.bind(this);
   }
+
+  Account = null;
 
   ctrls: {
     nametag?: HTMLHeadingElement;
@@ -563,20 +623,16 @@ class Account extends Component<any, any> {
             </div>
             <div className="links">
               <Link href="/WriteArticle" as="/articles/new">
-                <a onClick={() => findDOMNode(this.Account).focus()}>
-                  Write article
-                </a>
+                <a onClick={() => this.Account.focus()}>Write article</a>
               </Link>
               <Link
                 href={`/Profile?nametag=${this.state.user.nametag}`}
                 as={`/users/${this.state.user.nametag}`}
               >
-                <a onClick={() => findDOMNode(this.Account).focus()}>Profile</a>
+                <a onClick={() => this.Account.focus()}>Profile</a>
               </Link>
               <Link href="/Settings" as="/settings">
-                <a onClick={() => findDOMNode(this.Account).focus()}>
-                  Settings
-                </a>
+                <a onClick={() => this.Account.focus()}>Settings</a>
               </Link>
               <a
                 href="/signout"
@@ -795,4 +851,4 @@ class Account extends Component<any, any> {
   }
 }
 
-export default withRouter(withApollo(Navbar));
+export default withApollo(Navbar);

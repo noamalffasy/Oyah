@@ -3,10 +3,18 @@
 import * as toArray from "stream-to-array";
 import * as sharp from "sharp";
 import * as admin from "firebase-admin";
+import * as algoliasearch from "algoliasearch";
 
 import { User, Article, Comment, Quote } from "../db/models";
+import config from "../config";
 
-import { parse as parseCookie } from "../utils/cookie";
+// import { parse as parseCookie } from "../utils/cookie";
+
+const client = algoliasearch(
+  config.algoliaKeys.ApplicationID,
+  config.algoliaKeys.APIKey
+);
+const searchIndex = client.initIndex("articles");
 
 const serviceAccount = require("../serviceAccountKey.json");
 const bucket = admin.storage().bucket("oyah.xyz");
@@ -425,27 +433,37 @@ export default {
     // }
   },
   searchArticle: async (_: any, { searchTerm }: any) => {
-    return await Article.getAll({
-      where: {
-        or: [
-          {
-            title(title) {
-              return title.toLowerCase().includes(searchTerm.toLowerCase());
-            }
-          },
-          {
-            content(content) {
-              return content.toLowerCase().includes(searchTerm.toLowerCase());
-            }
-          }
-        ]
-      },
-      order: ["createdAt", "DESC"]
-    })
-      .then((articles: any) => articles)
+    return await searchIndex
+      .search({
+        query: searchTerm,
+        attributesToRetrieve: ["id", "authorID", "title", "path"],
+        restrictSearchableAttributes: ["title", "content"]
+      })
+      .then(res => res.hits.map(article => ({ ...article, exists: true })))
       .catch(err => {
         throw err;
       });
+    // return await Article.getAll({
+    //   where: {
+    //     or: [
+    //       {
+    //         title(title) {
+    //           return title.toLowerCase().includes(searchTerm.toLowerCase());
+    //         }
+    //       },
+    //       {
+    //         content(content) {
+    //           return content.toLowerCase().includes(searchTerm.toLowerCase());
+    //         }
+    //       }
+    //     ]
+    //   },
+    //   order: ["createdAt", "DESC"]
+    // })
+    //   .then((articles: any) => articles)
+    //   .catch(err => {
+    //     throw err;
+    //   });
   },
   getArticle: async (_: any, { id }: any) => {
     return await Article.get({ id }).then(async (article: any) => {
@@ -667,6 +685,8 @@ export default {
             createdAt: new Date().toString()
           };
 
+          searchIndex.addObject({ objectID: id, ...newArticle });
+
           return await Article.getOrCreate(
             { id: newArticle.id },
             { ...newArticle, id: newArticle.id }
@@ -694,14 +714,21 @@ export default {
         if (article.authorID.toString() === user.id) {
           const path = _path ? _path : article.path;
 
-          return await Article.update({ id, title, path, content })
+          const newArticle = {
+            id,
+            title,
+            path,
+            content
+          };
+
+          return await Article.update(newArticle)
             .then(() => {
-              return {
-                id,
-                title,
-                path,
-                content
-              };
+              searchIndex.partialUpdateObject({
+                objectID: id,
+                ...newArticle
+              });
+
+              return newArticle;
             })
             .catch((err: Error) => {
               throw err;
@@ -724,6 +751,8 @@ export default {
         if (article.authorID.toString() === user.id) {
           return await Article.destroy({ id })
             .then((result: any) => {
+              searchIndex.deleteObject(id);
+
               return { status: result };
             })
             .catch((err: Error) => {

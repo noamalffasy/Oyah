@@ -11,6 +11,8 @@ interface Props extends React.Props<Input> {
   label: string;
   name?: string;
   type: string;
+  onChange?: any;
+  onKeyPress?: any;
   half?: boolean;
   className?: string;
   value?: string;
@@ -60,6 +62,9 @@ class Input extends Component<Props, State> {
     this.isEmpty = this.isEmpty.bind(this);
     this.reset = this.reset.bind(this);
   }
+
+  input: HTMLInputElement;
+  textarea: Textarea;
 
   componentDidMount() {
     if (
@@ -129,6 +134,13 @@ class Input extends Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
+    if (
+      nextProps.value !== "" &&
+      nextProps !== undefined &&
+      nextProps.value !== this.props.value
+    ) {
+      this.input.value = nextProps.value;
+    }
     if (
       nextProps.value !== "" &&
       nextProps.value !== undefined &&
@@ -572,8 +584,7 @@ class Input extends Component<Props, State> {
               onClick={e => {
                 e.preventDefault();
 
-                const input = findDOMNode(this.input);
-                input.focus();
+                this.input.focus();
               }}
               onFocus={this.selectInput}
               onBlur={this.deselectInput}
@@ -1406,6 +1417,8 @@ class Input extends Component<Props, State> {
                 name={this.props.type}
                 type={this.props.type}
                 autoComplete={this.props.autocomplete}
+                onChange={this.props.onChange ? this.props.onChange : () => {}}
+                onKeyPress={this.props.onKeyPress}
                 required
                 ref={input => {
                   this.input = input;
