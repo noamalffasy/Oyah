@@ -10,8 +10,6 @@ import { apolloUploadExpress } from "apollo-upload-server";
 
 import schema from "./graphql/schema";
 
-import config from "./config";
-
 const rememberSession = (req, res, next) => {
   res.set("Cache-Control", "private");
   return next();
@@ -20,24 +18,21 @@ const rememberSession = (req, res, next) => {
 export default (app: express.Application) => {
   const dev = process.env.NODE_ENV !== "production";
 
-  // app.set("trust proxy", 1);
+  // app.enable("trust proxy");
 
   app.use(cookieParser());
 
   app.use(
     cors({
-      origin(origin, callback) {
-        // console.log(origin);
-
-        // const domains = ["http://localhost:5000", "https://oyah.xyz"];
-        // if (domains.indexOf(origin) !== -1) {
-        //   callback(null, true);
-        // } else {
-        //   callback(new Error("Not allowed by CORS"));
-        // }
-        callback(null, true);
-      },
-      credentials: true
+      credentials: true,
+      origin: dev ? "http://localhost:5000" : "https://oyah.xyz"
+    })
+  );
+  app.options(
+    dev ? "http://localhost:5000" : "https://oyah.xyz",
+    cors({
+      credentials: true,
+      origin: dev ? "http://localhost:5000" : "https://oyah.xyz"
     })
   );
 
