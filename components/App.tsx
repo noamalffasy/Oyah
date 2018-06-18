@@ -165,7 +165,7 @@ class App extends Component<any, any> {
         />
         <style jsx>{`
           .App {
-            min-height: 100%;
+            min-height: 100vh;
             position: relative;
           }
         `}</style>
