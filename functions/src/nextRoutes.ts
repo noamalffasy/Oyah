@@ -15,7 +15,7 @@ const rememberSession = (req, res, next) => {
 //   maxAge: 1000 * 60 * 60 * 24 // 1 Day
 // });
 
-export default (app: express.Application, nextApp, handle) => {
+export default async (app: express.Application, nextApp, handle) => {
   nextApp.prepare().then(() => {
     // app.set("trust proxy", 1);
 
@@ -45,9 +45,9 @@ export default (app: express.Application, nextApp, handle) => {
       return nextApp.render(req, res, "/index", req.query);
     });
 
-    app.get("/articles", (req, res) => {
-      return nextApp.render(req, res, "/Articles", req.query);
-    });
+    // app.get("/articles", (req, res) => {
+    //   return nextApp.render(req, res, "/Articles", req.query);
+    // });
 
     app.get("/articles/new/:id?", (req, res) => {
       if (req.params.id !== undefined) {
@@ -71,32 +71,39 @@ export default (app: express.Application, nextApp, handle) => {
       return nextApp.render(req, res, "/Search", req.query);
     });
 
-    app.get("/reset", (req, res) => {
-      return nextApp.render(req, res, "/reset", req.query);
-    });
+    // app.get("/reset", (req, res) => {
+    //   return nextApp.render(req, res, "/reset", req.query);
+    // });
 
-    app.get("/signup", (req, res) => {
-      return nextApp.render(req, res, "/signup", req.query);
-    });
+    app.post("/login", (req, res) => {
+      const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
 
-    app.get("/login", (req, res) => {
-      return nextApp.render(req, res, "/login", req.query);
+      const options: express.CookieOptions = {
+        maxAge: expiresIn,
+        httpOnly: true,
+        // secure: false
+        secure: true
+      };
+
+      res.cookie("__session", req.body, options);
+
+      res.send("Success");
     });
 
     app.get("/logout", (req, res) => {
       return nextApp.render(req, res, "/logout", req.query);
     });
 
-    app.get("/profile", (req, res) => {
-      return nextApp.render(req, res, "/Profile", req.query);
-    });
+    // app.get("/profile", (req, res) => {
+    //   return nextApp.render(req, res, "/Profile", req.query);
+    // });
 
     app.get("/settings", (req, res) => {
       return nextApp.render(req, res, "/Settings", req.query);
     });
 
     app.get("/signout", (req: any, res) => {
-      // res.clearCookie("session");
+      res.clearCookie("__session");
       // req.session = null;
       if (req.query.redirect_to) {
         res.redirect(decodeURIComponent(req.query.redirect_to));
