@@ -170,7 +170,7 @@ class Navbar extends Component<Props, State> {
           </Link>
           <NavbarToggler onClick={this.toggleNav} />
           <Collapse isOpen={this.state.navOpen} navbar>
-            <ul className="navbar-nav mr-auto">
+            {/* <ul className="navbar-nav mr-auto">
               <li
                 className={
                   this.props.url.pathname === "/" ||
@@ -197,9 +197,9 @@ class Navbar extends Component<Props, State> {
                   <a className="nav-link">Articles</a>
                 </Link>
               </li>
-            </ul>
+            </ul> */}
             <div
-              className="search form-inline my-2 my-lg-0"
+              className="search form-inline my-2 my-lg-0 ml-auto"
               tabIndex={99999}
               onFocus={() => {
                 this.input.input.focus();
