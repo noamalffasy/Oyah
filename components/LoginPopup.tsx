@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Component } from "react";
 
-import Router from "next/router";
+// import Router from "next/router";
+import Link from "next/link";
 
 import firebase, { app } from "../lib/firebase";
 
@@ -51,6 +52,7 @@ interface State {
           reddit
           twitter
         }
+        cookie
       }
     }
   `,
@@ -82,6 +84,7 @@ interface State {
           image
           small_image
         }
+        cookie
       }
     }
   `,
@@ -254,6 +257,8 @@ class LoginPopup extends Component<Props, State> {
             return idToken;
           })
           .catch(err => {
+            console.error(err);
+
             this.setState(prevState => ({
               ...prevState,
               error: "Was unable to verify the user"
@@ -272,7 +277,7 @@ class LoginPopup extends Component<Props, State> {
                 }
               }
             })
-            .then(res => {
+            .then(async res => {
               const user = {
                 ...res.data.createUser.user,
                 mains:
@@ -282,6 +287,15 @@ class LoginPopup extends Component<Props, State> {
                       ? res.data.createUser.user.mains
                       : null
               };
+
+              await fetch("https://oyah.xyz/login", {
+                body: res.data.createUser.cookie,
+                credentials: "include",
+                method: "POST"
+              }).catch(err => {
+                console.error(err);
+              });
+
               that.props.login({
                 ...user,
                 idToken
@@ -291,6 +305,8 @@ class LoginPopup extends Component<Props, State> {
               return false;
             })
             .catch(err => {
+              console.error(err);
+
               that.setState(prevState => ({
                 ...prevState,
                 error: err.message
@@ -306,7 +322,7 @@ class LoginPopup extends Component<Props, State> {
                 }
               }
             })
-            .then(res => {
+            .then(async res => {
               const user = {
                 ...res.data.signinUser.user,
                 mains:
@@ -316,6 +332,15 @@ class LoginPopup extends Component<Props, State> {
                       ? res.data.signinUser.user.mains
                       : null
               };
+
+              await fetch("https://oyah.xyz/login", {
+                body: res.data.signinUser.cookie,
+                credentials: "include",
+                method: "POST"
+              }).catch(err => {
+                console.error(err);
+              });
+
               that.props.login({
                 ...user,
                 idToken
@@ -325,6 +350,8 @@ class LoginPopup extends Component<Props, State> {
               return false;
             })
             .catch(err => {
+              console.error(err);
+
               that.setState(prevState => ({
                 ...prevState,
                 error: err.message
@@ -586,7 +613,13 @@ class LoginPopup extends Component<Props, State> {
                 className="close"
                 data-dismiss="modal"
                 aria-label="Close"
-                onClick={this.closeDialog}
+                onClick={() => {
+                  this.setState(prevState => ({
+                    ...prevState,
+                    error: false
+                  }));
+                  this.props.closeSignInModal();
+                }}
               >
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -712,6 +745,18 @@ class LoginPopup extends Component<Props, State> {
                   </a>
                 </p>
               )}
+              <p className="small-notice">
+                By {this.state.login ? "signing in" : "signing up"} you agree
+                to the following{" "}
+                <Link href="/policies/terms">
+                  <a>terms</a>
+                </Link>{" "}
+                and{" "}
+                <Link href="/policies/privacy">
+                  <a>privacy</a>
+                </Link>{" "}
+                policies
+              </p>
             </div>
           </div>
         </div>
@@ -771,8 +816,15 @@ class LoginPopup extends Component<Props, State> {
 
           .LoginPopup .modal-content .modal-footer {
             padding: 1rem 2rem 0.5rem;
+            flex-flow: column;
             justify-content: center;
             align-items: center;
+          }
+
+          .LoginPopup .modal-content .modal-footer p.small-notice {
+            width: 50%;
+            text-align: center;
+            font-size: 0.85rem;
           }
         `}</style>
         <style jsx global>{`
