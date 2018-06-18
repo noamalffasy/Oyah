@@ -187,7 +187,7 @@ class Search extends Component<Props, State> {
               <Input
                 label="Search for an article"
                 type="search"
-                value={searchTerm}
+                initial_value={searchTerm}
                 autocomplete="off"
                 onChange={this.search}
                 // style={{

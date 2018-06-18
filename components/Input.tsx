@@ -16,6 +16,7 @@ interface Props extends React.Props<Input> {
   half?: boolean;
   className?: string;
   value?: string;
+  initial_value?: string;
   selections?: string[];
   maxSelections?: number;
   checked?: boolean;
@@ -69,7 +70,7 @@ class Input extends Component<Props, State> {
   componentDidMount() {
     if (
       this.props.value !== "" &&
-      this.props.value !== undefined &&
+      this.props.value &&
       !this.state.focus
     ) {
       this.setState({
@@ -87,6 +88,29 @@ class Input extends Component<Props, State> {
         focus: true
       }));
     }
+
+    if (
+      this.props.initial_value !== "" && 
+      this.props.initial_value && 
+      !this.state.focus
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        focus: true
+      }));
+      findDOMNode(this.input).value = this.props.initial_value;
+      this.input.value = this.props.initial_value;
+    }
+
+    if (this.props.initial_value !== "" && this.props.initial_value) {
+      findDOMNode(this.input).value = this.props.initial_value;
+      this.input.value = this.props.initial_value;
+      this.setState(prevState => ({
+        ...prevState,
+        focus: true
+      }));
+    }
+
     if (
       this.props.type === "dropdown" ||
       this.props.type === "select-dropdown"
@@ -623,6 +647,7 @@ class Input extends Component<Props, State> {
                   <ul
                     {...props}
                     className="box"
+                    style={{ ...props.style, marginBottom: "0" }}
                     onClick={() =>
                       this.setState(prevState => ({
                         ...prevState,
