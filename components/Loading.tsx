@@ -24,6 +24,7 @@ class Loading extends Component {
                         position: relative;
                         height: 1.5rem;
                         width: 1.5rem;
+                        margin: 0 auto;
                         border: 2px solid #dbdbdb;  
                         border-color: #cc0000;
                         border-radius: 290486px;
