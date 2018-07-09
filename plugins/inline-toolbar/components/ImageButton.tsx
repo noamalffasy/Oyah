@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -40,14 +39,15 @@ interface ImageButtonProps {
   }
 )
 class ImageButton extends Component<ImageButtonProps> {
+  imageDialog: HTMLInputElement = null;
+
   preventBubblingUp = (e: any) => {
     e.preventDefault();
   };
 
   uploadImage = () => {
-    const imageDialog = findDOMNode(this.imageDialog);
     try {
-      imageDialog.click();
+      this.imageDialog.click();
     } catch (e) {
       var evt = document.createEvent("MouseEvents");
       evt.initMouseEvent(
@@ -67,27 +67,32 @@ class ImageButton extends Component<ImageButtonProps> {
         0,
         null
       );
-      imageDialog.dispatchEvent(evt);
+      this.imageDialog.dispatchEvent(evt);
     }
   };
 
   getFile = () => {
-    const imageDialog = findDOMNode(this.imageDialog);
+    const fr = new FileReader();
 
-    this.props
-      .uploadFile({
-        variables: {
-          file: imageDialog.files[0],
-          where: "article",
-          articleID: this.props.id
-        }
-      })
-      .then((res: any) => {
-        this.addImage(res.data.uploadFile.path);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    fr.onload = () => {
+      this.props
+        .uploadFile({
+          variables: {
+            // file: imageDialog.files[0],
+            where: "article",
+            articleID: this.props.id,
+            image: fr.result
+          }
+        })
+        .then((res: any) => {
+          this.addImage(res.data.uploadFile.path);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    };
+
+    fr.readAsDataURL(this.imageDialog.files[0]);
   };
 
   addImage = (image: any) => {

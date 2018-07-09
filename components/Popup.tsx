@@ -18,10 +18,8 @@ class Popup extends Component<Props, State> {
     right: "unset"
   };
 
-  ctrls: {
-    popupWrapper?: HTMLDivElement;
-    popup?: HTMLDivElement;
-  } = {};
+  popupWrapper?: HTMLDivElement = null;
+  popup?: HTMLDivElement = null;
 
   calcLeftAndRight(popupWrapper, documentElement) {
     return {
@@ -35,7 +33,7 @@ class Popup extends Component<Props, State> {
 
   componentDidMount() {
     const { left, right } = this.calcLeftAndRight(
-      this.ctrls.popupWrapper,
+      this.popupWrapper,
       document.documentElement
     );
     this.setState(prevState => ({
@@ -45,10 +43,10 @@ class Popup extends Component<Props, State> {
     }));
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(_, prevState) {
     if (this.state.open === true && this.state.open !== prevState.open) {
       const { left, right } = this.calcLeftAndRight(
-        this.ctrls.popupWrapper,
+        this.popupWrapper,
         document.documentElement
       );
       this.setState(prevState => ({
@@ -67,7 +65,7 @@ class Popup extends Component<Props, State> {
       }));
 
       if (nextProps.open === true) {
-        this.ctrls.popup.focus();
+        this.popup.focus();
       }
     }
   }
@@ -98,14 +96,14 @@ class Popup extends Component<Props, State> {
               }
             : {}
         }
-        ref={div => (this.ctrls.popupWrapper = div)}
+        ref={div => (this.popupWrapper = div)}
       >
         <div
           className="popup"
           tabIndex={0}
           onFocus={this.open}
           onBlur={this.close}
-          ref={div => (this.ctrls.popup = div)}
+          ref={div => (this.popup = div)}
         >
           {this.props.children}
         </div>

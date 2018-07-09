@@ -53,6 +53,7 @@ class EditorImage extends Component<EditorImageProps> {
         className={this.props.theme.image + " " + this.props.className}
         src={src}
         onClick={this.props.onClick}
+        alt=""
       />
     );
   }
@@ -126,16 +127,10 @@ function getBlockStyle(block: any) {
 }
 
 class CustomEditor extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-
-    this.handleKeyCommand = this._handleKeyCommand.bind(this);
-    this.mapKeyToEditorCommand = this._mapKeyToEditorCommand.bind(this);
-    this.toggleBlockType = this._toggleBlockType.bind(this);
-    this.toggleInlineStyle = this._toggleInlineStyle.bind(this);
-    this.focus = this.focus.bind(this);
-    this.onChange = this.onChange.bind(this);
-  }
+  handleKeyCommand = this._handleKeyCommand.bind(this);
+  mapKeyToEditorCommand = this._mapKeyToEditorCommand.bind(this);
+  toggleBlockType = this._toggleBlockType.bind(this);
+  toggleInlineStyle = this._toggleInlineStyle.bind(this);
 
   state = {
     editorState: EditorState.createWithContent(
@@ -145,9 +140,8 @@ class CustomEditor extends Component<Props, State> {
     videoModalOpen: false
   };
 
-  ctrls: {
-    VideoModal?: VideoModal;
-  } = {};
+  VideoModal: VideoModal = null;
+  editor: Editor = null;
 
   componentDidMount() {
     this.setState(prevState => ({
@@ -199,19 +193,19 @@ class CustomEditor extends Component<Props, State> {
     );
   }
 
-  focus() {
-    this.refs.editor.focus();
-  }
+  focus = () => {
+    this.editor.focus();
+  };
 
-  onChange(editorState: any) {
+  onChange = (editorState: any) => {
     this.setState(prevState => ({
       ...prevState,
       editorState
     }));
-  }
+  };
 
   onClickEditor = e => {
-    if (!findDOMNode(this.ctrls.VideoModal).contains(e.target)) {
+    if (!findDOMNode(this.VideoModal).contains(e.target)) {
       this.focus();
     }
   };
@@ -248,7 +242,7 @@ class CustomEditor extends Component<Props, State> {
           keyBindingFn={this.mapKeyToEditorCommand}
           placeholder={this.props.placeholder}
           onChange={this.onChange}
-          ref="editor"
+          ref={editor => (this.editor = editor)}
           plugins={[
             blockBreakoutPlugin,
             inlineToolbarPlugin,
@@ -286,7 +280,7 @@ class CustomEditor extends Component<Props, State> {
           onChange={this.onChange}
           open={this.openVideoModal}
           close={this.closeVideoModal}
-          ref={modal => (this.ctrls.VideoModal = modal)}
+          ref={modal => (this.VideoModal = modal)}
         />
         <style jsx global>{`
           .Editor .DraftEditor-root {
@@ -470,14 +464,12 @@ interface VideoModalProps {
 }
 
 class VideoModal extends Component<VideoModalProps> {
-  ctrls: {
-    popup?: HTMLDivElement;
-    videoURL?: Input;
-    ActionButtons?: ActionButtons;
-  } = {};
+  popup?: HTMLDivElement = null;
+  videoURL?: Input = null;
+  ActionButtons?: ActionButtons = null;
 
   closeCheck = e => {
-    if (!this.ctrls.popup.contains(e.target)) {
+    if (!this.popup.contains(e.target)) {
       this.props.close();
     }
   };
@@ -521,11 +513,11 @@ class VideoModal extends Component<VideoModalProps> {
           style={!this.props.isOpen ? { marginTop: "-10rem" } : {}}
           onKeyPress={e => {
             if (e.key === "Enter") {
-              this.addVideo(this.ctrls.videoURL.input.value);
+              this.addVideo((this.videoURL.input as HTMLInputElement).value);
             }
           }}
           ref={div => {
-            this.ctrls.popup = div;
+            this.popup = div;
           }}
         >
           <div className="modal-content">
@@ -545,18 +537,18 @@ class VideoModal extends Component<VideoModalProps> {
               <Input
                 label="Video URL"
                 type="text"
-                ref={input => (this.ctrls.videoURL = input)}
+                ref={input => (this.videoURL = input)}
               />
             </div>
             <div className="modal-footer">
               <ActionButtons
                 primaryText="Add"
                 primaryAction={() =>
-                  this.addVideo(this.ctrls.videoURL.input.value)
+                  this.addVideo((this.videoURL.input as HTMLInputElement).value)
                 }
                 secondaryText="Cancel"
                 secondaryAction={this.props.close}
-                ref={btns => (this.ctrls.ActionButtons = btns)}
+                ref={btns => (this.ActionButtons = btns)}
               />
             </div>
           </div>

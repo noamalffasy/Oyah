@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
-import * as PropTypes from "prop-types";
 
 import Textarea from "react-textarea-autosize";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -41,48 +39,38 @@ interface State {
 }
 
 class Input extends Component<Props, State> {
-  constructor(props: any) {
-    super(props);
+  state = {
+    focus: false,
+    active: false,
+    checked: this.props.checked ? true : false,
+    empty:
+      this.props.value === "" || this.props.value === undefined
+        ? true
+        : false || true,
+    class: this.props.className ? " " + this.props.className : "",
+    boxOpen: false,
+    boxTop: "",
+    selections: [],
+    password: "",
+    showPassword: false
+  };
 
-    this.state = {
-      focus: false,
-      active: false,
-      checked: this.props.checked ? true : false,
-      empty:
-        this.props.value === "" || this.props.value === undefined
-          ? true
-          : false || true,
-      class: props.className ? " " + props.className : "",
-      boxOpen: false,
-      selections: []
-    };
-
-    this.check = this.check.bind(this);
-    this.selectInput = this.selectInput.bind(this);
-    this.deselectInput = this.deselectInput.bind(this);
-    this.isEmpty = this.isEmpty.bind(this);
-    this.reset = this.reset.bind(this);
-  }
-
-  input: HTMLInputElement;
-  textarea: Textarea;
+  parent: HTMLDivElement = null;
+  input: HTMLInputElement | HTMLSpanElement | HTMLTextAreaElement = null;
+  textInput: HTMLInputElement = null;
+  textarea: HTMLTextAreaElement = null;
+  box: Scrollbars | HTMLUListElement = null;
 
   componentDidMount() {
-    if (
-      this.props.value !== "" &&
-      this.props.value &&
-      !this.state.focus
-    ) {
+    if (this.props.value !== "" && this.props.value && !this.state.focus) {
       this.setState({
         focus: true
       });
-      findDOMNode(this.input).value = this.props.value;
-      this.input.value = this.props.value;
+      (this.input as HTMLInputElement).value = this.props.value;
     }
 
     if (this.props.value !== "" && this.props.value) {
-      findDOMNode(this.input).value = this.props.value;
-      this.input.value = this.props.value;
+      (this.input as HTMLInputElement).value = this.props.value;
       this.setState(prevState => ({
         ...prevState,
         focus: true
@@ -90,21 +78,19 @@ class Input extends Component<Props, State> {
     }
 
     if (
-      this.props.initial_value !== "" && 
-      this.props.initial_value && 
+      this.props.initial_value !== "" &&
+      this.props.initial_value &&
       !this.state.focus
     ) {
       this.setState(prevState => ({
         ...prevState,
         focus: true
       }));
-      findDOMNode(this.input).value = this.props.initial_value;
-      this.input.value = this.props.initial_value;
+      (this.input as HTMLInputElement).value = this.props.initial_value;
     }
 
     if (this.props.initial_value !== "" && this.props.initial_value) {
-      findDOMNode(this.input).value = this.props.initial_value;
-      this.input.value = this.props.initial_value;
+      (this.input as HTMLInputElement).value = this.props.initial_value;
       this.setState(prevState => ({
         ...prevState,
         focus: true
@@ -115,7 +101,7 @@ class Input extends Component<Props, State> {
       this.props.type === "dropdown" ||
       this.props.type === "select-dropdown"
     ) {
-      findDOMNode(this.textarea).setAttribute("readonly", "");
+      this.textarea.setAttribute("readonly", "");
     }
 
     if (
@@ -134,7 +120,7 @@ class Input extends Component<Props, State> {
         ...prevState,
         selections: this.props.selections
       }));
-      findDOMNode(this.box)
+      (this.box as HTMLUListElement)
         .querySelectorAll("li")
         .forEach((elem, i) => {
           if (
@@ -153,7 +139,7 @@ class Input extends Component<Props, State> {
         ...prevState,
         focus: false
       }));
-      findDOMNode(this.textarea).value = "";
+      this.textarea.value = "";
     }
   }
 
@@ -163,7 +149,7 @@ class Input extends Component<Props, State> {
       nextProps !== undefined &&
       nextProps.value !== this.props.value
     ) {
-      this.input.value = nextProps.value;
+      (this.input as HTMLInputElement).value = nextProps.value;
     }
     if (
       nextProps.value !== "" &&
@@ -174,15 +160,13 @@ class Input extends Component<Props, State> {
       this.setState({
         focus: true
       });
-      findDOMNode(this.input).value = nextProps.value;
-      this.input.value = nextProps.value;
+      (this.input as HTMLInputElement).value = nextProps.value;
     } else if (nextProps.value === "" && nextProps.value !== this.props.value) {
       this.setState(prevState => ({
         ...prevState,
         focus: false
       }));
-      findDOMNode(this.input).value = "";
-      this.input.value = "";
+      (this.input as HTMLInputElement).value = "";
     }
     if (
       nextProps.type === "select-dropdown" &&
@@ -202,7 +186,7 @@ class Input extends Component<Props, State> {
         ...prevState,
         selections: nextProps.selections
       }));
-      findDOMNode(this.box)
+      (this.box as HTMLUListElement)
         .querySelectorAll("li")
         .forEach((elem, i) => {
           if (
@@ -223,11 +207,11 @@ class Input extends Component<Props, State> {
         ...prevState,
         focus: false
       }));
-      findDOMNode(this.textarea).value = "";
+      this.textarea.value = "";
     }
   }
 
-  selectInput(e) {
+  selectInput = e => {
     e.persist();
 
     if (this.props.type !== "checkbox") {
@@ -242,9 +226,9 @@ class Input extends Component<Props, State> {
         checked: !this.state.checked
       }));
     }
-  }
+  };
 
-  deselectInput(e) {
+  deselectInput = e => {
     e.persist();
 
     if (!this.isEmpty()) {
@@ -260,9 +244,9 @@ class Input extends Component<Props, State> {
         active: false
       }));
     }
-  }
+  };
 
-  check() {
+  check = () => {
     if (this.props.type === "checkbox") {
       this.setState(prevState => ({
         ...prevState,
@@ -271,19 +255,22 @@ class Input extends Component<Props, State> {
     } else {
       console.error(this.props.name + " is not a checkbox");
     }
-  }
+  };
 
-  isChecked() {
+  isChecked = () => {
     if (this.props.type === "checkbox") {
       return this.state.checked;
     } else {
       console.error(this.props.name + " is not a checkbox");
     }
-  }
+  };
 
-  isEmpty() {
+  isEmpty = () => {
     if (this.props.type !== "select-dropdown") {
-      if (this.input.value === "" || this.input.value === undefined) {
+      if (
+        (this.input as HTMLInputElement).value === "" ||
+        (this.input as HTMLInputElement).value === undefined
+      ) {
         return true;
       }
     } else {
@@ -292,17 +279,15 @@ class Input extends Component<Props, State> {
       }
     }
     return false;
-  }
+  };
 
-  reset() {
+  reset = () => {
     if (this.props.type !== "checkbox") {
-      const input = findDOMNode(this.input);
-      this.input.value = "";
-      input.value = "";
+      (this.input as HTMLInputElement).value = "";
 
       if (this.props.type === "password") {
-        const input = findDOMNode(this.textInput);
-        this.input.value = "";
+        const input = this.textInput;
+        (this.input as HTMLInputElement).value = "";
         input.value = "";
 
         this.setState(prevState => ({
@@ -322,7 +307,7 @@ class Input extends Component<Props, State> {
         checked: false
       }));
     }
-  }
+  };
 
   render() {
     switch (this.props.type) {
@@ -350,8 +335,8 @@ class Input extends Component<Props, State> {
               onClick={e => {
                 e.preventDefault();
 
-                const input = findDOMNode(this.input);
-                input.focus();
+                const input = this.input;
+                (input as HTMLSpanElement).focus();
               }}
               onFocus={this.selectInput}
               onBlur={this.deselectInput}
@@ -374,7 +359,7 @@ class Input extends Component<Props, State> {
               {this.props.list.map(elem => {
                 return (
                   <li
-                    onClick={e => {
+                    onClick={(e: any) => {
                       this.setState(prevState => ({
                         ...prevState,
                         selections: e.target.innerHTML,
@@ -578,8 +563,8 @@ class Input extends Component<Props, State> {
             }
             tabIndex={0}
             style={this.props.style}
-            onClick={e => {
-              if (!findDOMNode(this.box).contains(e.target)) {
+            onClick={(e: any) => {
+              if (!(this.box as HTMLUListElement).contains(e.target)) {
                 if (this.state.empty) {
                   this.setState(prevState => ({
                     ...prevState,
@@ -627,9 +612,9 @@ class Input extends Component<Props, State> {
                 spellCheck={false}
                 value={this.state.selections.join(", ") || ""}
                 onChange={e => {
-                  this.input.value = e.target.value;
+                  (this.input as HTMLTextAreaElement).value = e.target.value;
                 }}
-                ref={input => {
+                inputRef={input => {
                   this.textarea = input;
                 }}
               />
@@ -668,7 +653,7 @@ class Input extends Component<Props, State> {
                           ? "disabled"
                           : ""
                       }
-                      onClick={e => {
+                      onClick={(e: any) => {
                         if (
                           (this.state.selections.length <
                             this.props.maxSelections &&
@@ -1036,8 +1021,7 @@ class Input extends Component<Props, State> {
               onClick={e => {
                 e.preventDefault();
 
-                const input = findDOMNode(this.input);
-                input.focus();
+                this.input.focus();
               }}
               onFocus={this.selectInput}
               onBlur={this.deselectInput}
@@ -1054,9 +1038,9 @@ class Input extends Component<Props, State> {
                 required
                 spellCheck={this.props.spellCheck || true}
                 onChange={e => {
-                  this.input.value = e.target.value;
+                  (this.input as HTMLTextAreaElement).value = e.target.value;
                 }}
-                ref={(input: any) => {
+                inputRef={input => {
                   this.input = input;
                 }}
               />
@@ -1197,8 +1181,8 @@ class Input extends Component<Props, State> {
               onClick={e => {
                 e.preventDefault();
 
-                const input = findDOMNode(this.input);
-                input.focus();
+                const input = this.input;
+                (input as HTMLInputElement).focus();
               }}
               onFocus={this.selectInput}
               onBlur={this.deselectInput}
@@ -1265,8 +1249,8 @@ class Input extends Component<Props, State> {
                 onClick={e => {
                   e.preventDefault();
                   !this.state.showPassword
-                    ? findDOMNode(this.textInput).focus()
-                    : findDOMNode(this.input).focus();
+                    ? this.textInput.focus()
+                    : (this.input as HTMLInputElement).focus();
                   this.setState(prevState => ({
                     ...prevState,
                     showPassword: !this.state.showPassword
@@ -1424,8 +1408,8 @@ class Input extends Component<Props, State> {
               onClick={e => {
                 e.preventDefault();
 
-                const input = findDOMNode(this.input);
-                input.focus();
+                const input = this.input;
+                (input as HTMLInputElement).focus();
               }}
               onFocus={this.selectInput}
               onBlur={this.deselectInput}

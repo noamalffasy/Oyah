@@ -15,8 +15,10 @@ interface State {
 class ErrorAlert extends Component<Props, State> {
   state = { multiErrors: false };
 
+  error: HTMLDivElement = null;
+
   componentDidMount() {
-    Router.onRouteChangeStart = (url: any) => {
+    Router.onRouteChangeStart = () => {
       this.props.setError(false);
     };
   }

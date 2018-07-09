@@ -44,6 +44,8 @@ class Toolbar extends Component<Props, State> {
     overrideContent: undefined
   };
 
+  toolbar: HTMLDivElement = null;
+
   componentWillMount() {
     this.props.store.subscribeToItem("selection", this.onSelectionChanged);
   }
@@ -108,10 +110,6 @@ class Toolbar extends Component<Props, State> {
     return style;
   }
 
-  handleToolbarRef = node => {
-    this.toolbar = node;
-  };
-
   render() {
     const { imagePlugin, id, theme, store, structure } = this.props;
     const { overrideContent: OverrideContent } = this.state;
@@ -128,7 +126,7 @@ class Toolbar extends Component<Props, State> {
       <div
         className={theme.toolbarStyles.toolbar}
         style={this.getStyle()}
-        ref={this.handleToolbarRef}
+        ref={div => (this.toolbar = div)}
       >
         {OverrideContent ? (
           <OverrideContent {...childrenProps} />

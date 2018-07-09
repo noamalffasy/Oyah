@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
@@ -24,15 +23,17 @@ import gql from "graphql-tag";
 import withData from "../lib/withData";
 
 interface Props {
+  client: any;
   profile: any;
   error: any;
   _error: any;
-  user?: any;
+  user: any;
   login?: any;
-  dispatch?: any;
   updateUser?: any;
   updateUserPassword?: any;
   uploadFile?: any;
+  signInModal: any;
+  dispatch: any;
 }
 
 interface State {
@@ -95,17 +96,22 @@ interface State {
   }
 )
 class Settings extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  state = { articles: [], userImg: null };
 
-    this.state = { articles: [] };
+  update = this._update.bind(this);
 
-    this.openImageDialog = this.openImageDialog.bind(this);
-    this.getFile = this.getFile.bind(this);
-    this.update = this.update.bind(this);
-  }
+  imageDialog: HTMLInputElement = null;
+  image: Image = null;
+  nametag: Input = null;
+  biography: Input = null;
+  fullName: Input = null;
+  mains: Input = null;
+  twitter: Input = null;
+  reddit: Input = null;
+  email: Input = null;
+  ActionButtons: ActionButtons = null;
 
-  static async getInitialProps(ctx: any, apolloClient: any, user: any) {
+  static async getInitialProps(_, __, user: any) {
     if (user === undefined || user.id === null || user.id === undefined) {
       return {
         _error: "Not logged in"
@@ -134,8 +140,8 @@ class Settings extends Component<Props, State> {
     this.props.dispatch
   );
 
-  openImageDialog() {
-    const imageDialog = findDOMNode(this.imageDialog);
+  openImageDialog = () => {
+    const imageDialog = this.imageDialog;
     try {
       imageDialog.click();
     } catch (e) {
@@ -159,10 +165,10 @@ class Settings extends Component<Props, State> {
       );
       imageDialog.dispatchEvent(evt);
     }
-  }
+  };
 
-  getFile() {
-    const imageDialog = findDOMNode(this.imageDialog);
+  getFile = () => {
+    const imageDialog = this.imageDialog;
     const fr = new FileReader();
     fr.onload = () => {
       this.setState((prevState: any) => ({
@@ -171,19 +177,19 @@ class Settings extends Component<Props, State> {
       }));
     };
     fr.readAsDataURL(imageDialog.files[0]);
-  }
+  };
 
-  async update(e: any, triggerLoading: any) {
+  async _update(_, triggerLoading: any) {
     const image = this.image.src.startsWith("data:image")
-      ? findDOMNode(this.imageDialog).files[0]
+      ? this.imageDialog.files[0]
       : null;
-    const nametag = this.nametag.input.value;
-    const bio = this.biography.input.value;
-    const name = this.fullName.input.value;
+    const nametag = (this.nametag.input as HTMLInputElement).value;
+    const bio = (this.biography.input as HTMLTextAreaElement).value;
+    const name = (this.fullName.input as HTMLInputElement).value;
     const mains = this.mains.state.selections;
-    const reddit = this.reddit.input.value;
-    const twitter = this.twitter.input.value;
-    const email = this.email.input.value;
+    const reddit = (this.reddit.input as HTMLInputElement).value;
+    const twitter = (this.twitter.input as HTMLInputElement).value;
+    const email = (this.email.input as HTMLInputElement).value;
 
     if (image !== null) {
       triggerLoading();
@@ -238,7 +244,10 @@ class Settings extends Component<Props, State> {
                           : null
                     });
 
-                    Router.push("/Profile", "/profile");
+                    Router.push(
+                      `/Profile?nametag=${nametag}`,
+                      `/users/${nametag}`
+                    );
                   });
                 }
               });
@@ -278,7 +287,7 @@ class Settings extends Component<Props, State> {
                   data.user.mains !== null ? data.user.mains.split(", ") : null
               });
 
-              Router.push("/Profile", "/profile");
+              Router.push(`/Profile?nametag=${nametag}`, `/users/${nametag}`);
             });
           }
         });
@@ -319,6 +328,7 @@ class Settings extends Component<Props, State> {
                               encodeURIComponent(this.props.user.image)
                           : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
                     }
+                    alt={this.props.user.nametag}
                     ref={img => (this.image = img)}
                   />
                   <div className="overlay" />
@@ -743,4 +753,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(withApollo(Settings)));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(withApollo(Settings))
+);

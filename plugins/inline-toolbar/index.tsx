@@ -13,7 +13,7 @@ import Toolbar from "./components/Toolbar";
 import toolbarStyles from "../toolbarStyles.css";
 import buttonStyles from "../buttonStyles.css";
 
-export default (config = {}) => {
+export default config => {
   const defaultTheme = { toolbarStyles, buttonStyles };
 
   const store = createStore({

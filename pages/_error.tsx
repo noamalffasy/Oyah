@@ -11,9 +11,10 @@ import withData from "../lib/withData";
 
 interface Props {
   statusCode: number;
-  signInModal?: any;
-  user?: any;
-  error?: any;
+  signInModal: any;
+  user: any;
+  error: any;
+  dispatch: any;
 }
 
 class Error extends Component<Props, any> {

@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import ReactPlaceholder from "react-placeholder";
 import { RectShape } from "react-placeholder/lib/placeholders";
@@ -54,16 +53,18 @@ interface State {
 }
 
 class Image extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  state = {
+    smallLoaded: false,
+    largeLoaded: false,
+    smallImg: "",
+    width: 16,
+    height: 9,
+    image: ""
+  };
 
-    this.state = {
-      smallLoaded: false,
-      largeLoaded: false,
-      width: 16,
-      height: 9
-    };
-  }
+  _mounted: boolean = false;
+  placeholder: HTMLDivElement = null;
+  small: HTMLImageElement = null;
 
   async componentDidMount() {
     this._mounted = true;
@@ -188,11 +189,9 @@ class Image extends Component<Props, State> {
           }),
           () => {
             if (!props.fixed) {
-              findDOMNode(this.placeholder).appendChild(imgLarge);
+              this.placeholder.appendChild(imgLarge);
             } else {
-              findDOMNode(this.placeholder).style.backgroundImage = `url(${
-                imgLarge.src
-              })`;
+              this.placeholder.style.backgroundImage = `url(${imgLarge.src})`;
             }
           }
         );
@@ -320,12 +319,12 @@ class Image extends Component<Props, State> {
             ...this.props.style,
             backgroundImage:
               this.props.user && Object.keys(this.props.user).length !== 0
-                ? this.state.smallImg
+                ? `this.state.smallImg`
                 : this.props.smallSrc
-                  ? this.props.smallSrc
-                  : this.props.src.replace(/\.[^.]*$/, "") +
-                    "_small" +
-                    this.props.src.replace(/.*(?=\.)/, ""),
+                  ? `url(${this.props.smallSrc})`
+                  : `url(${this.props.src.replace(/\.[^.]*$/, "") +
+                      "_small" +
+                      this.props.src.replace(/.*(?=\.)/, "")})`,
             filter: this.state.largeLoaded
               ? "none"
               : this.state.smallLoaded
