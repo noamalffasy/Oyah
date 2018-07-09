@@ -68,6 +68,10 @@ class Markdown extends Component<Props> {
             margin-bottom: 1.5rem;
           }
 
+          ${this.props.className || ".body"} a {
+            word-wrap: "break-word";
+          }
+
           ${this.props.className || ".body"} .image {
             display: block;
             /* min-height: 15rem;
