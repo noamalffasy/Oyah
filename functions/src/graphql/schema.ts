@@ -1,49 +1,21 @@
-// Schema for sample GraphQL server.
-
 // ----------------------
 // IMPORTS
 
 // GraphQL schema library, for building our GraphQL schema
 import {
   GraphQLObjectType,
-  GraphQLNonNull,
   GraphQLString,
   GraphQLSchema,
   GraphQLList,
   GraphQLInputObjectType
 } from "graphql";
-import { GraphQLID, GraphQLBoolean, GraphQLInt } from "graphql/type/scalars";
-import { GraphQLDate } from "graphql-iso-date";
+import { GraphQLID, GraphQLBoolean } from "graphql/type/scalars";
 import { GraphQLUpload } from "apollo-upload-server";
 import { User as UserModel, Comment as CommentModel } from "../db/models";
 
 import resolvers from "./resolvers";
 
 // ----------------------
-
-// GraphQL can handle Promises from its `resolve()` calls, so we'll create a
-// simple async function that returns a simple message.  In practice, `resolve()`
-// will generally pull from a 'real' data source such as a database
-const FieldType = new GraphQLObjectType({
-  name: "Field",
-  description: "Form field and message",
-  fields() {
-    return {
-      field: {
-        type: GraphQLString,
-        resolve(obj) {
-          return obj.field;
-        }
-      },
-      message: {
-        type: GraphQLString,
-        resolve(obj) {
-          return obj.message;
-        }
-      }
-    };
-  }
-});
 
 const Upload = GraphQLUpload;
 
@@ -65,12 +37,6 @@ const User = new GraphQLObjectType({
         type: GraphQLString
       },
       password: {
-        type: GraphQLString
-      },
-      likes: {
-        type: GraphQLString
-      },
-      comment_likes: {
         type: GraphQLString
       },
       image: {
@@ -99,7 +65,7 @@ const User = new GraphQLObjectType({
       small_image: {
         type: GraphQLString,
         resolve(user) {
-          if (user.image !== null) {
+          if (user.image) {
             switch (user.providerId) {
               case "google.com":
                 return user.image + "?size=50";
@@ -162,6 +128,14 @@ const Article = new GraphQLObjectType({
       path: {
         type: GraphQLString
       },
+      dominantColor: {
+        type: GraphQLString,
+        resolve(obj) {
+          if (obj && obj.exists) {
+            return obj.dominantColor;
+          }
+        }
+      },
       content: {
         type: GraphQLString
       },
@@ -179,7 +153,7 @@ const Article = new GraphQLObjectType({
         }
       },
       likes: {
-        type: GraphQLInt
+        type: GraphQLString
       },
       comments: {
         type: new GraphQLList(comment),
@@ -254,7 +228,7 @@ const comment = new GraphQLObjectType({
         type: GraphQLString
       },
       likes: {
-        type: GraphQLInt,
+        type: GraphQLString,
         resolve(obj) {
           return obj.likes;
         }
@@ -276,7 +250,7 @@ const SigninPayload = new GraphQLObjectType({
   description: "SignPayload object",
   fields() {
     return {
-      token: {
+      cookie: {
         type: GraphQLString
       },
       user: {
@@ -318,31 +292,6 @@ const AuthInfo = new GraphQLInputObjectType({
         type: GraphQLString
       },
       cookie: {
-        type: GraphQLString
-      }
-    };
-  }
-});
-
-const AUTH_PROVIDER_EMAIL = new GraphQLInputObjectType({
-  name: "AUTH_PROVIDER_EMAIL",
-  fields() {
-    return {
-      email: {
-        type: GraphQLString
-      },
-      password: {
-        type: GraphQLString
-      }
-    };
-  }
-});
-
-const Email = new GraphQLObjectType({
-  name: "email",
-  fields() {
-    return {
-      email: {
         type: GraphQLString
       }
     };
@@ -647,9 +596,6 @@ const Mutation = new GraphQLObjectType({
           },
           image: {
             type: GraphQLString
-          },
-          authInfo: {
-            type: AuthInfo
           }
         },
         resolve: resolvers.uploadFile
@@ -671,7 +617,6 @@ export default new GraphQLSchema({
     SigninPayload,
     UploadFilePayload,
     Status,
-    Upload,
-    Email
+    Upload
   ]
 });

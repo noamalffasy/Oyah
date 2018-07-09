@@ -5,38 +5,43 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 
 import Head from "next/head";
+import { withRouter, SingletonRouter } from "next/router";
+
 import Error from "./_error";
 
-import * as userActionCreators from "../actions/user";
+// import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
 
 import App from "../components/App";
 
 import Image from "../components/Image";
-import Article from "../components/Article";
+import Article from "../components/ArticleBlock";
 import Verification from "../components/Verification";
 
 import withData from "../lib/withData";
+
+import * as UserModel from "../lib/db/models/User";
+import * as ArticleModel from "../lib/db/models/Article";
 
 import { graphql } from "../utils/graphql";
 import gql from "graphql-tag";
 
 interface Props {
   data?: any;
-  profileUser?: any;
-  articles: any;
+  profileUser?: UserModel.Interface;
+  articles: ArticleModel.Interface[];
   _error?: any;
   getArticlesByUser?: any;
-  dispatch?: any;
-  user?: any;
-  signInModal?: any;
-  error?: any;
-  url?: any;
+  router: SingletonRouter;
+  user: UserModel.Interface;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 interface State {
-  articles: any;
-  user: any;
+  articles: ArticleModel.Interface[];
+  user: UserModel.Interface;
 }
 
 @graphql(
@@ -52,8 +57,9 @@ interface State {
     name: "getArticlesByUser"
   }
 )
+@withRouter
 class Profile extends Component<Props, State> {
-  state = { articles: [1, 2, 3], user: {} };
+  state = { articles: [], user: null };
 
   static async getInitialProps(
     { query: { nametag } }: any,
@@ -93,6 +99,7 @@ class Profile extends Component<Props, State> {
                     id
                     title
                     path
+                    dominantColor
                   }
                 }
               `,
@@ -135,8 +142,6 @@ class Profile extends Component<Props, State> {
                         email
                         small_image
                         image
-                        likes
-                        comment_likes
                         bio
                         name
                         mains
@@ -182,6 +187,7 @@ class Profile extends Component<Props, State> {
                   id
                   title
                   path
+                  dominantColor
                 }
               }
             `,
@@ -212,8 +218,8 @@ class Profile extends Component<Props, State> {
     if (!error) {
       this.setState(prevState => ({
         ...prevState,
-        user: profileUser,
-        articles: articles
+        user: profileUser.id ? profileUser : null,
+        articles
       }));
     } else {
       console.log("Fetch error", error);
@@ -228,7 +234,7 @@ class Profile extends Component<Props, State> {
     if (
       nextProps.user !== this.props.user &&
       !nextProps.user.loading &&
-      !this.props.url.query.nametag
+      !nextProps.router.query.nametag
     ) {
       const articles = await this.props
         .getArticlesByUser({
@@ -255,7 +261,7 @@ class Profile extends Component<Props, State> {
   }
 
   // componentWillReceiveProps(nextProps: Props) {
-  //   if (nextProps.url.query.nametag === undefined) {
+  //   if (nextProps.router.query.nametag === undefined) {
   //     const { dispatch, user } = nextProps;
   //     const login = bindActionCreators(userActionCreators.login, dispatch);
   //     if (
@@ -314,7 +320,7 @@ class Profile extends Component<Props, State> {
   );
 
   render() {
-    if (Object.keys(this.state.user).length !== 0) {
+    if (this.state.user && Object.keys(this.state.user).length !== 0) {
       return (
         <App {...this.props}>
           <div className="Profile Content">
@@ -416,6 +422,7 @@ class Profile extends Component<Props, State> {
                     title={elem.title}
                     alt={elem.title}
                     path={elem.path}
+                    dominantColor={elem.dominantColor}
                     official={this.state.user.is_team}
                     loading={elem.id === undefined}
                     key={i}
@@ -533,10 +540,6 @@ class Profile extends Component<Props, State> {
               /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
               /* width: calc(1/2*100% - 1/2*2.5rem); */
             }
-
-            .Profile .articles .Article .image {
-              min-height: 15rem;
-            }
             @media (min-width: 576px),
               @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .articles {
@@ -546,17 +549,11 @@ class Profile extends Component<Props, State> {
               .Profile .articles .Article {
                 width: calc(50% - 1.25rem);
               }
-              .Profile .articles .Article .image {
-                min-height: 10rem;
-              }
             }
             @media (min-width: 768px),
               @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .articles .Article {
                 width: calc(1 / 2 * 100% - 1 / 2 * 2.5rem);
-              }
-              .Profile .articles .Article .image {
-                min-height: 15rem;
               }
             }
             @media (min-width: 992px),
@@ -571,7 +568,7 @@ class Profile extends Component<Props, State> {
         </App>
       );
     } else {
-      if (this.props.url.query.nametag !== undefined) {
+      if (this.props.router.query.nametag !== undefined) {
         return <Error {...this.props} statusCode={404} />;
       } else {
         return (
@@ -611,4 +608,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(Profile));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(Profile)
+);

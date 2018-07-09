@@ -1,16 +1,12 @@
-import * as firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 
-const config = {
-  apiKey: "AIzaSyD3vyx6XFFztE0qlh9gljA83BWK7rAY0Tk",
-  authDomain: "oyah.xyz",
-  databaseURL: "https://oyah-200816.firebaseio.com",
-  projectId: "oyah-200816",
-  storageBucket: "oyah-200816.appspot.com",
-  messagingSenderId: "394175612865"
-};
+import config from "./config";
 
 export const app = !firebase.apps.length
   ? firebase.initializeApp(config)
   : firebase.app();
 
+export const db = app.database();
 export default firebase;

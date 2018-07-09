@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Component } from "react";
 
-import Article from "./Article";
+import Article from "./ArticleBlock";
 
 interface Props {
   articles: any;
@@ -13,6 +13,7 @@ class Highlights extends Component<Props> {
       <div className="Highlights">
         <Article
           path={this.props.articles[0].path}
+          dominantColor={this.props.articles[0].dominantColor}
           title={this.props.articles[0].title}
           id={this.props.articles[0].id}
           alt={this.props.articles[0].alt}
@@ -24,6 +25,7 @@ class Highlights extends Component<Props> {
             return (
               <Article
                 path={elem.path}
+                dominantColor={elem.dominantColor}
                 title={elem.title}
                 alt={elem.alt}
                 id={elem.id}

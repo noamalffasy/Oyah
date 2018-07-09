@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import ReactPlaceholder from "react-placeholder";
 import { RectShape } from "react-placeholder/lib/placeholders";
@@ -31,6 +30,7 @@ class Placeholder extends Component<any, any> {
 interface Props {
   id: any;
   path: any;
+  dominantColor: any;
   title: any;
   alt: any;
   official: boolean;
@@ -38,7 +38,33 @@ interface Props {
   main?: boolean;
 }
 
-class Article extends Component<Props, any> {
+class ArticleBlock extends Component<Props> {
+  text: HTMLDivElement = null;
+  backgroundBlur: HTMLCanvasElement = null;
+
+  componentDidMount() {
+    const StackBlur = require("stackblur-canvas");
+    const image = document.createElement("img");
+    image.onload = () => {
+      StackBlur.image(image, this.backgroundBlur, 180);
+    };
+    if (this.props.path.match(/http:\/\/|https:\/\//)) {
+      image.setAttribute("crossorigin", "anonymous");
+    }
+    image.src = this.props.path;
+  }
+
+  getCorrectColor() {
+    const rgb = this.props.dominantColor
+      .replace("rgb(", "")
+      .replace(")", "")
+      .split(", ");
+
+    return (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 > 125
+      ? "#000"
+      : "#fff";
+  }
+
   render() {
     return (
       <ReactPlaceholder
@@ -51,31 +77,32 @@ class Article extends Component<Props, any> {
         >
           <a className={this.props.main ? "Article main" : "Article"}>
             <div className="article-inner">
+              <canvas ref={canvas => (this.backgroundBlur = canvas)} />
               <Image
                 src={this.props.path}
                 alt={this.props.alt || ""}
                 onError={(e: any) => {
                   e.target.src = "";
                   e.target.style.backgroundColor = "#c3c3c3";
-                  findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
+                  this.text.style.background = "rgba(0,0,0,.4)";
                 }}
               />
               {/* <img
-          src={
-            this.props.image.indexOf("undefined") === -1
-              ? this.props.image
-              : process.env.PUBLIC_URL +
-                "/articles/img/" +
-                this.props.id +
-                ".jpeg"
-          }
-          alt={this.props.alt || ""}
-          onError={e => {
-            e.target.src = "";
-            e.target.style.backgroundColor = "#c3c3c3";
-            findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
-          }}
-        /> */}
+                src={
+                  this.props.image.indexOf("undefined") === -1
+                    ? this.props.image
+                    : process.env.PUBLIC_URL +
+                      "/articles/img/" +
+                      this.props.id +
+                      ".jpeg"
+                }
+                alt={this.props.alt || ""}
+                onError={e => {
+                  e.target.src = "";
+                  e.target.style.backgroundColor = "#c3c3c3";
+                  findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
+                }}
+              /> */}
               <div className="text" ref={div => (this.text = div)}>
                 <div className="bottom">
                   <h2>{this.props.title}</h2>
@@ -96,62 +123,86 @@ class Article extends Component<Props, any> {
             position: relative;
             border-radius: 8px;
             opacity: 1;
+            overflow: hidden;
             transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
           }
 
           .Article:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
             transform: scale(1.04);
           }
 
           .Article .article-inner {
+            position: relative;
             display: flex;
             width: 100%;
             height: 100%;
+            background-color: ${this.props.dominantColor};
+            /* background: url(${this.props.path}) no-repeat center center;
+            background-size: cover; */
+            flex-direction: column;
+            overflow: hidden;
           }
 
-          .Article .image {
-            width: 100%;
-            height: 100%;
-            min-height: 20rem;
-            border-radius: 8px;
-            user-select: none;
-            cursor: pointer;
-            transition: all 0.3s;
+          .Article canvas {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            width: 100% !important;
+            height: 100% !important;
+            filter: blur(30px);
           }
 
           .Article .text {
             display: block;
-            width: 100%;
+            position: relative;
+            /* width: 100%;
             height: 100%;
             position: absolute;
             top: 0;
-            left: 0;
+            left: 0; */
             /* background: -webkit-linear-gradient(
               rgba(0, 0, 0, 0.3) 0,
               rgba(0, 0, 0, 0.9) 100%
             ); */
-            background: -webkit-linear-gradient(
+            /* background: -webkit-linear-gradient(
               top,
               rgba(0, 0, 0, 0.3) 0,
               rgba(0, 0, 0, 0.3) 60%,
               #000 100%
-            );
+            ); */
             text-align: center;
             z-index: 1;
-            color: #fff;
-            border-radius: 8px;
+            color: ${this.getCorrectColor()};
+            /* border-radius: 8px; */
             user-select: text;
             cursor: pointer;
             transition: all 0.3s;
           }
 
-          .Article .text .bottom {
+          /* .Article .text::before {
+            content: "";
+            display: block;
             position: absolute;
+            top: 0;
+            background: url(${this.props.path}) no-repeat bottom center;
+            background-size: cover;
+            filter: blur(15px);
+            width: 100%;
+            height: 100%;
+            transform: scale(1.3);
+            z-index: -1;
+          } */
+
+
+          .Article .text .bottom {
+            /* position: absolute; */
             display: flex;
-            left: 0;
+            /* left: 0;
             right: 0;
-            bottom: 0;
+            bottom: 0; */
             max-width: 90%;
             margin: 0 auto;
             justify-content: center;
@@ -166,14 +217,16 @@ class Article extends Component<Props, any> {
 
             /* flex: 1 1 0; */
 
-            margin: 0.5rem 0 0.5rem 0.5rem;
+            margin: ${
+              this.props.official ? "0.5rem 0 0.5rem 0.5rem" : "0.5rem 0"
+            };
 
             font-size: 2rem;
             /* max-height: 17vw;
             max-width: 90%; */
-            white-space: nowrap;
+            /* white-space: nowrap;
 
-            text-overflow: ellipsis;
+            text-overflow: ellipsis; */
             overflow: hidden;
 
             -webkit-font-smoothing: antialiased;
@@ -211,18 +264,20 @@ class Article extends Component<Props, any> {
         `}</style>
         <style jsx global>{`
           .Article .image {
+            /* opacity: 0; */
             width: 100%;
             height: 100%;
-            border-radius: 8px;
+            /* min-height: 20rem; */
             user-select: none;
             cursor: pointer;
+            z-index: 2;
             transition: all 0.3s;
           }
           @media (min-width: 992px),
             @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .image {
               height: 100%;
-              min-height: 100%;
+              /* min-height: 100%; */
             }
           }
         `}</style>
@@ -231,4 +286,4 @@ class Article extends Component<Props, any> {
   }
 }
 
-export default Article;
+export default ArticleBlock;

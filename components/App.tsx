@@ -4,6 +4,8 @@ import { Component } from "react";
 
 import { bindActionCreators } from "redux";
 
+import Router, { withRouter, SingletonRouter } from "next/router";
+
 import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
 import * as errorActionCreators from "../actions/error";
@@ -16,7 +18,7 @@ import ErrorAlert from "./ErrorAlert";
 
 import configureLoadingProgressBar from "../lib/progressBar";
 
-import * as fontawesome from "@fortawesome/fontawesome";
+import * as fontawesome from "@fortawesome/fontawesome-svg-core";
 import {
   faSearch,
   faAngleDown,
@@ -26,13 +28,13 @@ import {
   faEyeSlash,
   faHeart as faHeartFill,
   faShareSquare
-} from "@fortawesome/fontawesome-free-solid";
-import { faHeart, faImage } from "@fortawesome/fontawesome-free-regular";
+} from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faImage } from "@fortawesome/free-regular-svg-icons";
 import {
   faRedditAlien,
   faTwitter,
   faFacebookF
-} from "@fortawesome/fontawesome-free-brands";
+} from "@fortawesome/free-brands-svg-icons";
 
 fontawesome.library.add(
   faSearch,
@@ -50,48 +52,57 @@ fontawesome.library.add(
   faImage
 );
 
-class App extends Component<any, any> {
+interface Props {
+  dispatch: any;
+  signInModal: any;
+  user: any;
+  error: any;
+  searchTerm?: any;
+  router: SingletonRouter;
+}
+
+@withRouter
+class App extends Component<Props, any> {
   state = {
     clicked: null,
     container:
-      this.props.url.pathname !== "/article" &&
-      this.props.url.pathname !== "/WriteArticle"
+      this.props.router.pathname !== "/article" &&
+      this.props.router.pathname !== "/WriteArticle"
   };
 
   componentDidMount() {
     configureLoadingProgressBar();
+
+    Router.onRouteChangeComplete = url => {
+      this.addContainer(url);
+    };
   }
 
-  componentWillReceiveProps(nextProps: any) {
-    // if (nextProps.user !== this.props.user) {
-    //   this.forceUpdate();
-    // }
-    if (nextProps.url !== this.props.url) {
-      this.addContainer(nextProps);
-    }
-  }
-
-  addContainer = (props: any) => {
-    const url = props.url;
+  addContainer(url: string) {
     if (
-      (url.pathname === "/article" || url.pathname === "/WriteArticle") &&
+      // Matches /articles/[anything except 'new']
+      (url.match(/\/articles\/(?!new).*$/g) ||
+        // Matches /articles/new/[anything]
+        url.match(/\/articles\/new\/.*$/g)) &&
       this.state.container === true
     ) {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         container: false
       }));
     } else if (
-      url.pathname !== "/article" &&
-      url.pathname !== "/WriteArticle" &&
+      // Matches /articles/[anything except 'new']
+      url.match(/\/articles\/(?!new).*$/g) &&
+      // Matches /articles/new/[anything]
+      url.match(/\/articles\/new\/.*$/g) &&
       this.state.container === false
     ) {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         container: true
       }));
     }
-  };
+  }
 
   // mapStyles(styles: any) {
   //   return {
@@ -123,7 +134,7 @@ class App extends Component<any, any> {
   //   };
 
   render() {
-    const { dispatch, signInModal, user, error, url, searchTerm } = this.props;
+    const { dispatch, signInModal, user, error, searchTerm } = this.props;
     const openSignInModal = bindActionCreators(
       signInModalActionCreators.open,
       dispatch
@@ -139,7 +150,6 @@ class App extends Component<any, any> {
       <div className={this.state.container ? "App container" : "App"}>
         <ErrorAlert error={error} setError={setError} />
         <Navbar
-          url={url}
           container={this.state.container}
           // logout={logout}
           login={login}
@@ -160,7 +170,6 @@ class App extends Component<any, any> {
           signInModal={signInModal}
           closeSignInModal={closeSignInModal}
           login={login}
-          url={url}
           user={user}
         />
         <style jsx>{`

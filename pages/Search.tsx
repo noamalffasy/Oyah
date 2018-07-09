@@ -11,7 +11,10 @@ import Error from "./_error";
 
 import App from "../components/App";
 import Input from "../components/Input";
-import Article from "../components/Article";
+import Article from "../components/ArticleBlock";
+import Loading from "../components/Loading";
+
+import { AlgoliaBrand } from "../components/svgs";
 
 // GraphQL
 import gql from "graphql-tag";
@@ -23,6 +26,10 @@ interface Props {
   searchTerm: any;
   articles: any;
   searchArticle?: any;
+  user: any;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 interface State {
@@ -36,6 +43,7 @@ interface State {
       searchArticle(searchTerm: $searchTerm) {
         id
         path
+        dominantColor
         title
         author {
           id
@@ -60,6 +68,7 @@ class Search extends Component<Props, State> {
             searchArticle(searchTerm: $searchTerm) {
               id
               path
+              dominantColor
               title
               author {
                 id
@@ -123,7 +132,8 @@ class Search extends Component<Props, State> {
 
   state = {
     searchTerm: this.props.searchTerm,
-    articles: this.props.articles
+    articles: this.props.articles,
+    loading: false
   };
 
   search = e => {
@@ -143,6 +153,11 @@ class Search extends Component<Props, State> {
       }));
 
       if (searchTerm.length > 0) {
+        this.setState(prevState => ({
+          ...prevState,
+          loading: true
+        }));
+
         this.props
           .searchArticle({
             variables: {
@@ -159,7 +174,8 @@ class Search extends Component<Props, State> {
 
               this.setState(prevState => ({
                 ...prevState,
-                articles
+                articles,
+                loading: false
               }));
             }
           });
@@ -168,7 +184,7 @@ class Search extends Component<Props, State> {
   };
 
   render() {
-    const { searchTerm, articles } = this.state;
+    const { searchTerm, articles, loading } = this.state;
     if (articles) {
       return (
         <App {...this.props}>
@@ -195,13 +211,17 @@ class Search extends Component<Props, State> {
                 //   margin: "0 1.5rem 0 0.5rem"
                 // }}
               />
+              <div className="algolia-brand-outer">
+                <AlgoliaBrand />
+              </div>
             </div>
-            {searchTerm.length > 0 && articles.length > 0 ? (
+            {!loading && searchTerm.length > 0 && articles.length > 0 ? (
               <div className="articles">
                 {articles.map((elem: any, i: any) => {
                   return (
                     <Article
                       path={elem.path}
+                      dominantColor={elem.dominantColor}
                       title={elem.title}
                       alt={elem.alt}
                       id={elem.id}
@@ -211,6 +231,10 @@ class Search extends Component<Props, State> {
                     />
                   );
                 })}
+              </div>
+            ) : loading ? (
+              <div className="articles">
+                <Loading />
               </div>
             ) : (
               searchTerm.length > 0 && (
@@ -238,6 +262,11 @@ class Search extends Component<Props, State> {
                 margin-top: 0.5rem;
               }
 
+              .Search .searchbox .algolia-brand-outer {
+                width: 15rem;
+                margin: 1.5rem 0 0.5rem auto;
+              }
+
               .Search .articles {
                 margin: 0 0 4rem;
                 display: flex;
@@ -257,6 +286,10 @@ class Search extends Component<Props, State> {
               }
             `}</style>
             <style jsx global>{`
+              .Search .searchbox .Input {
+                margin: 0;
+              }
+
               .Search .searchbox .Input span::after {
                 margin: -0.3rem 0 0 0;
               }
@@ -272,9 +305,9 @@ class Search extends Component<Props, State> {
                 /* width: calc(1/2*100% - 1/2*2.5rem); */
               }
 
-              .Search .articles .Article .image {
+              /* .Search .articles .Article .image {
                 min-height: 20rem;
-              }
+              } */
               @media (min-width: 768px),
                 @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
                 .Search .articles .Article {
@@ -285,7 +318,7 @@ class Search extends Component<Props, State> {
                 @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
                 .Search .articles .Article {
                   width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
-                  height: 15rem;
+                  /* height: 15rem; */
                   overflow: hidden;
                 }
               }

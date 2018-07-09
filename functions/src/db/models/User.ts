@@ -8,8 +8,6 @@ export interface Interface {
   nametag?: string;
   name?: string;
   email?: string;
-  likes?: string;
-  comment_likes?: string;
   image?: string;
   small_image?: string;
   bio?: string;

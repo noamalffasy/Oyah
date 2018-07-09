@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
@@ -21,7 +20,7 @@ import * as uuid from "uuid/v4";
 // import { prototype } from "react-markdown";
 
 import Head from "next/head";
-import Router from "next/router";
+import Router, { withRouter } from "next/router";
 
 import App from "../components/App";
 
@@ -37,10 +36,11 @@ interface Props {
   updateArticle?: any;
   newArticle: any;
   notAuthorized?: any;
-  user?: any;
-  signInModal?: any;
-  url?: any;
-  dispatch?: any;
+  router: any;
+  user: any;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 interface State {
@@ -65,7 +65,6 @@ interface State {
       $articleID: String
       $main: Boolean
       $image: String
-      $authInfo: AuthInfo
     ) {
       uploadFile(
         file: $file
@@ -73,7 +72,6 @@ interface State {
         articleID: $articleID
         main: $main
         image: $image
-        authInfo: $authInfo
       ) {
         path
       }
@@ -90,14 +88,12 @@ interface State {
       $title: String!
       $content: String!
       $authorID: String!
-      $authInfo: AuthInfo
     ) {
       createArticle(
         id: $id
         title: $title
         content: $content
         authorID: $authorID
-        authInfo: $authInfo
       ) {
         id
         title
@@ -116,15 +112,8 @@ interface State {
       $title: String!
       $path: String
       $content: String!
-      $authInfo: AuthInfo
     ) {
-      updateArticle(
-        id: $id
-        title: $title
-        path: $path
-        content: $content
-        authInfo: $authInfo
-      ) {
+      updateArticle(id: $id, title: $title, path: $path, content: $content) {
         id
         title
         content
@@ -135,36 +124,32 @@ interface State {
     name: "updateArticle"
   }
 )
+@withRouter
 class WriteArticle extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  state = {
+    id: null,
+    notAuthorized: false,
+    output: "",
+    focus: false,
+    title: "",
+    image: null,
+    scaleRatio: "33.3%",
+    content: undefined,
+    edit: false
+  };
 
-    this.md = new MarkdownIt();
+  setImageScaleRatio = this._setImageScaleRatio.bind(this);
 
-    this.state = {
-      id: null,
-      notAuthorized: false,
-      output: "",
-      focus: false,
-      title: "",
-      image: null,
-      scaleRatio: "33.3%",
-      content: undefined,
-      edit: false
-    };
+  md = new MarkdownIt();
 
-    this.renderToPreview = this.renderToPreview.bind(this);
-    this.uploadImage = this.uploadImage.bind(this);
-    this.getFile = this.getFile.bind(this);
-    this.publish = this.publish.bind(this);
-  }
-
-  ctrls: {
-    articleImage?: HTMLDivElement;
-  } = {};
+  articleImage: HTMLDivElement = null;
+  editor: Editor;
+  imageDialog: HTMLInputElement;
+  title: HTMLTextAreaElement;
+  ActionButtons: ActionButtons;
 
   static async getInitialProps(
-    { pathname, query: { id: _id } }: any,
+    { query: { id: _id } }: any,
     apolloClient: any,
     user: any
   ) {
@@ -175,7 +160,7 @@ class WriteArticle extends Component<Props, State> {
           ? _id.replace("_small.jpeg", "")
           : _id;
     if (_id === undefined) {
-      Router.push("/articles/new/" + id);
+      this.props.router.push("/articles/new/" + id);
 
       return {
         newArticle: { id }
@@ -274,7 +259,7 @@ class WriteArticle extends Component<Props, State> {
   }
 
   componentDidMount() {
-    const id = this.props.url.query.id;
+    const id = Router.query.id;
 
     if (
       this.props.newArticle !== undefined &&
@@ -305,7 +290,8 @@ class WriteArticle extends Component<Props, State> {
             : this.state.title
               ? this.state.title
               : this.props.newArticle.title,
-          image: saved.image
+          image: saved.image,
+          content: saved.content
         }),
         () => {
           this.setImageScaleRatio();
@@ -316,7 +302,7 @@ class WriteArticle extends Component<Props, State> {
     setInterval(() => {
       if (
         Object.keys(this.props.user).length !== 0 &&
-        this.props.url.pathname === "/WriteArticle"
+        Router.pathname === "/WriteArticle"
       ) {
         let seen: any = [];
 
@@ -325,9 +311,10 @@ class WriteArticle extends Component<Props, State> {
           JSON.stringify(
             {
               title: this.state.title,
-              image: this.state.image ? this.state.image : null
+              image: this.state.image ? this.state.image : null,
+              content: this.editor.text() || this.editor.props.value || ""
             },
-            (key, val) => {
+            (_, val) => {
               if (val !== null && typeof val === "object") {
                 if (seen.indexOf(val) >= 0) {
                   return;
@@ -342,17 +329,17 @@ class WriteArticle extends Component<Props, State> {
     }, 10000);
   }
 
-  getDimensionsOfImage(imageURL) {
-    return new Promise((resolve, reject) => {
+  getDimensionsOfImage = imageURL => {
+    return new Promise<{ width: number; height: number }>((resolve, _) => {
       const image = new Image();
-      image.src = imageURL;
       image.onload = () => {
         resolve({ width: image.naturalWidth, height: image.naturalHeight });
       };
+      image.src = imageURL;
     });
-  }
+  };
 
-  async setImageScaleRatio() {
+  async _setImageScaleRatio() {
     const imgURL = this.state.image || this.props.newArticle.image;
     const { width, height } = await this.getDimensionsOfImage(imgURL);
     const scaleRatio = `${(100 * height) / width}%`;
@@ -363,17 +350,17 @@ class WriteArticle extends Component<Props, State> {
     }));
   }
 
-  renderToPreview() {
-    const output = this.md.render(this.editor.innerHTML);
+  renderToPreview = () => {
+    const output = this.md.render(this.editor.text());
 
     this.setState((prevState: any) => ({
       ...prevState,
       output
     }));
-  }
+  };
 
-  uploadImage() {
-    const imageDialog = findDOMNode(this.imageDialog);
+  uploadImage = () => {
+    const imageDialog = this.imageDialog;
     try {
       imageDialog.click();
     } catch (e) {
@@ -397,10 +384,10 @@ class WriteArticle extends Component<Props, State> {
       );
       imageDialog.dispatchEvent(evt);
     }
-  }
+  };
 
-  getFile() {
-    const imageDialog = findDOMNode(this.imageDialog);
+  getFile = () => {
+    const imageDialog = this.imageDialog;
     const fr = new FileReader();
     fr.onload = () => {
       this.setState((prevState: any) => ({
@@ -409,9 +396,9 @@ class WriteArticle extends Component<Props, State> {
       }));
     };
     fr.readAsDataURL(imageDialog.files[0]);
-  }
+  };
 
-  publish(e: any, triggerLoading: any) {
+  publish = (_, triggerLoading: any) => {
     const title = this.title.value || this.state.title || "";
     const image = this.state.image
       ? this.imageDialog.files.length > 0
@@ -419,7 +406,6 @@ class WriteArticle extends Component<Props, State> {
         : this.state.image
       : null;
     const content = this.editor.text() || this.editor.props.value || "";
-    let imagePath = null;
 
     triggerLoading();
 
@@ -436,10 +422,7 @@ class WriteArticle extends Component<Props, State> {
             where: "article",
             articleID: this.props.newArticle.id,
             main: true,
-            image,
-            authInfo: {
-              idToken: this.props.user.idToken
-            }
+            image
           }
         })
         .then((res: any) => {
@@ -456,10 +439,7 @@ class WriteArticle extends Component<Props, State> {
                     title,
                     path: res.data.uploadFile.path,
                     content,
-                    authorID: this.props.user.id,
-                    authInfo: {
-                      idToken: this.props.user.idToken
-                    }
+                    authorID: this.props.user.id
                   }
                 })
                 .then((res: any) => {
@@ -489,10 +469,7 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     path: res.data.uploadFile.path,
-                    content,
-                    authInfo: {
-                      idToken: this.props.user.idToken
-                    }
+                    content
                   }
                 })
                 .then((res: any) => {
@@ -531,13 +508,11 @@ class WriteArticle extends Component<Props, State> {
       this.props
         .uploadFile({
           variables: {
-            file: image,
+            // file: image,
             where: "article",
             articleID: this.props.newArticle.id,
             main: true,
-            authInfo: {
-              idToken: this.props.user.idToken
-            }
+            image: this.state.image
           }
         })
         .then((res: any) => {
@@ -554,10 +529,7 @@ class WriteArticle extends Component<Props, State> {
                     title,
                     path: res.data.uploadFile.path,
                     content,
-                    authorID: this.props.user.id,
-                    authInfo: {
-                      idToken: this.props.user.idToken
-                    }
+                    authorID: this.props.user.id
                   }
                 })
                 .then((res: any) => {
@@ -585,10 +557,7 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     path: res.data.uploadFile.path,
-                    content,
-                    authInfo: {
-                      idToken: this.props.user.idToken
-                    }
+                    content
                   }
                 })
                 .then((res: any) => {
@@ -627,10 +596,7 @@ class WriteArticle extends Component<Props, State> {
               id: this.props.newArticle.id,
               title,
               content,
-              authorID: this.props.user.id,
-              authInfo: {
-                idToken: this.props.user.idToken
-              }
+              authorID: this.props.user.id
             }
           })
           .then((res: any) => {
@@ -659,10 +625,7 @@ class WriteArticle extends Component<Props, State> {
             variables: {
               id: this.props.newArticle.id,
               title,
-              content,
-              authInfo: {
-                idToken: this.props.user.idToken
-              }
+              content
             }
           })
           .then((res: any) => {
@@ -687,7 +650,7 @@ class WriteArticle extends Component<Props, State> {
           });
       }
     }
-  }
+  };
 
   setError = bindActionCreators(
     errorActionCreators.setError,
@@ -720,7 +683,7 @@ class WriteArticle extends Component<Props, State> {
                       title: e.target.value
                     }));
                   }}
-                  ref={(input: any) => {
+                  inputRef={input => {
                     this.title = input;
                   }}
                 />
@@ -738,7 +701,7 @@ class WriteArticle extends Component<Props, State> {
                   : {}
               }
               onClick={this.uploadImage}
-              ref={div => (this.ctrls.articleImage = div)}
+              ref={div => (this.articleImage = div)}
             >
               <div className="background">
                 <div className="upload-text">
@@ -788,7 +751,9 @@ class WriteArticle extends Component<Props, State> {
                   className={this.state.focus ? "focus" : ""}
                   value={
                     this.state.content || this.props.newArticle
-                      ? this.props.newArticle.content || ""
+                      ? this.state.content ||
+                        this.props.newArticle.content ||
+                        ""
                       : ""
                   }
                   id={this.props.newArticle.id}
@@ -808,7 +773,7 @@ class WriteArticle extends Component<Props, State> {
                       focus: true
                     }));
                   }}
-                  ref={(editor: any) => (this.editor = editor)}
+                  ref={editor => (this.editor = editor)}
                 />
                 <ActionButtons
                   primaryText="Publish"
@@ -967,6 +932,11 @@ class WriteArticle extends Component<Props, State> {
       return (
         <App {...this.props}>
           <div className="NotAuthorized Content">
+            <Head>
+              <title>Not authorized | Oyah</title>
+              <meta name="description" content="Not authorized" />
+              {/* <base href="http://localhost:8081/" /> */}
+            </Head>
             <h2>Not Authorized</h2>
             <p>You must be authorized in order to access this page</p>
           </div>

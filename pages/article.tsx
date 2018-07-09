@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
@@ -10,8 +9,10 @@ import * as errorActionCreators from "../actions/error";
 
 import * as uuid from "uuid/v4";
 
+import Router from "next/router";
 import Head from "next/head";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
@@ -31,7 +32,7 @@ import Image from "../components/Image";
 import Popup from "../components/Popup";
 import Input from "../components/Input";
 import ActionButtons from "../components/ActionButtons";
-import MoreSvg from "../components/MoreSvg";
+import { More as MoreSvg } from "../components/svgs";
 
 import Error from "./_error";
 
@@ -40,6 +41,11 @@ import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
+
+// import { ArticleModel, CommentModel, UserModel } from "../lib/db/models";
+const { ArticleModel, CommentModel } = dynamic(import("../lib/db/models"), {
+  ssr: false
+});
 
 class AuthorImagePlaceholder extends Component {
   render() {
@@ -132,8 +138,6 @@ interface User {
   email?: string;
   small_image?: string;
   image?: string;
-  likes?: any;
-  comment_likes?: any;
   bio?: string;
   mains?: string;
   reddit?: string;
@@ -145,10 +149,11 @@ interface User {
 interface Article {
   id: string;
   path: string;
+  dominantColor: string;
   title: string;
   content: string;
   comments: object[];
-  likes: number;
+  likes: object;
   createdAt: Date;
 }
 
@@ -158,11 +163,10 @@ interface Props extends React.Props<ArticlePage> {
   author: User;
   article: Article;
   profile?: User;
-  url?: any;
-  dispatch?: any;
   deleteArticle?: any;
-  signInModal?: any;
-  error?: any;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 interface State {
@@ -187,27 +191,19 @@ interface State {
   }
 )
 class ArticlePage extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  state = {
+    datePublished: undefined,
+    titleReady: false,
+    menuOpen: false,
+    deletePopup: false,
+    removeComments: []
+  };
 
-    this.state = {
-      datePublished: undefined,
-      titleReady: false,
-      menuOpen: false,
-      deletePopup: false,
-      removeComments: []
-    };
-
-    this.openDeletePopup = this.openDeletePopup.bind(this);
-    this.deleteArticle = this.deleteArticle.bind(this);
-    this.deleteComment = this.deleteComment.bind(this);
-  }
-
-  ctrls: {
-    more?: HTMLDivElement;
-    morePopup?: Popup;
-    title?: HTMLHeadingElement;
-  } = {};
+  more: HTMLDivElement = null;
+  morePopup: Popup = null;
+  title: HTMLHeadingElement = null;
+  firstContainer: HTMLDivElement = null;
+  deletePopup: DeletePopup = null;
 
   static async getInitialProps(
     { query: { id } }: any,
@@ -271,7 +267,19 @@ class ArticlePage extends Component<Props, State> {
         if (user) {
           return {
             profile: user,
-            article: getArticle.data.getArticle,
+            article: {
+              ...getArticle.data.getArticle,
+              likes: JSON.parse(getArticle.data.getArticle.likes),
+              comments: Object.keys(getArticle.data.getArticle.comments).map(
+                (_, i) => {
+                  const comment = getArticle.data.getArticle.comments[i];
+                  return {
+                    ...comment,
+                    likes: JSON.parse(comment.likes)
+                  };
+                }
+              )
+            },
             author: {
               ...getArticle.data.getArticle.author,
               image: getArticle.data.getArticle.author.image
@@ -279,7 +287,19 @@ class ArticlePage extends Component<Props, State> {
           };
         } else {
           return {
-            article: getArticle.data.getArticle,
+            article: {
+              ...getArticle.data.getArticle,
+              likes: JSON.parse(getArticle.data.getArticle.likes),
+              comments: Object.keys(getArticle.data.getArticle.comments).map(
+                (_, i) => {
+                  const comment = getArticle.data.getArticle.comments[i];
+                  return {
+                    ...comment,
+                    likes: JSON.parse(comment.likes)
+                  };
+                }
+              )
+            },
             author: {
               ...getArticle.data.getArticle.author,
               image: getArticle.data.getArticle.author.image
@@ -390,10 +410,10 @@ class ArticlePage extends Component<Props, State> {
 
   // shouldComponentUpdate(nextProps: Props, nextState: State) {
   //   if (
-  //     (this.ctrls.more &&
-  //       nextState.menuOpen !== this.ctrls.morePopup.state.open) ||
+  //     (this.more &&
+  //       nextState.menuOpen !== this.morePopup.state.open) ||
   //     (this.deletePopup && nextState.deletePopup !== false) ||
-  //     // (this.ctrls.more && this.ctrls.more.contains(nextProps.clicked)) ||
+  //     // (this.more && this.more.contains(nextProps.clicked)) ||
   //     !this.props.article ||
   //     !this.props.article.content ||
   //     !this.props.author ||
@@ -430,43 +450,47 @@ class ArticlePage extends Component<Props, State> {
         titleReady: true
       }),
       () => {
-        function checkNumLines(elem: HTMLHeadingElement) {
-          const divHeight = elem.offsetHeight;
-          const lineHeight = parseInt(
-            window.getComputedStyle(elem, null).getPropertyValue("line-height")
-          );
-          return Math.round(divHeight / lineHeight);
-        }
+        if (this.props.author.is_team) {
+          function checkNumLines(elem: HTMLHeadingElement) {
+            const divHeight = elem.offsetHeight;
+            const lineHeight = parseInt(
+              window
+                .getComputedStyle(elem, null)
+                .getPropertyValue("line-height")
+            );
+            return Math.round(divHeight / lineHeight);
+          }
 
-        const originalNumLines = checkNumLines(this.ctrls.title);
+          const originalNumLines = checkNumLines(this.title);
 
-        const title = this.ctrls.title.innerHTML;
-        const verificationSymbol = title.substring(title.indexOf("<span"));
+          const title = this.title.innerHTML;
+          const verificationSymbol = title.substring(title.indexOf("<span"));
 
-        this.ctrls.title.innerText = title.substring(0, title.indexOf("<span"));
+          this.title.innerText = title.substring(0, title.indexOf("<span"));
 
-        const numLines = checkNumLines(this.ctrls.title);
+          const numLines = checkNumLines(this.title);
 
-        if (numLines < originalNumLines) {
-          let words = title.substring(0, title.indexOf("<span")).split(" ");
-          words.splice(words.length - 1, 0, "<br>");
-          words.push(verificationSymbol);
-          this.ctrls.title.innerHTML = words.join(" ");
-        } else {
-          this.ctrls.title.innerHTML = title;
+          if (numLines < originalNumLines) {
+            let words = title.substring(0, title.indexOf("<span")).split(" ");
+            words.splice(words.length - 1, 0, "<br>");
+            words.push(verificationSymbol);
+            this.title.innerHTML = words.join(" ");
+          } else {
+            this.title.innerHTML = title;
+          }
         }
       }
     );
   }
 
-  openDeletePopup(what = "article", id = this.props.article.id) {
+  openDeletePopup = (what = "article", id = this.props.article.id) => {
     this.setState(prevState => ({
       ...prevState,
       deletePopup: { what, id }
     }));
-  }
+  };
 
-  deleteArticle(actionButtons) {
+  deleteArticle = actionButtons => {
     this.props
       .deleteArticle({
         variables: {
@@ -482,20 +506,20 @@ class ArticlePage extends Component<Props, State> {
         if (res.error) {
           console.error(res.error.message);
         } else {
-          this.props.url.push("/");
+          Router.push("/");
         }
       })
       .catch((err: Error) => {
         console.error(err);
       });
-  }
+  };
 
-  deleteComment(id: string) {
+  deleteComment = (id: string) => {
     this.setState(prevState => ({
       ...prevState,
       removeComments: this.state.removeComments.concat([id])
     }));
-  }
+  };
 
   openSignInModal = bindActionCreators(
     signInModalActionCreators.open,
@@ -516,7 +540,14 @@ class ArticlePage extends Component<Props, State> {
               <title>
                 {(this.props.article.title || "Article") + ` | Oyah`}
               </title>
+              <meta
+                name="keywords"
+                content={`${this.props.article.title
+                  .split(" ")
+                  .join(",")},Oyah,Melee,News,Gaming`}
+              />
               <meta name="description" content={this.props.article.content} />
+              <meta name="author" content={this.props.author.nametag} />
               <meta name="og:image" content={this.props.article.path} />
             </Head>
             <div className="container" ref={div => (this.firstContainer = div)}>
@@ -609,10 +640,7 @@ class ArticlePage extends Component<Props, State> {
                       this.props.profile) &&
                     this.props.author &&
                     this.props.author.id === this.props.user.id && (
-                      <div
-                        className="more"
-                        ref={div => (this.ctrls.more = div)}
-                      >
+                      <div className="more" ref={div => (this.more = div)}>
                         <MoreSvg
                           onClick={e => {
                             e.preventDefault();
@@ -625,16 +653,14 @@ class ArticlePage extends Component<Props, State> {
                         />
                         <Popup
                           open={this.state.menuOpen}
-                          ref={popup => (this.ctrls.morePopup = popup)}
+                          ref={popup => (this.morePopup = popup)}
                         >
                           <li>
                             <Link
                               href={"/WriteArticle?id=" + this.props.article.id}
                               as={"/articles/new/" + this.props.article.id}
                             >
-                              <a onClick={() => this.ctrls.morePopup.open()}>
-                                Edit
-                              </a>
+                              <a onClick={() => this.morePopup.open()}>Edit</a>
                             </Link>
                           </li>
                           <li>
@@ -657,7 +683,7 @@ class ArticlePage extends Component<Props, State> {
                   ready={this.state.titleReady}
                   style={{ animation: "loading 1.5s infinite", width: "80%" }}
                 >
-                  <h1 ref={title => (this.ctrls.title = title)}>
+                  <h1 ref={title => (this.title = title)}>
                     {this.props.article.title}
                     {this.props.author.is_team && (
                       <Verification
@@ -698,7 +724,6 @@ class ArticlePage extends Component<Props, State> {
                   />
 
                   <Responses
-                    url={this.props.url}
                     user={this.props.user}
                     openSignInModal={this.openSignInModal}
                     articleID={this.props.article.id}
@@ -978,8 +1003,8 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
     super(props);
 
     this.state = {
-      liked: [],
-      likes: this.props.likes,
+      liked: this.props.likes,
+      likes: Object.keys(this.props.likes).length,
       isLiked: false,
       showPopup: false
     };
@@ -988,232 +1013,119 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
   }
 
   componentDidMount() {
-    switch (this.props.where) {
-      case "article":
-        if (
-          (this.props.user && this.props.user.likes) ||
-          (this.props.user &&
-            this.props.user.likes &&
-            this.state.likes !== this.props.likes)
-        ) {
-          this.setState(prevState => ({
-            ...prevState,
-            likes: this.props.likes,
-            liked: this.props.user.likes.split(", "),
-            isLiked: this.props.user.likes.split(", ").includes(this.props.id)
-          }));
-        }
-        break;
-      case "comment":
-        if (
-          (this.props.user && this.props.user.comment_likes) ||
-          (this.props.user &&
-            this.props.user.likes &&
-            this.state.likes !== this.props.likes)
-        ) {
-          this.setState(prevState => ({
-            ...prevState,
-            likes: this.props.likes,
-            liked: this.props.user.comment_likes.split(", "),
-            isLiked: this.props.user.comment_likes.split(", ").includes(
-              JSON.stringify({
-                articleID: this.props.articleID,
-                id: this.props.id
-              })
-            )
-          }));
-        }
-        break;
-      default:
-        if (this.props.user && this.props.user.likes) {
-          this.setState(prevState => ({
-            ...prevState,
-            liked: this.props.user.likes.split(", "),
-            isLiked: this.props.user.likes.split(", ").includes(this.props.id)
-          }));
-        }
-        break;
+    if (
+      this.props.user &&
+      Object.keys(this.props.user).length > 0 &&
+      this.props.user.id
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        liked: this.props.likes,
+        likes: Object.keys(this.props.likes).length,
+        isLiked: this.props.likes[this.props.user.id]
+      }));
     }
   }
 
   componentWillReceiveProps(nextProps: BottombarProps) {
-    switch (nextProps.where) {
-      case "article":
-        if (
-          (nextProps.user !== this.props.user && nextProps.user.likes) ||
-          (nextProps.user &&
-            nextProps.user.likes &&
-            nextProps.likes !== this.props.likes)
-        ) {
-          this.setState(prevState => ({
-            ...prevState,
-            likes: nextProps.likes,
-            liked: nextProps.user.likes.split(", "),
-            isLiked: nextProps.user.likes.split(", ").includes(this.props.id)
-          }));
-        }
-        break;
-      case "comment":
-        if (
-          (nextProps.user !== this.props.user &&
-            nextProps.user.comment_likes) ||
-          (nextProps.user &&
-            nextProps.user.likes &&
-            nextProps.likes !== this.props.likes)
-        ) {
-          this.setState(prevState => ({
-            ...prevState,
-            likes: nextProps.likes,
-            liked: nextProps.user.comment_likes.split(", "),
-            isLiked: nextProps.user.comment_likes.split(", ").includes(
-              JSON.stringify({
-                articleID: nextProps.articleID,
-                id: nextProps.id
-              })
-            )
-          }));
-        }
-        break;
-      default:
-        if (nextProps.user !== this.props.user && nextProps.user.likes) {
-          this.setState(prevState => ({
-            ...prevState,
-            liked: nextProps.user.likes.split(", "),
-            isLiked: nextProps.user.likes.split(", ").includes(nextProps.id)
-          }));
-        }
-        break;
+    if (
+      nextProps.user &&
+      Object.keys(nextProps.user).length > 0 &&
+      nextProps.user.id &&
+      nextProps.user !== this.props.user
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        liked: nextProps.likes,
+        likes: Object.keys(nextProps.likes).length,
+        isLiked: nextProps.likes[nextProps.user.id]
+      }));
     }
   }
 
   async toggleLike(e: any) {
     e.preventDefault();
-    const liked = this.state.liked;
-    const id = this.props.id;
-    const indexOfArticle =
-      this.props.where === "article" ? liked.indexOf(id) : null;
-    switch (this.props.where) {
-      case "article":
-        this.props
-          .likeArticle({
-            variables: {
-              articleID: id,
-              liked: !liked.includes(id),
-              authInfo: {
-                idToken: this.props.user.idToken
+
+    if (Object.keys(this.props.user).length > 0) {
+      const id = this.props.id;
+      const articleID = this.props.articleID;
+      const liked = this.state.liked;
+      const isLiked = liked[this.props.user.id];
+      const { [this.props.user.id]: value, ...newLiked } = liked;
+      const likes = !isLiked
+        ? { ...liked, [this.props.user.id]: true }
+        : newLiked;
+
+      this.setState(prevState => ({
+        ...prevState,
+        liked: likes,
+        likes: Object.keys(likes).length,
+        isLiked: !isLiked
+      }));
+
+      switch (this.props.where) {
+        case "comment":
+          await CommentModel.get({ id, articleID }).then(
+            async (comment: any) => {
+              if (comment.likes) {
+                const {
+                  [this.props.user.id]: value,
+                  ...newLiked
+                } = comment.likes;
+
+                CommentModel.update({
+                  id,
+                  articleID,
+                  likes: !isLiked
+                    ? { ...comment.likes, [this.props.user.id]: true }
+                    : newLiked
+                }).catch((err: any) => {
+                  console.error(err);
+                });
+              } else {
+                CommentModel.update({
+                  id,
+                  articleID,
+                  likes: !isLiked ? { [this.props.user.id]: true } : {}
+                }).catch((err: any) => {
+                  console.error(err);
+                });
               }
             }
-          })
-          .then((res: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: liked.includes(id)
-                ? liked
-                    .slice(0, indexOfArticle)
-                    .concat(liked.slice(indexOfArticle + 1))
-                : [...liked, id],
-              likes: liked.includes(id)
-                ? this.state.likes - 1
-                : this.state.likes + 1,
-              isLiked: !liked.includes(id)
-            }));
-          })
-          .catch((err: any) => {
-            if (
-              err.graphQLErrors[0].message ===
-              "User is not logged in (or authenticated)."
-            ) {
-              this.setState(prevState => ({
-                ...prevState,
-                showPopup: true
-              }));
+          );
+          break;
+        default:
+          await ArticleModel.get({ id }).then(async (article: Article) => {
+            if (article.likes) {
+              const {
+                [this.props.user.id]: value,
+                ...newLiked
+              } = article.likes;
+
+              ArticleModel.update({
+                id,
+                likes: !isLiked
+                  ? { ...article.likes, [this.props.user.id]: true }
+                  : newLiked
+              }).catch((err: any) => {
+                console.error(err);
+              });
             } else {
-              this.props.setError(err.graphQLErrors[0].message);
+              ArticleModel.update({
+                id,
+                likes: !isLiked ? { [this.props.user.id]: true } : {}
+              }).catch((err: any) => {
+                console.error(err);
+              });
             }
           });
-        break;
-      case "comment":
-        const articleID = this.props.articleID;
-        const commentID = JSON.stringify({ articleID, id });
-        const indexOfComment = liked.indexOf(commentID);
-        this.props
-          .likeComment({
-            variables: {
-              id,
-              articleID,
-              liked: !liked.includes(commentID),
-              authInfo: {
-                idToken: this.props.user.idToken
-              }
-            }
-          })
-          .then((res: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: liked.includes(commentID)
-                ? liked
-                    .slice(0, indexOfComment)
-                    .concat(liked.slice(indexOfComment + 1))
-                : [...liked, commentID],
-              likes: liked.includes(commentID)
-                ? this.state.likes - 1
-                : this.state.likes + 1,
-              isLiked: !liked.includes(commentID)
-            }));
-          })
-          .catch((err: any) => {
-            if (
-              err.graphQLErrors[0].message ===
-              "User is not logged in (or authenticated)."
-            ) {
-              this.setState(prevState => ({
-                ...prevState,
-                showPopup: true
-              }));
-            } else {
-              this.props.setError(err.graphQLErrors[0].message);
-            }
-          });
-        break;
-      default:
-        this.props
-          .likeArticle({
-            variables: {
-              articleID: id,
-              liked: !liked.includes(id),
-              authInfo: {
-                idToken: this.props.user.idToken
-              }
-            }
-          })
-          .then((res: any) => {
-            this.setState(prevState => ({
-              ...prevState,
-              liked: liked.includes(id)
-                ? liked
-                    .slice(0, indexOfArticle)
-                    .concat(liked.slice(indexOfArticle + 1))
-                : [...liked, id],
-              likes: liked.includes(id)
-                ? this.state.likes - 1
-                : this.state.likes + 1,
-              isLiked: !liked.includes(id)
-            }));
-          })
-          .catch((err: any) => {
-            if (
-              err.graphQLErrors[0].message ===
-              "User is not logged in (or authenticated)."
-            ) {
-              this.setState(prevState => ({
-                ...prevState,
-                showPopup: true
-              }));
-            } else {
-              this.props.setError(err.graphQLErrors[0].message);
-            }
-          });
-        break;
+          break;
+      }
+    } else {
+      this.setState(prevState => ({
+        ...prevState,
+        showPopup: true
+      }));
     }
   }
 
@@ -1389,7 +1301,6 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
 }
 
 interface ResponsesProps {
-  url: any;
   user: User;
   openSignInModal: any;
   articleID: any;
@@ -1472,13 +1383,10 @@ interface ResponsesState {
   }
 )
 class Responses extends Component<ResponsesProps, ResponsesState> {
-  constructor(props: ResponsesProps) {
-    super(props);
+  state = { comments: [], menuOpen: false, edit: false };
 
-    this.state = { comments: [], menuOpen: false, edit: false };
-
-    this.sendComment = this.sendComment.bind(this);
-  }
+  input: Input = null;
+  inputActionButtons: ActionButtons = null;
 
   componentDidMount() {
     if (this.props.comments && this.props.comments.length > 0) {
@@ -1488,10 +1396,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           comments: this.props.comments
         }),
         () => {
-          if (this.props.url.query.comment) {
-            const comment = findDOMNode(
-              this["comment_" + this.props.url.query.comment]
-            );
+          if (Router.query.comment) {
+            const comment = this["comment_" + Router.query.comment];
             if (comment !== null) {
               comment.scrollIntoView();
             }
@@ -1509,10 +1415,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           comments: nextProps.comments
         }),
         () => {
-          if (this.props.url.query.comment) {
-            const comment = findDOMNode(
-              this["comment_" + this.props.url.query.comment]
-            );
+          if (Router.query.comment) {
+            const comment = this["comment_" + Router.query.comment];
             if (comment !== null) {
               comment.scrollIntoView();
             }
@@ -1536,8 +1440,11 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
     }
   }
 
-  sendComment(e: any, triggerLoading: any) {
-    if (this.input.input.value && this.input.input.value.trim() !== "") {
+  sendComment = (_, triggerLoading: any) => {
+    if (
+      (this.input.input as HTMLTextAreaElement).value &&
+      (this.input.input as HTMLTextAreaElement).value.trim() !== ""
+    ) {
       triggerLoading();
 
       this.props
@@ -1545,7 +1452,7 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           variables: {
             id: uuid(),
             articleID: this.props.articleID,
-            message: this.input.input.value.trim(),
+            message: (this.input.input as HTMLTextAreaElement).value.trim(),
             authInfo: {
               idToken: this.props.user.idToken
             }
@@ -1582,9 +1489,9 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           console.error(err);
         });
     }
-  }
+  };
 
-  updateComment(id: string, authorID: string, triggerLoading: any) {
+  updateComment(id: string, triggerLoading: any) {
     if (
       this["edit_" + id].input.value.trim() !== "" &&
       this["edit_" + id].input.value
@@ -1686,9 +1593,9 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
           </div>
         )}
         {this.state.comments.map((elem, i) => {
-          if (this.props.url.query.comment === elem.id) {
+          if (Router.query.comment === elem.id) {
             setTimeout(() => {
-              const comment = findDOMNode(this["comment_" + elem.id]);
+              const comment = this["comment_" + elem.id];
               comment.scrollIntoView();
             }, 10);
           }
@@ -1811,12 +1718,8 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
 
                     <ActionButtons
                       primaryText="Update"
-                      primaryAction={(e: any, triggerLoading: any) =>
-                        this.updateComment(
-                          elem.id,
-                          elem.author.id,
-                          triggerLoading
-                        )
+                      primaryAction={(_, triggerLoading: any) =>
+                        this.updateComment(elem.id, triggerLoading)
                       }
                       secondaryText="Cancel"
                       secondaryAction={() => {
@@ -2203,23 +2106,19 @@ interface DeletePopupState {
   }
 )
 class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
-  constructor(props: any) {
-    super(props);
+  state = { popup: false, what: "article", id: null };
 
-    this.state = { popup: false };
+  ActionButtons: ActionButtons = null;
+  popup: HTMLDivElement = null;
 
-    this.open = this.open.bind(this);
-    this.delete = this.delete.bind(this);
-  }
-
-  open(what = "article", id = this.props.id) {
+  open = (what = "article", id = this.props.id) => {
     this.setState((prevState: any) => ({
       ...prevState,
       what,
       id,
       popup: true
     }));
-  }
+  };
 
   componentWillReceiveProps(nextProps: any) {
     if (nextProps.isOpen !== this.props.isOpen && nextProps.isOpen !== false) {
@@ -2231,7 +2130,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
     }
   }
 
-  delete(e: any, triggerLoading: any) {
+  delete = (_, triggerLoading: any) => {
     triggerLoading();
 
     switch (this.state.what) {
@@ -2249,7 +2148,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
               }
             }
           })
-          .then((res: any) => {
+          .then(() => {
             this.ActionButtons.reset();
             this.props.deleteCommentFromDOM(this.state.id);
           })
@@ -2258,7 +2157,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           });
         break;
     }
-  }
+  };
 
   render() {
     return (
@@ -2269,7 +2168,7 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
           visibility: this.state.popup ? "visible" : "collapse",
           opacity: this.state.popup ? 1 : 0
         }}
-        onClick={e => {
+        onClick={(e: any) => {
           if (this.popup.contains(e.target)) {
             this.setState(prevState => ({
               ...prevState,

@@ -6,7 +6,7 @@ interface Props {
   onClick?: any;
 }
 
-class ArrowSvg extends Component<Props> {
+class Arrow extends Component<Props> {
   render() {
     return (
       <svg
@@ -28,4 +28,4 @@ class ArrowSvg extends Component<Props> {
   }
 }
 
-export default ArrowSvg;
+export default Arrow;

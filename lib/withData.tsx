@@ -24,8 +24,6 @@ const currentUserQuery = gql`
         email
         small_image
         image
-        likes
-        comment_likes
         bio
         name
         mains
@@ -66,10 +64,7 @@ export default (ComposedComponent: any) => {
       // rendering (on server)
       const apollo = initApollo(stateRedux, ctx);
       const redux = initRedux(stateRedux);
-
-      // const user = app.auth().currentUser
-      //   ? apollo
-
+      
       const currentUser = await apollo
         .query({
           query: currentUserQuery
@@ -148,6 +143,7 @@ export default (ComposedComponent: any) => {
 
     constructor(props: any) {
       super(props);
+
       this.apollo = initApollo(props.stateApollo.apollo.data);
       this.redux = initRedux(props.stateRedux);
 
@@ -174,8 +170,6 @@ export default (ComposedComponent: any) => {
             query: currentUserQuery
           })
           .then(res => {
-            console.log(res);
-
             if (res.data.currentUser.user) {
               login({
                 ...res.data.currentUser.user,

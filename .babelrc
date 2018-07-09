@@ -1,0 +1,23 @@
+{
+    "presets": [
+        "next/babel",
+        "@zeit/next-typescript/babel"
+    ],
+    "plugins": [
+        "transform-decorators-legacy", ["module-resolver", {
+            "root": ["./"],
+            "alias": {
+                "actions": "./actions",
+                "actiontypes": "./actiontypes",
+                "components": "./components",
+                "lib": "./lib",
+                "pages": "./pages",
+                "plugins": "./plugins",
+                "public": "./public",
+                "reducers": "./reducers",
+                "static": "./static",
+                "utils": "./utils"
+            }
+        }]
+    ]
+}

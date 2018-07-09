@@ -1,5 +1,6 @@
 // import * as sequelize from "sequelize";
 // import jwt from "express-jwt";
+import * as express from "express";
 import * as toArray from "stream-to-array";
 import * as sharp from "sharp";
 import * as admin from "firebase-admin";
@@ -34,32 +35,36 @@ const MAGIC_NUMBERS = {
   gif: "47494638"
 };
 
-async function saveCookie({ res }, idToken) {
-  const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
+async function saveCookie({ res }: { res: express.Response }, idToken) {
+  return new Promise(async (resolve, reject) => {
+    const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
 
-  await admin
-    .auth()
-    .createSessionCookie(idToken, { expiresIn })
-    .then(
-      async cookie => {
-        const options = {
-          maxAge: expiresIn,
-          httpOnly: true,
-          secure: false
-          // secure: true
-        };
+    await admin
+      .auth()
+      .createSessionCookie(idToken, { expiresIn })
+      .then(
+        async cookie => {
+          const options: express.CookieOptions = {
+            maxAge: expiresIn,
+            httpOnly: true,
+            // secure: false
+            secure: true
+          };
 
-        res.cookie("__session", cookie, options);
-      },
-      err => {
-        throw err;
-      }
-    );
+          res.cookie("__session", cookie, options);
+
+          resolve(cookie);
+        },
+        err => {
+          reject(err);
+        }
+      );
+  });
 }
 
 async function isLoggedIn(
   { req, res },
-  { cookie: _cookie } = { cookie: null }
+  { cookie: _cookie, idToken } = { cookie: null, idToken: null }
 ) {
   return new Promise(async (resolve, reject) => {
     const cookie = _cookie
@@ -88,6 +93,35 @@ async function isLoggedIn(
             .catch((err: Error) => {
               reject(err);
             });
+          resolve(user);
+        })
+        .catch(err => {
+          console.log(err);
+          if (err.code === "auth/user-not-found") {
+            reject("An error occured");
+          } else {
+            reject("Not logged in");
+          }
+        });
+    } else if (idToken) {
+      await admin
+        .auth()
+        .verifyIdToken(idToken, true)
+        .then(async decodedToken => {
+          const { uid } = decodedToken;
+
+          const user = await User.get({ id: uid })
+            .then((user: any) => {
+              if (user !== null) {
+                return user;
+              } else {
+                reject("User doesn't exist");
+              }
+            })
+            .catch((err: Error) => {
+              reject(err);
+            });
+
           resolve(user);
         })
         .catch(() => {
@@ -130,8 +164,7 @@ function checkConditions(conditions: Array<ConditionObj>) {
   return errors.length > 0 ? errors.join("\n• ") : true;
 }
 
-async function writeFile(filename: any, data: any, encoding: any) {
-  // const fs = require("fs");
+async function writeFile(filename: any, data: any) {
   return new Promise(async (resolve, reject) => {
     const file = bucket.file(filename);
 
@@ -140,14 +173,6 @@ async function writeFile(filename: any, data: any, encoding: any) {
       .then(() => resolve(data))
       .catch(err => reject(err));
     await file.makePublic();
-    // sharp(data).toFile(filename, (err, info) => {
-    //   if (err) reject(err);
-    //   resolve(data);
-    // });
-    // fs.writeFile(filename, data, encoding, (err: Error) => {
-    //   if (err) reject(err);
-    //   else resolve(data);
-    // });
   });
 }
 
@@ -182,8 +207,8 @@ export default {
       });
   },
 
-  currentUser: async (_: any, params, ctx: any) => {
-    return await isLoggedIn(ctx, params.authInfo)
+  currentUser: async (_, __, ctx: any) => {
+    return await isLoggedIn(ctx)
       .then(async user => {
         return { user };
       })
@@ -201,7 +226,7 @@ export default {
     //   throw err;
     // });
   },
-  allArticles: async (_: any, params, ctx: any) => {
+  allArticles: async () => {
     return await Article.getAll()
       .then((articles: any) => articles)
       .catch(err => {
@@ -260,9 +285,9 @@ export default {
       .then(async user => {
         const { idToken } = authInfo;
 
-        await saveCookie(ctx, idToken);
+        const cookie = await saveCookie(ctx, idToken);
 
-        return { user };
+        return { user, cookie };
       })
       .catch(err => {
         throw err;
@@ -290,21 +315,20 @@ export default {
           image,
           providerId,
           reddit: null,
-          twitter: null,
-          likes: "",
-          comment_likes: ""
+          twitter: null
         };
 
         const user: any = await User.getOrCreate(
           { email: newUser.email },
-          newUser
+          newUser,
+          true
         )
           .then(user => user)
           .catch(err => {
             throw err;
           });
 
-        await saveCookie(ctx, idToken);
+        const cookie = await saveCookie(ctx, idToken);
 
         return {
           user: {
@@ -312,7 +336,8 @@ export default {
             id: user.id,
             small_image: null,
             editor: false
-          }
+          },
+          cookie
         };
       })
       .catch(err => {
@@ -347,7 +372,7 @@ export default {
           });
 
         return await User.update({ id: oldUser.id, ...info })
-          .then(async (result: any) => {
+          .then(async () => {
             return {
               user: {
                 ...oldUser,
@@ -436,7 +461,13 @@ export default {
     return await searchIndex
       .search({
         query: searchTerm,
-        attributesToRetrieve: ["id", "authorID", "title", "path"],
+        attributesToRetrieve: [
+          "id",
+          "authorID",
+          "title",
+          "path",
+          "dominantColor"
+        ],
         restrictSearchableAttributes: ["title", "content"]
       })
       .then(res => res.hits.map(article => ({ ...article, exists: true })))
@@ -483,30 +514,33 @@ export default {
         throw err;
       });
   },
-  likeArticle: async (
-    _: any,
-    { articleID, liked, authInfo }: any,
-    ctx: any
-  ) => {
-    return await isLoggedIn(ctx, authInfo)
+  likeArticle: async (_: any, { articleID }: any, ctx: any) => {
+    return await isLoggedIn(ctx)
       .then(async (user: any) => {
         const likedArticles = user.likes.split(", ");
         const indexOfArticle = likedArticles.indexOf(articleID);
-        const likes = liked
+        const liked = indexOfArticle !== -1;
+        const likes = !liked
           ? [...likedArticles, articleID].join(", ")
           : likedArticles
               .slice(0, indexOfArticle)
               .concat(likedArticles.slice(indexOfArticle + 1))
               .join(", ");
+
         return await Article.get({ id: articleID }).then(
           async (article: any) => {
             return await Article.update({
               id: articleID,
-              likes: liked ? article.likes + 1 : article.likes - 1
+              likes: !liked ? article.likes + 1 : article.likes - 1
             })
               .then(async (article: any) => {
                 return await User.update({ id: user.id, likes })
-                  .then((user: any) => {
+                  .then(() => {
+                    searchIndex.partialUpdateObject({
+                      objectID: articleID,
+                      likes: Object.keys(article.likes).length
+                    });
+
                     return article;
                   })
                   .catch((err: Error) => {
@@ -548,17 +582,14 @@ export default {
         throw err;
       });
   },
-  likeComment: async (
-    _: any,
-    { id, articleID, liked, authInfo }: any,
-    ctx: any
-  ) => {
-    return await isLoggedIn(ctx, authInfo)
+  likeComment: async (_: any, { id, articleID }: any, ctx: any) => {
+    return await isLoggedIn(ctx)
       .then(async (user: any) => {
         const likedComments = user.comment_likes.split(", ");
         const commentID = JSON.stringify({ articleID, id });
         const indexOfComment = likedComments.indexOf(commentID);
-        const commentLikes = liked
+        const liked = indexOfComment !== -1;
+        const commentLikes = !liked
           ? [...likedComments, commentID].join(", ")
           : likedComments
               .slice(0, indexOfComment)
@@ -576,7 +607,7 @@ export default {
                   id: user.id,
                   comment_likes: commentLikes
                 })
-                  .then((user: any) => {
+                  .then(() => {
                     return comment;
                   })
                   .catch((err: Error) => {
@@ -603,7 +634,7 @@ export default {
         const comment: any = await Comment.get({ id, articleID });
         if (comment.authorID === user.id) {
           return await Comment.update({ id, articleID, message })
-            .then(res => {
+            .then(() => {
               return { ...comment, author: user, message };
             })
             .catch(err => {
@@ -648,10 +679,7 @@ export default {
     ctx: any
   ) => {
     return await isLoggedIn(ctx, authInfo)
-      .then(async (user: any) => {
-        const fs = require("fs");
-        const path = require("path");
-
+      .then(async () => {
         const doesExist = async filename => {
           return await bucket
             .file(filename)
@@ -681,17 +709,22 @@ export default {
             path: `https://storage.googleapis.com/oyah.xyz/articles/${id}/main.jpeg`,
             content,
             authorID,
-            likes: 0,
+            likes: "",
             createdAt: new Date().toString()
           };
-
-          searchIndex.addObject({ objectID: id, ...newArticle });
 
           return await Article.getOrCreate(
             { id: newArticle.id },
             { ...newArticle, id: newArticle.id }
           )
-            .then(res => res)
+            .then((res: any) => {
+              searchIndex.addObject({
+                objectID: res.id,
+                likes: "",
+                ...newArticle
+              });
+              return res;
+            })
             .catch(err => {
               throw err;
             });
@@ -770,12 +803,10 @@ export default {
   },
   uploadFile: async (
     _: any,
-    { file, where, articleID, main, image, authInfo }: any,
+    { file, where, articleID, main, image }: any,
     ctx: any
   ) => {
-    // uploadFile: async (_: any, args: any, ctx: any) => {
-    // const req = root.rootValue.req;
-    return await isLoggedIn(ctx, authInfo)
+    return await isLoggedIn(ctx)
       .then(async (user: any) => {
         // const path = require("path");
         const util = require("util");
@@ -810,8 +841,7 @@ export default {
           if (checkMagicNumbers(magic)) {
             return await writeFile(
               where === "user" ? `users/${filename}` : `articles/${filename}`,
-              buffer,
-              "binary"
+              buffer
             )
               .then(async () => {
                 if (where === "user") {
@@ -825,10 +855,6 @@ export default {
                 } else {
                   saveResizedImages(buffer, `articles/${filename}`);
                 }
-
-                console.log(
-                  `https://storage.googleapis.com/oyah.xyz/articles/${filename}`
-                );
 
                 return {
                   path:

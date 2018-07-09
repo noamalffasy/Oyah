@@ -3,22 +3,22 @@ import { Component } from "react";
 import { connect } from "react-redux";
 
 import App from "../components/App";
-import Article from "../components/Article";
+import Article from "../components/ArticleBlock";
 
 // <Head> component for setting the page title/meta tags
 import Head from "next/head";
 
 // GraphQL
-import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 
 interface Props {
   articles: any;
-  user?: any;
-  signInModal?: any;
-  error?: any;
+  user: any;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 class Articles extends Component<Props> {
@@ -31,6 +31,7 @@ class Articles extends Component<Props> {
               id
               title
               path
+              dominantColor
               author {
                 id
                 is_team
@@ -81,6 +82,7 @@ class Articles extends Component<Props> {
                   alt={elem.alt}
                   id={elem.id}
                   path={elem.path}
+                  dominantColor={elem.dominantColor}
                   official={elem.author.is_team}
                   loading={false}
                   key={i}
@@ -164,4 +166,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(Articles));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(Articles)
+);

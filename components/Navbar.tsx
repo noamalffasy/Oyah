@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Component } from "react";
-import { findDOMNode } from "react-dom";
 
 import Router from "next/router";
 import Link from "next/link";
@@ -13,7 +12,7 @@ import Image from "./Image";
 import Input from "./Input";
 import Verification from "./Verification";
 import Loading from "./Loading";
-import ArrowSvg from "./ArrowSvg";
+import { Arrow as ArrowSvg } from "./svgs";
 
 // GraphQL
 import { withApollo } from "react-apollo";
@@ -23,7 +22,6 @@ import { app } from "../lib/firebase";
 
 interface Props {
   client?: any;
-  url: any;
   container: any;
   login: any;
   user: any;
@@ -43,14 +41,6 @@ class Navbar extends Component<Props, State> {
   constructor(props: Props, context: any) {
     super(props, context);
 
-    this.state = {
-      focus: false,
-      container: props.container,
-      navOpen: false,
-      searchOpen: false,
-      searchTerm: ""
-    };
-
     this.addContainer = this.addContainer.bind(this);
     this.onFocus = this.onFocus.bind(this);
     this.onBlur = this.onBlur.bind(this);
@@ -58,24 +48,32 @@ class Navbar extends Component<Props, State> {
     this.search = this.search.bind(this);
   }
 
+  state = {
+    focus: false,
+    container: this.props.container,
+    navOpen: false,
+    searchOpen: false,
+    searchTerm: ""
+  };
+
   input: Input;
 
   searchbox: HTMLDivElement;
 
   componentDidMount() {
-    this.addContainer(this.props);
+    this.addContainer(Router.asPath);
+
+    Router.onRouteChangeComplete = url => {
+      this.addContainer(url);
+    };
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url !== this.props.url) {
-      this.addContainer(nextProps);
-    }
-  }
-
-  addContainer(props: Props) {
-    const url = props.url;
+  addContainer(url: string) {
     if (
-      (url.pathname === "/article" || url.pathname === "/WriteArticle") &&
+      // Matches /articles/[anything except 'new']
+      (url.match(/\/articles\/(?!new).*$/g) ||
+        // Matches /articles/new/[anything]
+        url.match(/\/articles\/new\/.*$/g)) &&
       this.state.container === true
     ) {
       this.setState(prevState => ({
@@ -83,8 +81,10 @@ class Navbar extends Component<Props, State> {
         container: false
       }));
     } else if (
-      url.pathname !== "/article" &&
-      url.pathname !== "/WriteArticle" &&
+      // Matches /articles/[anything except 'new']
+      url.match(/\/articles\/(?!new).*$/g) &&
+      // Matches /articles/new/[anything]
+      url.match(/\/articles\/new\/.*$/g) &&
       this.state.container === false
     ) {
       this.setState(prevState => ({
@@ -119,13 +119,13 @@ class Navbar extends Component<Props, State> {
     e.preventDefault();
 
     if (this.state.searchOpen) {
-      const searchTerm = this.input.input.value;
+      const searchTerm = (this.input.input as HTMLInputElement).value;
 
       Router.push(
         `/Search?q=${encodeURI(searchTerm)}`,
         `/search?q=${encodeURI(searchTerm)}`
       ).then(() => {
-        this.input.input.value = "";
+        (this.input.input as HTMLInputElement).value = "";
 
         this.setState(prevState => ({
           ...prevState,
@@ -173,8 +173,8 @@ class Navbar extends Component<Props, State> {
             {/* <ul className="navbar-nav mr-auto">
               <li
                 className={
-                  this.props.url.pathname === "/" ||
-                  this.props.url.pathname === "/index"
+                  Router.pathname === "/" ||
+                  Router.pathname === "/index"
                     ? "nav-item active"
                     : "nav-item"
                 }
@@ -185,10 +185,10 @@ class Navbar extends Component<Props, State> {
               </li>
               <li
                 className={
-                  this.props.url.pathname.startsWith("/Articles") ||
-                  this.props.url.pathname.startsWith("/Search") ||
-                  this.props.url.pathname === "/article" ||
-                  this.props.url.pathname === "/WriteArticle"
+                  Router.pathname.startsWith("/Articles") ||
+                  Router.pathname.startsWith("/Search") ||
+                  Router.pathname === "/article" ||
+                  Router.pathname === "/WriteArticle"
                     ? "nav-item active"
                     : "nav-item"
                 }
@@ -241,7 +241,6 @@ class Navbar extends Component<Props, State> {
               client={this.props.client}
               login={this.props.login}
               user={this.props.user}
-              url={this.props.url}
               openSignInModal={this.props.openSignInModal}
               closeSignInModal={this.props.closeSignInModal}
             />
@@ -360,31 +359,24 @@ class Navbar extends Component<Props, State> {
 }
 
 class Account extends Component<any, any> {
-  constructor(props: any) {
-    super(props);
-
-    this.state = {
-      loggedIn: false,
-      user: {
-        nametag: "",
-        email: "",
-        editor: false,
-        image: null
-      },
-      infoOpen: false,
-      nametagHeight: "1.5rem",
-      loading: false
-    };
-
-    this.openInfo = this.openInfo.bind(this);
-    this.toggleInfo = this.toggleInfo.bind(this);
-  }
+  state = {
+    loggedIn: false,
+    user: {
+      nametag: "",
+      email: "",
+      editor: false,
+      image: null,
+      small_image: null,
+      is_team: false
+    },
+    infoOpen: false,
+    nametagHeight: "1.5rem",
+    loading: false
+  };
 
   Account = null;
 
-  ctrls: {
-    nametag?: HTMLHeadingElement;
-  } = {};
+  nametag: HTMLHeadingElement = null;
 
   componentWillMount() {
     if (Object.keys(this.props.user).length > 0) {
@@ -400,7 +392,7 @@ class Account extends Component<any, any> {
     this.fixNametagHeight(this.state);
   }
 
-  componentWillReceiveProps(nextProps: any, nextState: any) {
+  componentWillReceiveProps(nextProps: any) {
     // if (
     //   nextProps.data &&
     //   nextProps.data.currentUser &&
@@ -487,26 +479,26 @@ class Account extends Component<any, any> {
     if (state.loggedIn) {
       this.setState(prevState => ({
         ...prevState,
-        nametagHeight: `${this.ctrls.nametag.clientHeight}px`
+        nametagHeight: `${this.nametag.clientHeight}px`
       }));
     }
   };
 
-  openInfo(e: any) {
+  openInfo = e => {
     e.preventDefault();
     this.setState((prevState: any) => ({
       ...prevState,
       infoOpen: true
     }));
-  }
+  };
 
-  toggleInfo(e: any) {
+  toggleInfo = () => {
     // e.preventDefault();
     this.setState((prevState: any) => ({
       ...prevState,
       infoOpen: !this.state.infoOpen
     }));
-  }
+  };
 
   static defaultProps = {
     data: {
@@ -610,7 +602,7 @@ class Account extends Component<any, any> {
           </div>
           <div className="Info">
             <div className="user">
-              <h2 ref={h2 => (this.ctrls.nametag = h2)}>
+              <h2 ref={h2 => (this.nametag = h2)}>
                 {this.state.user.nametag}
                 {this.state.user.is_team && (
                   <Verification

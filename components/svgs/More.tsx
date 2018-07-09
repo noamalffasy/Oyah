@@ -6,7 +6,7 @@ interface Props {
   onClick?: any;
 }
 
-class MoreSvg extends Component<Props> {
+class More extends Component<Props> {
   render() {
     return (
       <svg
@@ -29,4 +29,4 @@ class MoreSvg extends Component<Props> {
   }
 }
 
-export default MoreSvg;
+export default More;

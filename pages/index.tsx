@@ -14,20 +14,20 @@ import Quote from "../components/Quote";
 
 import withData from "../lib/withData";
 
-import { graphql } from "../utils/graphql";
+// import { graphql } from "../utils/graphql";
 import gql from "graphql-tag";
 
 interface Props {
   quote: any;
   articles: any;
-  url?: any;
-  user?: any;
-  signInModal?: any;
-  error?: any;
+  user: any;
+  signInModal: any;
+  error: any;
+  dispatch: any;
 }
 
 class Index extends Component<Props> {
-  static async getInitialProps(ctx: any, apolloClient: any, user: any) {
+  static async getInitialProps(_, apolloClient: any, user: any) {
     return await apolloClient
       .query({
         query: gql`
@@ -35,6 +35,7 @@ class Index extends Component<Props> {
             allArticles {
               id
               path
+              dominantColor
               title
               author {
                 id
@@ -82,13 +83,14 @@ class Index extends Component<Props> {
         <div className="Home Content">
           <Head>
             <title>Home | Oyah</title>
+            <meta name="keywords" content="Home,Oyah,Melee,News,Gaming" />
             <meta name="description" content="Homepage of Oyah" />
           </Head>
           {articles.length > 0 && (
-            <React.Fragment>
+            <>
               <Highlights articles={articles} />
               <Other articles={articles} />
-            </React.Fragment>
+            </>
           )}
           <Quote author={author} quote={quote} />
         </div>
@@ -112,22 +114,22 @@ class Index extends Component<Props> {
             display: flex;
             margin: 0 0 0.5rem;
             flex: 2 1;
-            max-height: 40rem;
+            /* max-height: 40rem; */
             flex-direction: column;
           }
 
           .Home .Highlights > .Article {
             flex: 2.1 1;
             width: 100%;
-            max-height: 15rem;
+            /* max-height: 15rem; */
             min-height: 15rem;
             margin: 0;
             margin-bottom: 1rem;
           }
 
-          .Home .Highlights > .Article .image {
+          /* .Home .Highlights > .Article .image {
             min-height: 15rem;
-          }
+          } */
 
           .Home .Highlights .other {
             flex: 1 1;
@@ -136,7 +138,7 @@ class Index extends Component<Props> {
             flex-wrap: wrap;
             align-content: flex-start;
 
-            flex-direction: row;
+            /* flex-direction: row; */
             margin-top: 0.5rem;
           }
 
@@ -145,7 +147,7 @@ class Index extends Component<Props> {
           } */
 
           .Home .Highlights .other .Article {
-            margin: 0 0.5rem 0 0;
+            margin: 0 0.5rem 1.5rem 0;
             flex: 1 1;
             width: 100%;
             min-height: 7rem;
@@ -158,7 +160,7 @@ class Index extends Component<Props> {
           }
 
           .Home .Other {
-            margin: 0 0 4rem;
+            margin: 2rem 0 4rem;
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
@@ -166,10 +168,11 @@ class Index extends Component<Props> {
 
           .Home .Other .Article {
             /* margin: 0.5rem; */
-            margin: 0 0.5rem 0.5rem 0;
-            /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
-            width: calc(1 / 2 * 100% - 1 / 2 * 0.5rem);
-            height: 7rem;
+            margin: 0 0 0.5rem 0;
+            /* width: calc(1/3*100% - (1 - 1/3)*1.5rem);
+            /* width: calc(1 / 2 * 100% - 1 / 2 * 0.5rem); 
+            height: 7rem; */
+            width: 100%;
           }
 
           .Home .Other .Article:nth-child(2),
@@ -194,11 +197,11 @@ class Index extends Component<Props> {
               margin: 0 0.5rem 1rem;
             }
             .Home .Highlights .other .Article {
-              margin: 0 1rem 0 0;
+              margin: 0 1rem 1.5rem 0;
             }
-            .Home .Other .Article {
+            /* .Home .Other .Article {
               height: 10rem;
-            }
+            } */
           }
 
           @media (min-width: 576px),
@@ -207,7 +210,7 @@ class Index extends Component<Props> {
               width: 85%;
             }
             .Home .Highlights {
-              flex-direction: row;
+              /* flex-direction: row; */
               margin: 0 0 1rem;
             }
             .Home .Highlights > .Article {
@@ -218,26 +221,27 @@ class Index extends Component<Props> {
               margin: 0 0 0 1rem;
             }
             .Home .Highlights .other {
-              margin: 0 0 0 1rem;
-              flex-direction: column;
+              /* margin: 0 0 0 1rem;
+              flex-direction: column; */
+              margin: 1.5rem 0 0;
             }
             .Home .Highlights .other .Article:first-child {
-              margin: 0 0 1rem 0;
+              margin: 0 0 1.5rem 0;
             }
             .Home .Other {
               margin: 1rem 0 4rem;
             }
-            .Home .Other .Article {
-              height: 7rem;
+            /* .Home .Other .Article {
+               height: 7rem;
               width: calc(1 / 3 * 100% - 0.7rem);
-              margin: 0 1rem 0.5rem 0;
-            }
+              margin: 0 1rem 0.5rem 0; 
+            } 
             .Home .Other .Article:nth-child(2) {
               margin: 0 1rem 0.5rem 0;
             }
             .Home .Other .Article:nth-child(3) {
               margin: 0 0 0.5rem;
-            }
+            } */
           }
 
           @media (min-width: 768px),
@@ -245,35 +249,64 @@ class Index extends Component<Props> {
             .Home .Highlights {
               margin: 0 0 1rem;
             }
-            .Home .Highlights > .Article {
+            /* .Home .Highlights > .Article {
               max-height: 20rem;
-              height: 20rem;
+              height: 20rem; 
+            } */
+            .Home .Highlights .other {
+              flex-direction: row;
+            }
+            .Home .Highlights .Article:first-child {
+              margin: 0 1rem 0 0;
+            }
+            .Home .Highlights .other .Article:first-child {
+              margin: 0 1rem 0 0;
             }
             .Home .Other {
               margin: 1.2rem 0 4rem 0;
             }
             .Home .Other .Article {
-              height: 10rem;
+              /* height: 10rem; */
+              margin: 0 1rem 0.5rem 0;
+              width: calc(1 / 2 * 100% - (1 / 2 * 1rem));
+            }
+            .Home .Other .Article:nth-child(2n) {
+              margin: 0 0 0.5rem 0;
             }
           }
 
           @media (min-width: 992px),
             @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
-            .Home .Highlights:not(.two) > .Article {
+            /*. Home .Highlights:not(.two) > .Article {
               max-height: 30rem;
-              height: 30rem;
+              height: 30rem; 
+            } */
+            .Home .Highlights {
+              flex-direction: row;
             }
             .Home .Highlights > .Article .text h2 {
               font-size: 3rem;
             }
             .Home .Highlights .other {
-              margin: 0 0 0 1.2rem;
+              flex-direction: column;
+              margin: 0;
+            }
+            .Home .Highlights .other .Article:first-child {
+              margin: 0 0 0.5rem 0;
             }
             .Home .Other {
               margin: 1.4rem 0 4rem 0;
             }
             .Home .Other .Article {
-              height: 15rem;
+              /* height: 15rem; */
+              width: calc(1 / 3 * 100% - (1 / 3 * 2rem));
+              margin: 0 1rem 1rem 0;
+            }
+            .Home .Other .Article:nth-child(2n) {
+              margin: 0 1rem 1rem 0;
+            }
+            .Home .Other .Article:nth-child(3n) {
+              margin: 0 0 1rem;
             }
           }
         `}</style>
@@ -288,4 +321,9 @@ const mapStateToProps = (state: any) => ({
   error: state.error
 });
 
-export default withData(connect(mapStateToProps, null)(Index));
+export default withData(
+  connect(
+    mapStateToProps,
+    null
+  )(Index)
+);

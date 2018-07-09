@@ -1,4 +1,4 @@
-import { database } from "firebase-admin";
+import { database } from "firebase";
 
 function shuffle(array: any[]) {
   let currentIndex = array.length;
@@ -36,9 +36,6 @@ export default class Model {
             const objs = objIds.map(id => ({
               id,
               ..._objs.val()[id],
-              likes: _objs.val()[id].likes
-                ? JSON.stringify(_objs.val()[id].likes)
-                : JSON.stringify({}),
               exists: _objs.exists(),
               original: _objs.child(id)
             }));
@@ -61,9 +58,6 @@ export default class Model {
             const objs = objIds.map(id => ({
               id,
               ..._objs.val()[id],
-              likes: _objs.val()[id].likes
-                ? JSON.stringify(_objs.val()[id].likes)
-                : JSON.stringify({}),
               exists: _objs.exists(),
               original: _objs.child(id)
             }));
@@ -119,9 +113,6 @@ export default class Model {
                     const objs = objIds.map(id => ({
                       id,
                       ..._objs.val()[id],
-                      likes: _objs.val()[id].likes
-                        ? JSON.stringify(_objs.val()[id].likes)
-                        : JSON.stringify({}),
                       exists: true,
                       original: _objs.child(id)
                     }));
@@ -152,9 +143,6 @@ export default class Model {
               const obj = {
                 id: _obj.key,
                 ..._obj.val(),
-                likes: _obj.val().likes
-                  ? JSON.stringify(_obj.val().likes)
-                  : JSON.stringify({}),
                 original: _obj
               };
 
@@ -192,9 +180,6 @@ export default class Model {
               const objs = objIds.map(id => ({
                 id,
                 ..._objs.val()[id],
-                likes: _objs.val()[id].likes
-                  ? JSON.stringify(_objs.val()[id].likes)
-                  : JSON.stringify({}),
                 original: _objs.child(id)
               }));
 
