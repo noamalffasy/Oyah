@@ -1,8 +1,8 @@
+firebase-debug.log
+yarn-error.log
+cloud-functions-emulator.log
 node_modules/
 .next/
-firebase-debug.log
-npm-debug.log
-cloud-functions-emulator.log
 dist/
 static/css/App.css
 static/img
