@@ -325,11 +325,7 @@ class Image extends Component<Props, State> {
                   : `url(${this.props.src.replace(/\.[^.]*$/, "") +
                       "_small" +
                       this.props.src.replace(/.*(?=\.)/, "")})`,
-            filter: this.state.largeLoaded
-              ? "none"
-              : this.state.smallLoaded
-                ? "blur(20px)"
-                : "none"
+            filter: this.state.largeLoaded ? "none" : "blur(20px)"
             // backgroundAttachment: this.state.largeLoaded ? "fixed" : "unset"
           }}
           onClick={this.props.onClick}
