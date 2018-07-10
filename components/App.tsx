@@ -5,6 +5,7 @@ import { Component } from "react";
 import { bindActionCreators } from "redux";
 
 import Router, { withRouter, SingletonRouter } from "next/router";
+import routerEvents from "../utils/routerEvents";
 
 import * as signInModalActionCreators from "../actions/signInModal";
 import * as userActionCreators from "../actions/user";
@@ -73,9 +74,11 @@ class App extends Component<Props, any> {
   componentDidMount() {
     configureLoadingProgressBar();
 
-    Router.onRouteChangeComplete = url => {
+    routerEvents.on("routerChangeComplete", url => {
+      console.log("Load complete");
+      
       this.addContainer(url);
-    };
+    });
   }
 
   addContainer(url: string) {

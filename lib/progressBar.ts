@@ -1,8 +1,9 @@
-import Router from "next/router";
 import NProgress from "nprogress";
 
+import routerEvents from "../utils/routerEvents";
+
 export default () => {
-  Router.onRouteChangeStart = () => NProgress.start();
-  Router.onRouteChangeComplete = () => NProgress.done();
-  Router.onRouteChangeError = () => NProgress.done();
+  routerEvents.on("routeChangeStart", () => NProgress.start());
+  routerEvents.on("routeChangeComplete", () => NProgress.done());
+  routerEvents.on("routeChangeError", () => NProgress.done());
 };

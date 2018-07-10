@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Component } from "react";
 
-import Router from "next/router";
+import routerEvents from "../utils/routerEvents";
 
 interface Props {
   error: any;
@@ -18,9 +18,9 @@ class ErrorAlert extends Component<Props, State> {
   error: HTMLDivElement = null;
 
   componentDidMount() {
-    Router.onRouteChangeStart = () => {
+    routerEvents.on("routeChangeStart", () => {
       this.props.setError(false);
-    };
+    });
   }
 
   componentWillReceiveProps(nextProps) {

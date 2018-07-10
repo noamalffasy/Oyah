@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Component } from "react";
 
+import routerEvents from "../utils/routerEvents";
+
 import Router from "next/router";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -63,9 +65,9 @@ class Navbar extends Component<Props, State> {
   componentDidMount() {
     this.addContainer(Router.asPath);
 
-    Router.onRouteChangeComplete = url => {
+    routerEvents.on("routeChangeComplete", url => {
       this.addContainer(url);
-    };
+    });
   }
 
   addContainer(url: string) {
