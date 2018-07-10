@@ -122,6 +122,7 @@ class ArticleBlock extends Component<Props> {
             display: flex;
             position: relative;
             border-radius: 8px;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
             opacity: 1;
             overflow: hidden;
             transition: all 0.3s;
