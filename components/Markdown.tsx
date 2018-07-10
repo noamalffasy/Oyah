@@ -50,18 +50,27 @@ class Markdown extends Component<Props> {
             font-family: Georgia, Cambria, "Times New Roman", Times, serif;
           }
 
-          ${this.props.className || ".body"} h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
+          ${this.props.className || ".body"} h1,
+          ${this.props.className || ".body"} h2,
+          ${this.props.className || ".body"} h3,
+          ${this.props.className || ".body"} h4,
+          ${this.props.className || ".body"} h5,
+          ${this.props.className || ".body"} h6 {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
               "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
               "Segoe UI Emoji", "Segoe UI Symbol";
+            font-weight: 600;
             margin: 1rem 0;
             text-align: left;
           }
 
-          ${this.props.className || ".body"} h1 > strong {
-            font-weight: 600;
+          ${this.props.className || ".body"} h1 > strong,
+          ${this.props.className || ".body"} h2 > strong,
+          ${this.props.className || ".body"} h3 > strong,
+          ${this.props.className || ".body"} h4 > strong,
+          ${this.props.className || ".body"} h5 > strong,
+          ${this.props.className || ".body"} h6 > strong  {
+            font-weight: inherit;
           }
 
           ${this.props.className || ".body"} p {
@@ -69,7 +78,7 @@ class Markdown extends Component<Props> {
           }
 
           ${this.props.className || ".body"} a {
-            word-wrap: "break-word";
+            word-wrap: break-word;
           }
 
           ${this.props.className || ".body"} .image {
