@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Component } from "react";
 
+import { findDOMNode } from "react-dom";
+
 import Textarea from "react-textarea-autosize";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Scrollbars from "react-custom-scrollbars";
@@ -120,7 +122,7 @@ class Input extends Component<Props, State> {
         ...prevState,
         selections: this.props.selections
       }));
-      (this.box as HTMLUListElement)
+      findDOMNode(this.box as HTMLUListElement)
         .querySelectorAll("li")
         .forEach((elem, i) => {
           if (
@@ -186,7 +188,7 @@ class Input extends Component<Props, State> {
         ...prevState,
         selections: nextProps.selections
       }));
-      (this.box as HTMLUListElement)
+      findDOMNode(this.box as HTMLUListElement)
         .querySelectorAll("li")
         .forEach((elem, i) => {
           if (
@@ -564,7 +566,9 @@ class Input extends Component<Props, State> {
             tabIndex={0}
             style={this.props.style}
             onClick={(e: any) => {
-              if (!(this.box as HTMLUListElement).contains(e.target)) {
+              if (
+                !findDOMNode(this.box as HTMLUListElement).contains(e.target)
+              ) {
                 if (this.state.empty) {
                   this.setState(prevState => ({
                     ...prevState,
