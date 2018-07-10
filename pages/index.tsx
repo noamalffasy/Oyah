@@ -87,10 +87,10 @@ class Index extends Component<Props> {
             <meta name="description" content="Homepage of Oyah" />
           </Head>
           {articles.length > 0 && (
-            <>
+            <React.Fragment>
               <Highlights articles={articles} />
               <Other articles={articles} />
-            </>
+            </React.Fragment>
           )}
           <Quote author={author} quote={quote} />
         </div>
@@ -168,16 +168,11 @@ class Index extends Component<Props> {
 
           .Home .Other .Article {
             /* margin: 0.5rem; */
-            margin: 0 0 0.5rem 0;
+            margin: 0 0 1.5rem;
             /* width: calc(1/3*100% - (1 - 1/3)*1.5rem);
             /* width: calc(1 / 2 * 100% - 1 / 2 * 0.5rem); 
             height: 7rem; */
             width: 100%;
-          }
-
-          .Home .Other .Article:nth-child(2),
-          .Home .Other .Article:nth-child(4) {
-            margin: 0 0 0.5rem;
           }
 
           .Home .Article {
@@ -267,11 +262,11 @@ class Index extends Component<Props> {
             }
             .Home .Other .Article {
               /* height: 10rem; */
-              margin: 0 1rem 0.5rem 0;
+              margin: 0 1rem 1rem;
               width: calc(1 / 2 * 100% - (1 / 2 * 1rem));
             }
             .Home .Other .Article:nth-child(2n) {
-              margin: 0 0 0.5rem 0;
+              margin: 0 0 1rem;
             }
           }
 
