@@ -87,22 +87,6 @@ class ArticleBlock extends Component<Props> {
                   this.text.style.background = "rgba(0,0,0,.4)";
                 }}
               />
-              {/* <img
-                src={
-                  this.props.image.indexOf("undefined") === -1
-                    ? this.props.image
-                    : process.env.PUBLIC_URL +
-                      "/articles/img/" +
-                      this.props.id +
-                      ".jpeg"
-                }
-                alt={this.props.alt || ""}
-                onError={e => {
-                  e.target.src = "";
-                  e.target.style.backgroundColor = "#c3c3c3";
-                  findDOMNode(this.text).style.background = "rgba(0,0,0,.4)";
-                }}
-              /> */}
               <div className="text" ref={div => (this.text = div)}>
                 <div className="bottom">
                   <h2>{this.props.title}</h2>
@@ -159,75 +143,28 @@ class ArticleBlock extends Component<Props> {
           .Article .text {
             display: block;
             position: relative;
-            /* width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0; */
-            /* background: -webkit-linear-gradient(
-              rgba(0, 0, 0, 0.3) 0,
-              rgba(0, 0, 0, 0.9) 100%
-            ); */
-            /* background: -webkit-linear-gradient(
-              top,
-              rgba(0, 0, 0, 0.3) 0,
-              rgba(0, 0, 0, 0.3) 60%,
-              #000 100%
             ); */
             text-align: center;
             z-index: 1;
             color: ${this.getCorrectColor()};
-            /* border-radius: 8px; */
             user-select: text;
             cursor: pointer;
             transition: all 0.3s;
           }
 
-          /* .Article .text::before {
-            content: "";
-            display: block;
-            position: absolute;
-            top: 0;
-            background: url(${this.props.path}) no-repeat bottom center;
-            background-size: cover;
-            filter: blur(15px);
-            width: 100%;
-            height: 100%;
-            transform: scale(1.3);
-            z-index: -1;
-          } */
-
-
           .Article .text .bottom {
-            /* position: absolute; */
             display: flex;
-            /* left: 0;
-            right: 0;
-            bottom: 0; */
             max-width: 90%;
             margin: 0 auto;
             justify-content: center;
           }
 
           .Article .text .bottom h2 {
-            /* position: absolute;
-            text-align: center;
-            left: 0;
-            right: 0;
-            bottom: 0; */
-
-            /* flex: 1 1 0; */
-
             margin: ${
               this.props.official ? "0.5rem 0 0.5rem 0.5rem" : "0.5rem 0"
             };
 
             font-size: 2rem;
-            /* max-height: 17vw;
-            max-width: 90%; */
-            /* white-space: nowrap;
-
-            text-overflow: ellipsis; */
             overflow: hidden;
 
             -webkit-font-smoothing: antialiased;
@@ -265,10 +202,8 @@ class ArticleBlock extends Component<Props> {
         `}</style>
         <style jsx global>{`
           .Article .image {
-            /* opacity: 0; */
             width: 100%;
             height: 100%;
-            /* min-height: 20rem; */
             user-select: none;
             cursor: pointer;
             z-index: 2;
@@ -278,7 +213,6 @@ class ArticleBlock extends Component<Props> {
             @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
             .Article .image {
               height: 100%;
-              /* min-height: 100%; */
             }
           }
         `}</style>
