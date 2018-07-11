@@ -260,60 +260,6 @@ class Profile extends Component<Props, State> {
     }
   }
 
-  // componentWillReceiveProps(nextProps: Props) {
-  //   if (nextProps.router.query.nametag === undefined) {
-  //     const { dispatch, user } = nextProps;
-  //     const login = bindActionCreators(userActionCreators.login, dispatch);
-  //     if (
-  //       nextProps.data &&
-  //       !nextProps.data.loading &&
-  //       nextProps.data.currentUser &&
-  //       nextProps.data.currentUser.user !== null &&
-  //       (Object.keys(this.state.user).length === 0 ||
-  //         nextProps.data.currentUser.user !== this.props.data.currentUser.user)
-  //     ) {
-  //       const data = nextProps.data.currentUser;
-  //       if (data.error) {
-  //         if (
-  //           data.error[0].message !==
-  //           "User is not logged in (or authenticated)."
-  //         ) {
-  //           console.error(data.error);
-  //         }
-  //       } else {
-  //         login({
-  //           ...user,
-  //           ...data.user,
-  //           mains: data.user.mains !== null ? data.user.mains.split(", ") : null
-  //         });
-
-  //         this.setState(prevState => ({
-  //           ...prevState,
-  //           user: {
-  //             ...user,
-  //             ...data.user,
-  //             mains:
-  //               data.user.mains !== null ? data.user.mains.split(", ") : null
-  //           }
-  //         }));
-
-  //         this.props
-  //           .getArticlesByUser({
-  //             variables: {
-  //               authorID: data.user.id
-  //             }
-  //           })
-  //           .then((res: any) => {
-  //             this.setState(prevState => ({
-  //               ...prevState,
-  //               articles: res.data.getArticlesByUser
-  //             }));
-  //           });
-  //       }
-  //     }
-  //   }
-  // }
-
   setError = bindActionCreators(
     errorActionCreators.setError,
     this.props.dispatch
@@ -531,14 +477,8 @@ class Profile extends Component<Props, State> {
             }
 
             .Profile .articles .Article {
-              /* flex: 1 1; */
-              /* margin: 0 0.5rem; */
-              /* margin: 0.5rem; */
-              /* margin: 0 0.5rem 0.5rem 0; */
               margin: 0 auto 0.7rem;
               width: calc(100% - 1.25rem);
-              /* width: calc(1/3*100% - (1 - 1/3)*1.5rem); */
-              /* width: calc(1/2*100% - 1/2*2.5rem); */
             }
             @media (min-width: 576px),
               @media (min-width: 576px) and (-webkit-min-device-pixel-ratio: 1) {
@@ -560,8 +500,6 @@ class Profile extends Component<Props, State> {
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Profile .articles .Article {
                 width: calc(1 / 3 * 100% - (1 - 1 / 3) * 1rem);
-                height: 15rem;
-                overflow: hidden;
               }
             }
           `}</style>
