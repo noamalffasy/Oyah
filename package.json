@@ -14,7 +14,7 @@
     "build-app": "NODE_ENV=production next build",
     "build-funcs": "tsc --project functions/tsconfig.json",
     "build-all": "npm run build-public && npm run build-funcs && npm run build-app",
-    "copy-deps": "cpx -C \"{package.json,yarn.lock}\" \"dist/functions\"",
+    "copy-deps": "del dist/functions/{package.json,yarn.lock} && cpx \"{package.json,yarn.lock}\" \"dist/functions\"",
     "install-deps": "cd \"dist/functions\" && yarn --prod",
     "copy-servicekey": "cpx \"functions/src/serviceAccountKey.json\" \"dist/functions\""
   },
@@ -112,6 +112,7 @@
     "@zeit/next-typescript": "0.1.1",
     "cpx": "^1.5.0",
     "cross-env": "^5.2.0",
+    "del-cli": "^1.1.0",
     "emit-file-loader": "0.0.2",
     "isomorphic-style-loader": "^4.0.0",
     "rimraf": "^2.6.2",
