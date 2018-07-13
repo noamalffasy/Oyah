@@ -143,7 +143,6 @@ class ArticleBlock extends Component<Props> {
           .Article .text {
             display: block;
             position: relative;
-            ); */
             text-align: center;
             z-index: 1;
             color: ${this.getCorrectColor()};
