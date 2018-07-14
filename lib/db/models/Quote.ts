@@ -9,4 +9,20 @@ export interface Interface {
   author: string;
 }
 
-export default new Model(quotes);
+class QuoteModel extends Model {
+  async getRandom() {
+    return new Promise<Interface>(async (resolve, reject) => {
+      await this.getAll({
+        order: "random"
+      })
+        .then((quotes: Interface[]) => {
+          resolve(quotes[0]);
+        })
+        .catch((err: Error) => {
+          reject(err);
+        });
+    });
+  }
+}
+
+export default new QuoteModel(quotes);

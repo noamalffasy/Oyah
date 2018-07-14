@@ -5,6 +5,9 @@ import { connect } from "react-redux";
 
 // <Head> component for setting the page title/meta tags
 import Head from "next/head";
+import Link from "next/link";
+
+import * as moment from "moment";
 
 import App from "../components/App";
 
@@ -14,12 +17,12 @@ import Quote from "../components/Quote";
 
 import withData from "../lib/withData";
 
-// import { graphql } from "../utils/graphql";
-import gql from "graphql-tag";
+import { HomeModel, QuoteModel, ThemeModel } from "../lib/db/models";
 
 interface Props {
   quote: any;
   articles: any;
+  theme: any;
   user: any;
   signInModal: any;
   error: any;
@@ -27,56 +30,36 @@ interface Props {
 }
 
 class Index extends Component<Props> {
-  static async getInitialProps(_, apolloClient: any, user: any) {
-    return await apolloClient
-      .query({
-        query: gql`
-          {
-            allArticles {
-              id
-              path
-              dominantColor
-              title
-              author {
-                id
-                is_team
-              }
-            }
-          }
-        `
-      })
-      .then(async (allArticles: any) => {
-        return await apolloClient
-          .query({
-            query: gql`
-              {
-                getRandomQuote {
-                  quote
-                  author
-                }
-              }
-            `
+  static async getInitialProps(_, __, user: any) {
+    return await HomeModel.get({ id: moment().format("MM-DD-YYYY") })
+      .then(async articles => {
+        return await QuoteModel.getRandom()
+          .then(async quote => {
+            return await ThemeModel.get({
+              id: moment()
+                .startOf("week")
+                .format("MM-DD-YYYY")
+            })
+              .then(theme => {
+                return {
+                  articles,
+                  quote,
+                  theme,
+                  user
+                };
+              })
+              .catch((err: Error) => ({ _error: err, user }));
           })
-          .then((getRandomQuote: any) => {
-            return {
-              articles: allArticles.data.allArticles,
-              quote: getRandomQuote.data.getRandomQuote,
-              user
-            };
-          })
-          .catch((err: Error) => {
-            return { _error: err, user };
-          });
+          .catch((err: Error) => ({ _error: err, user }));
       })
-      .catch((err: Error) => {
-        return { _error: err, user };
-      });
+      .catch((err: Error) => ({ _error: err, user }));
   }
 
   render() {
     const {
       quote: { quote, author },
-      articles
+      articles,
+      theme
     } = this.props;
     return (
       <App {...this.props}>
@@ -86,6 +69,7 @@ class Index extends Component<Props> {
             <meta name="keywords" content="Home,Oyah,Melee,News,Gaming" />
             <meta name="description" content="Homepage of Oyah" />
           </Head>
+          <Theme theme={theme} />
           {articles.length > 0 && (
             <React.Fragment>
               <Highlights articles={articles} />
@@ -306,6 +290,93 @@ class Index extends Component<Props> {
           }
         `}</style>
       </App>
+    );
+  }
+}
+
+interface ThemeProps {
+  theme: any;
+}
+
+class Theme extends Component<ThemeProps> {
+  render() {
+    const { theme } = this.props;
+    return (
+      <div className="Theme">
+        <span>This week's theme</span>
+        <div className="bottom">
+          <h2>{theme.title}</h2>
+          <Link href={`/articles/tag/${theme.tag}`}>
+            <a>Read articles</a>
+          </Link>
+          <Link href={`/articles/new/?theme=${theme.tag}`}>
+            <a className="button">Take part</a>
+          </Link>
+        </div>
+        <style jsx>{`
+          .Theme {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+          }
+
+          .Theme span {
+            color: #adadad;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+          }
+
+          .Theme .bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .Theme .bottom h2 {
+            text-align: center;
+            margin: 0;
+          }
+
+          .Theme .bottom a {
+            text-align: center;
+          }
+
+          .Theme .bottom a:first-of-type {
+            font-weight: 500;
+            margin: 1rem 0 0.7rem;
+          }
+
+          .Theme .bottom a.button {
+            font-weight: 400;
+            padding: 0.3rem 1rem;
+            border: 1px solid #cc0000;
+            border-radius: 4px;
+            opacity: 0.7;
+            transition: all 0.3s;
+          }
+
+          .Theme .bottom .button:hover {
+            opacity: 1;
+          }
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Theme {
+              display: block;
+            }
+            .Theme .bottom {
+              flex-direction: row;
+              margin-left: auto;
+            }
+            .Theme .bottom h2 {
+              text-align: left;
+            }
+            .Theme .bottom a:first-of-type {
+              margin: 0 1rem 0 auto;
+            }
+          }
+        `}</style>
+      </div>
     );
   }
 }
