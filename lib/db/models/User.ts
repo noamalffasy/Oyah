@@ -3,7 +3,7 @@ import Model from "./Model";
 
 const users = db.ref("/users");
 
-export interface Interface {
+export interface User {
   id: string;
   nametag?: string;
   name?: string;
@@ -11,7 +11,7 @@ export interface Interface {
   image?: string;
   small_image?: string;
   bio?: string;
-  mains?: string;
+  mains?: string | Array<string>;
   reddit?: string;
   twitter?: string;
   providerId?: string;

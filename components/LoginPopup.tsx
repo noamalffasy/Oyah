@@ -4,13 +4,9 @@ import { Component } from "react";
 // import Router from "next/router";
 import Link from "next/link";
 
-import {
-  GoogleLoginButton,
-  TwitterLoginButton
-} from "react-social-login-buttons";
-
 import firebase, { app } from "../lib/firebase";
 
+import LoginButton from "./LoginButton";
 import { GoogleLogo, TwitterLogo } from "./svgs";
 
 // GraphQL
@@ -134,121 +130,6 @@ class LoginPopup extends Component<Props, State> {
   signin: Login = null;
   createAccount: CreateAccount = null;
 
-  // uiConfig = {
-  //   signInFlow: "popup",
-  //   // credentialHelper: this.firebaseui ? this.firebaseui.auth.CredentialHelper.GOOGLE_YOLO : undefined,
-  //   credentialHelper:
-  //     Object.keys(this.props.user).length > 0 ? "none" : "googleyolo",
-  //   signInOptions: [
-  //     {
-  //       provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-  //       authMethod: "https://accounts.google.com",
-  //       clientId:
-  //         "394175612865-2vohnv5a7ln2bh6pcsg9t4e4482fcnid.apps.googleusercontent.com"
-  //     },
-  //     firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-  //     firebase.auth.TwitterAuthProvider.PROVIDER_ID
-  //   ],
-  //   tosUrl: "/policies/terms",
-  //   callbacks: {
-  //     signInSuccessWithAuthResult: async () => {
-  //       return false;
-  //     }
-  //     // signInSuccessWithAuthResult: async authResult => {
-  //     //   const { user: _user } = authResult;
-  //     //   const user = {
-  //     //     email: _user.email,
-  //     //     nametag: _user.displayName,
-  //     //     image: _user.photoURL,
-  //     //     uid: _user.uid
-  //     //   };
-
-  //     //   const idToken = await _user
-  //     //     .getIdToken()
-  //     //     .then(idToken => {
-  //     //       return idToken;
-  //     //     })
-  //     //     .catch(err => {
-  //     //       this.setState(prevState => ({
-  //     //         ...prevState,
-  //     //         error: "Was unable to verify the user"
-  //     //       }));
-  //     //     });
-
-  //     //   if (authResult.additionalUserInfo.isNewUser) {
-  //     //     this.props
-  //     //       .createUser({
-  //     //         variables: {
-  //     //           email: user.email,
-  //     //           nametag: user.nametag,
-  //     //           image: user.image,
-  //     //           authInfo: {
-  //     //             idToken
-  //     //           }
-  //     //         }
-  //     //       })
-  //     //       .then(res => {
-  //     //         const user = {
-  //     //           ...res.data.createUser.user,
-  //     //           mains:
-  //     //             typeof res.data.createUser.user.mains === "string"
-  //     //               ? res.data.createUser.user.mains.split(", ")
-  //     //               : typeof res.data.createUser.user.mains === "object"
-  //     //                 ? res.data.createUser.user.mains
-  //     //                 : null
-  //     //         };
-  //     //         this.props.login({
-  //     //           ...user,
-  //     //           idToken
-  //     //         });
-  //     //         this.closeDialog();
-
-  //     //         return false;
-  //     //       })
-  //     //       .catch(err => {
-  //     //         this.setState(prevState => ({
-  //     //           ...prevState,
-  //     //           error: err.message
-  //     //         }));
-  //     //       });
-  //     //   } else {
-  //     //     this.props.login({ startLoading: true });
-  //     //     this.props
-  //     //       .signinUser({
-  //     //         variables: {
-  //     //           authInfo: {
-  //     //             idToken
-  //     //           }
-  //     //         }
-  //     //       })
-  //     //       .then(res => {
-  //     //         const user = {
-  //     //           ...res.data.signinUser.user,
-  //     //           mains:
-  //     //             typeof res.data.signinUser.user.mains === "string"
-  //     //               ? res.data.signinUser.user.mains.split(", ")
-  //     //               : typeof res.data.signinUser.user.mains === "object"
-  //     //                 ? res.data.signinUser.user.mains
-  //     //                 : null
-  //     //         };
-  //     //         this.props.login({
-  //     //           ...user,
-  //     //           idToken
-  //     //         });
-  //     //         this.closeDialog();
-
-  //     //         return false;
-  //     //       })
-  //     //       .catch(err => {
-  //     //         this.setState(prevState => ({
-  //     //           ...prevState,
-  //     //           error: err.message
-  //     //         }));
-  //     //       });
-  //     //   }
-  //     // }
-  //   }
-  // };
 
   unregisterAuthObserver = () => {
     const that = this;
@@ -256,7 +137,9 @@ class LoginPopup extends Component<Props, State> {
       if (_user) {
         const user = {
           email: _user.email,
-          nametag: _user.displayName,
+          // Gets everything before an @ symbol
+          nametag: /.+?(?=@)+/g.exec(_user.email)[0],
+          name: _user.displayName,
           image: _user.photoURL,
           uid: _user.uid
         };
@@ -281,6 +164,7 @@ class LoginPopup extends Component<Props, State> {
               variables: {
                 email: user.email,
                 nametag: user.nametag,
+                name: user.name,
                 image: user.image,
                 authInfo: {
                   idToken
@@ -528,6 +412,7 @@ class LoginPopup extends Component<Props, State> {
               }}
               // uiConfig={this.uiConfig}
               unregisterAuthObserver={this.unregisterAuthObserver}
+              user={this.props.user}
               style={
                 !this.state.login || this.state.reset
                   ? {
@@ -543,6 +428,7 @@ class LoginPopup extends Component<Props, State> {
             <CreateAccount
               // uiConfig={this.uiConfig}
               unregisterAuthObserver={this.unregisterAuthObserver}
+              user={this.props.user}
               style={
                 this.state.login || this.state.reset
                   ? {
@@ -705,10 +591,19 @@ interface LoginProps {
   forgotPassword: any;
   // uiConfig: any;
   unregisterAuthObserver: any;
+  user: any;
   style?: any;
 }
 
-class Login extends Component<LoginProps> {
+interface LoginState {
+  loggingWith: object;
+}
+
+class Login extends Component<LoginProps, LoginState> {
+  state = {
+    loggingWith: null
+  };
+
   unregisterAuthObserver = () => {};
 
   GoogleProvider = new firebase.auth.GoogleAuthProvider();
@@ -720,12 +615,29 @@ class Login extends Component<LoginProps> {
     this.unregisterAuthObserver = this.props.unregisterAuthObserver();
   }
 
+  componentWillReceiveProps(nextProps: LoginProps) {
+    if (
+      !nextProps.user.loading &&
+      nextProps.user !== this.props.user
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        loggingWith: null
+      }));
+    }
+  }
+
   componentWillUnmount() {
     this.unregisterAuthObserver();
   }
 
   loginWith(provider) {
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+    this.setState(prevState => ({
+      ...prevState,
+      loggingWith: provider
+    }));
 
     firebase
       .auth()
@@ -748,32 +660,24 @@ class Login extends Component<LoginProps> {
           className="login-buttons"
           style={{ maxWidth: "220px", margin: "0 auto", fontSize: "14px" }}
         >
-          <GoogleLoginButton
+          <LoginButton
             text="Sign in with Google"
-            size="40px"
             icon={GoogleLogo}
-            iconSize="18px"
-            style={{
-              fontSize: "",
-              color: "#757575",
-              background: "#ffffff"
-            }}
-            activeStyle={{
-              background: ""
-            }}
+            loading={
+              this.state.loggingWith === this.GoogleProvider
+                ? this.props.user.loading
+                : false
+            }
             onClick={() => this.loginWith(this.GoogleProvider)}
           />
-          <TwitterLoginButton
+          <LoginButton
             text="Sign in with Twitter"
-            size="40px"
             icon={TwitterLogo}
-            iconSize="18px"
-            style={{
-              fontSize: ""
-            }}
-            activeStyle={{
-              background: "rgb(90, 164, 235)"
-            }}
+            loading={
+              this.state.loggingWith === this.TwitterProvider
+                ? this.props.user.loading
+                : false
+            }
             onClick={() => this.loginWith(this.TwitterProvider)}
           />
         </div>
@@ -840,10 +744,19 @@ class Login extends Component<LoginProps> {
 interface CreateAccountProps {
   // uiConfig: any;
   unregisterAuthObserver: any;
+  user: any;
   style?: any;
 }
 
-class CreateAccount extends Component<CreateAccountProps> {
+interface CreateAccountState {
+  signingUpWith: object;
+}
+
+class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
+  state = {
+    signingUpWith: null
+  };
+
   unregisterAuthObserver = () => {};
 
   GoogleProvider = new firebase.auth.GoogleAuthProvider();
@@ -855,12 +768,29 @@ class CreateAccount extends Component<CreateAccountProps> {
     this.unregisterAuthObserver = this.props.unregisterAuthObserver();
   }
 
+  componentWillReceiveProps(nextProps: CreateAccountProps) {
+    if (
+      !nextProps.user.loading &&
+      nextProps.user !== this.props.user
+    ) {
+      this.setState(prevState => ({
+        ...prevState,
+        signingUpWith: null
+      }));
+    }
+  }
+
   componentWillUnmount() {
     this.unregisterAuthObserver();
   }
 
   loginWith(provider) {
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+    this.setState(prevState => ({
+      ...prevState,
+      signingUpWith: provider
+    }));
 
     firebase
       .auth()
@@ -887,32 +817,24 @@ class CreateAccount extends Component<CreateAccountProps> {
           className="login-buttons"
           style={{ maxWidth: "220px", margin: "0 auto", fontSize: "14px" }}
         >
-          <GoogleLoginButton
+          <LoginButton
             text="Sign up with Google"
-            size="40px"
             icon={GoogleLogo}
-            iconSize="18px"
-            style={{
-              fontSize: "",
-              color: "#757575",
-              background: "#ffffff"
-            }}
-            activeStyle={{
-              background: ""
-            }}
+            loading={
+              this.state.signingUpWith === this.TwitterProvider
+                ? this.props.user.loading
+                : false
+            }
             onClick={() => this.loginWith(this.GoogleProvider)}
           />
-          <TwitterLoginButton
+          <LoginButton
             text="Sign up with Twitter"
-            size="40px"
             icon={TwitterLogo}
-            iconSize="18px"
-            style={{
-              fontSize: ""
-            }}
-            activeStyle={{
-              background: "rgb(90, 164, 235)"
-            }}
+            loading={
+              this.state.signingUpWith === this.TwitterProvider
+                ? this.props.user.loading
+                : false
+            }
             onClick={() => this.loginWith(this.TwitterProvider)}
           />
         </div>
