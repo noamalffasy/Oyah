@@ -8,8 +8,6 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RoundShape } from "react-placeholder/lib/placeholders";
 
-import { Collapse, NavbarToggler } from "reactstrap";
-
 import Image from "./Image";
 import Input from "./Input";
 import Verification from "./Verification";
@@ -34,7 +32,6 @@ interface Props {
 interface State {
   focus: boolean;
   container: boolean;
-  navOpen: boolean;
   searchOpen: boolean;
   searchTerm: any;
 }
@@ -44,16 +41,12 @@ class Navbar extends Component<Props, State> {
     super(props, context);
 
     this.addContainer = this.addContainer.bind(this);
-    this.onFocus = this.onFocus.bind(this);
-    this.onBlur = this.onBlur.bind(this);
-    this.toggleNav = this.toggleNav.bind(this);
     this.search = this.search.bind(this);
   }
 
   state = {
     focus: false,
     container: this.props.container,
-    navOpen: false,
     searchOpen: false,
     searchTerm: ""
   };
@@ -94,27 +87,6 @@ class Navbar extends Component<Props, State> {
         container: true
       }));
     }
-  }
-
-  onFocus() {
-    this.setState(prevState => ({
-      ...prevState,
-      focus: true
-    }));
-  }
-
-  onBlur() {
-    this.setState(prevState => ({
-      ...prevState,
-      focus: false
-    }));
-  }
-
-  toggleNav() {
-    this.setState(prevState => ({
-      ...prevState,
-      navOpen: !this.state.navOpen
-    }));
   }
 
   search(e: any) {
@@ -170,8 +142,7 @@ class Navbar extends Component<Props, State> {
           <Link href="/">
             <a className="navbar-brand">Oyah</a>
           </Link>
-          <NavbarToggler onClick={this.toggleNav} />
-          <Collapse isOpen={this.state.navOpen} navbar>
+          <div className="navbar-items">
             {/* <ul className="navbar-nav mr-auto">
               <li
                 className={
@@ -221,9 +192,14 @@ class Navbar extends Component<Props, State> {
               }}
               ref={div => (this.searchbox = div)}
             >
-              <button className="btn my-2 my-sm-0" onClick={this.search}>
+              <a className="desktop btn" onClick={this.search}>
                 <FontAwesomeIcon icon="search" />
-              </button>
+              </a>
+              <Link href="/Search" as="/search">
+                <a className="mobile btn">
+                  <FontAwesomeIcon icon="search" />
+                </a>
+              </Link>
               <Input
                 label="Search for an article"
                 type="search"
@@ -233,7 +209,11 @@ class Navbar extends Component<Props, State> {
                     this.search(e);
                   }
                 }}
-                style={this.state.searchOpen ? {} : { width: 0 }}
+                style={
+                  this.state.searchOpen
+                    ? {}
+                    : { width: 0, margin: "-1rem 1rem 0 .5rem" }
+                }
                 ref={input => {
                   this.input = input;
                 }}
@@ -246,12 +226,17 @@ class Navbar extends Component<Props, State> {
               openSignInModal={this.props.openSignInModal}
               closeSignInModal={this.props.closeSignInModal}
             />
-          </Collapse>
+          </div>
           <style jsx>{`
+            .navbar {
+              position: unset;
+              padding: 0;
+            }
+
             .navbar .navbar-brand {
               font-family: "Times New Roman", Times, serif;
               font-weight: bold;
-              font-size: 4rem;
+              font-size: 3rem;
               text-transform: uppercase;
               user-select: none;
               -webkit-user-drag: none;
@@ -287,32 +272,62 @@ class Navbar extends Component<Props, State> {
               color: rgba(0, 0, 0, 0.9) !important;
             }
 
-            .navbar .search {
+            .navbar .navbar-items {
               display: flex;
-              margin: 0 auto;
-              width: 15rem;
-              outline: 0;
+              margin-left: auto;
+              flex-direction: row;
+              align-items: center;
             }
 
-            .navbar .search button {
+            .navbar .search {
+              display: flex;
+              /* margin: 0 auto 1rem; */
+              margin: 0 0 0.1rem 0;
+              outline: 0;
+              align-items: center;
+              justify-content: center;
+            }
+
+            .navbar .search a {
               background: none;
               color: #cc0000;
+              padding: 0 0 0.2rem 0;
+              opacity: 1;
+              outline: 0;
               transition: all 0.3s;
+            }
+
+            .navbar .search a:focus {
+              box-shadow: none;
+            }
+
+            .navbar .search a.desktop {
+              display: none;
             }
             @media (min-width: 768px),
               @media(min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-              .navbar .search button {
+              .navbar .search a {
                 padding-right: 0;
               }
             }
 
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .navbar {
+                padding: 0.5rem 1rem;
+              }
+              .navbar .navbar-brand {
+                font-size: 4rem;
+              }
               .navbar .search {
                 margin: 0;
+                width: 15rem;
               }
-              .navbar .search-input {
-                margin-right: 1rem;
+              .navbar .search a.desktop {
+                display: unset;
+              }
+              .navbar .search a.mobile {
+                display: none;
               }
             }
 
@@ -333,14 +348,15 @@ class Navbar extends Component<Props, State> {
               background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(204,0,0,1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
             }
 
-            .navbar .search button svg {
+            .navbar .search a svg {
               max-width: 1rem;
             }
 
             .navbar .search .Input {
+              display: none;
               flex: 1 1;
-              padding: 1rem 0 0.15rem 0;
-              margin: -1rem 1.5rem 0 0.5rem;
+              padding: 0.05rem 0 0 0;
+              margin: 0 1.5rem 0 0.5rem;
               width: 12rem;
               overflow: hidden;
               transition: all 0.3s;
@@ -352,6 +368,14 @@ class Navbar extends Component<Props, State> {
 
             .navbar .search .Input span::after {
               margin: -0.05rem 0 0 0;
+            }
+            @media (min-width: 992px),
+              @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+              .navbar .search .Input {
+                display: block;
+                padding: 1rem 0 0 0;
+                margin: -1rem 1.5rem 0 1rem;
+              }
             }
           `}</style>
         </nav>
@@ -458,7 +482,7 @@ class Account extends Component<any, any> {
         }
       }));
     }
-
+    
     if (
       (nextProps.user !== this.props.user ||
         Object.keys(nextProps.user).length > 0) &&
@@ -522,13 +546,13 @@ class Account extends Component<any, any> {
           <style jsx>{`
             .Account {
               text-align: center;
-              margin-bottom: 0.8rem;
+              margin: 0 0.5rem 0 1rem;
             }
 
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Account {
-                margin-bottom: 0;
+                margin: 0;
               }
             }
           `}</style>
@@ -536,134 +560,150 @@ class Account extends Component<any, any> {
       );
     } else {
       return (
-        <div
-          className={this.state.infoOpen ? "Account active" : "Account"}
-          tabIndex={0}
-          onFocus={() => {
-            this.setState((prevState: any) => ({
-              ...prevState,
-              infoOpen: true
-            }));
-          }}
-          onBlur={() => {
-            this.setState((prevState: any) => ({
-              ...prevState,
-              infoOpen: false
-            }));
-          }}
-          ref={div => {
-            this.Account = div;
-          }}
-        >
-          <div className="User">
-            <Image
-              onClick={this.openInfo}
-              className="user"
-              src={
-                this.state.user.image !== null
-                  ? this.state.user.image
-                  : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
+        <React.Fragment>
+          <div
+            className="detectClick"
+            style={this.state.infoOpen ? { display: "block" } : {}}
+            onClick={e => {
+              if (!this.Account.contains(e.target)) {
+                this.setState(prevState => ({
+                  ...prevState,
+                  infoOpen: false
+                }));
               }
-              smallSrc={
-                this.state.user.small_image !== null
-                  ? this.state.user.small_image
-                  : "https://storage.googleapis.com/oyah.xyz/assets/img/User_small.png"
-              }
-              alt={this.state.user.nametag}
-              customPlaceholder={
-                <RoundShape
-                  className="image"
-                  color="#e0e0e0"
-                  style={{
-                    display: "inline-block",
-                    width: "3.56rem",
-                    height: "3.56rem",
-                    borderRadius: "50%",
-                    animation: "loading 1.5s infinite"
-                  }}
-                />
-              }
-              style={
-                this.state.infoOpen
-                  ? {
-                      width: "3.56rem",
-                      height: "3.56rem",
-                      userSelect: "none",
-                      borderRadius: "50%",
-                      cursor: "default"
-                    }
-                  : {
-                      width: "3.56rem",
-                      height: "3.56rem",
-                      userSelect: "none",
-                      borderRadius: "50%",
-                      cursor: "pointer"
-                    }
-              }
-            />
-          </div>
-          <div className="Info">
-            <div className="user">
-              <h2 ref={h2 => (this.nametag = h2)}>
-                {this.state.user.nametag}
-                {this.state.user.is_team && (
-                  <Verification
-                    isArticle={false}
-                    style={{ marginLeft: ".5rem" }}
+            }}
+          />
+          <div
+            className={this.state.infoOpen ? "Account active" : "Account"}
+            // tabIndex={0}
+            // onFocus={() => {
+            //   this.setState((prevState: any) => ({
+            //     ...prevState,
+            //     infoOpen: true
+            //   }));
+            // }}
+            // onBlur={() => {
+            //   this.setState((prevState: any) => ({
+            //     ...prevState,
+            //     infoOpen: false
+            //   }));
+            // }}
+            ref={div => {
+              this.Account = div;
+            }}
+          >
+            <div className="User">
+              <Image
+                onClick={this.openInfo}
+                className="user"
+                src={
+                  this.state.user.image !== null
+                    ? this.state.user.image
+                    : "https://storage.googleapis.com/oyah.xyz/assets/img/User.png"
+                }
+                smallSrc={
+                  this.state.user.small_image !== null
+                    ? this.state.user.small_image
+                    : "https://storage.googleapis.com/oyah.xyz/assets/img/User_small.png"
+                }
+                alt={this.state.user.nametag}
+                customPlaceholder={
+                  <RoundShape
+                    className="image"
+                    color="#e0e0e0"
+                    style={{
+                      display: "inline-block",
+                      animation: "loading 1.5s infinite"
+                    }}
                   />
-                )}
-              </h2>
-              <p>{this.state.user.email}</p>
+                }
+                style={
+                  this.state.infoOpen
+                    ? {
+                        cursor: "default"
+                      }
+                    : {
+                        cursor: "pointer"
+                      }
+                }
+              />
             </div>
-            <div className="links">
-              <Link href="/WriteArticle" as="/articles/new">
-                <a onClick={() => this.Account.focus()}>Write article</a>
-              </Link>
-              <Link
-                href={`/Profile?nametag=${this.state.user.nametag}`}
-                as={`/users/${this.state.user.nametag}`}
-              >
-                <a onClick={() => this.Account.focus()}>Profile</a>
-              </Link>
-              <Link href="/Settings" as="/settings">
-                <a onClick={() => this.Account.focus()}>Settings</a>
-              </Link>
-              <a
-                href="/signout"
-                onClick={e => {
-                  e.preventDefault();
+            <div className="Info">
+              <div className="user">
+                <h2 ref={h2 => (this.nametag = h2)}>
+                  {this.state.user.nametag}
+                  {this.state.user.is_team && (
+                    <Verification
+                      isArticle={false}
+                      style={{ marginLeft: ".5rem" }}
+                    />
+                  )}
+                </h2>
+                <p>{this.state.user.email}</p>
+              </div>
+              <div className="links">
+                <Link href="/WriteArticle" as="/articles/new">
+                  <a onClick={() => this.Account.focus()}>Write article</a>
+                </Link>
+                <Link
+                  href={`/Profile?nametag=${this.state.user.nametag}`}
+                  as={`/users/${this.state.user.nametag}`}
+                >
+                  <a onClick={() => this.Account.focus()}>Profile</a>
+                </Link>
+                <Link href="/Settings" as="/settings">
+                  <a onClick={() => this.Account.focus()}>Settings</a>
+                </Link>
+                <a
+                  href="/signout"
+                  onClick={e => {
+                    e.preventDefault();
 
-                  // removeCookie(document.cookie, "token");
-                  app.auth().signOut();
+                    // removeCookie(document.cookie, "token");
+                    app.auth().signOut();
 
-                  this.props.client.cache.reset().then(() => {
-                    window.location.href = `${window.location.protocol}//${
-                      window.location.host
-                    }/signout?redirect_to=${encodeURIComponent(
-                      window.location.pathname
-                    )}`;
-                  });
-                }}
-              >
-                Sign out
-              </a>
-            </div>
-            {/* <FontAwesomeIcon icon="angle-down" fixedWidth fixedHeight onClick={this.toggleInfo} /> */}
-            {/* <img
+                    this.props.client.cache.reset().then(() => {
+                      window.location.href = `${window.location.protocol}//${
+                        window.location.host
+                      }/signout?redirect_to=${encodeURIComponent(
+                        window.location.pathname
+                      )}`;
+                    });
+                  }}
+                >
+                  Sign out
+                </a>
+              </div>
+              {/* <FontAwesomeIcon icon="angle-down" fixedWidth fixedHeight onClick={this.toggleInfo} /> */}
+              {/* <img
               onClick={this.toggleInfo}
               className="arrow"
               src={process.env.PUBLIC_URL + "/img/Arrow.png"}
               alt=""
             /> */}
+            </div>
+            <div className="arrow mobile" onClick={this.openInfo} />
+            <ArrowSvg className="arrow desktop" onClick={this.toggleInfo} />
           </div>
-          <ArrowSvg className="arrow" onClick={this.toggleInfo} />
           <style jsx>{`
+            .detectClick {
+              position: fixed;
+              display: none;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              width: 100%;
+              height: 100%;
+              z-index: 10;
+            }
+
             .Account {
               --border-radius: 0;
-              position: relative;
               text-align: center;
-              margin-bottom: 1rem;
+              margin: 0 0.5rem 0 1rem;
               outline: 0;
+              z-index: 10;
               transition: all 0.3s;
             }
 
@@ -686,7 +726,24 @@ class Account extends Component<any, any> {
               transition: all 0.3s;
             }
 
+            .Account .User::after {
+              content: "";
+              position: absolute;
+              display: none;
+              background: #fff;
+              top: 100%;
+              height: 0.5rem;
+              width: 100%;
+              box-shadow: none;
+              transition: all 0.3s;
+            }
+
+            .Account.active .User::after {
+              box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
+            }
+
             .Account .Info {
+              position: absolute;
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -694,7 +751,8 @@ class Account extends Component<any, any> {
               border-bottom-right-radius: var(--border-radius);
               background: #fff;
               width: 100%;
-              top: 4rem;
+              max-height: 0;
+              top: 4.6rem;
               left: 0;
               box-shadow: none;
               z-index: 10;
@@ -702,15 +760,15 @@ class Account extends Component<any, any> {
               transition: max-height 0.3s, box-shadow 0.3s, padding 0.3s;
             }
 
-            .Account .Info::before {
-              content: "";
-              position: absolute;
-              background: #fff;
-              width: 100%;
-              height: 9px;
-              left: 0;
-              top: -4px;
-              opacity: 0;
+            .Account.active .Info {
+              box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 4px;
+              /* padding-top: 1rem;
+              padding-bottom: 3rem; */
+              padding: 1rem 0;
+              max-height: calc(
+                4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem + 1rem +
+                  0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
+              );
             }
 
             .Account .Info * {
@@ -759,7 +817,7 @@ class Account extends Component<any, any> {
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
               .Account {
                 width: 4rem;
-                margin-bottom: 0;
+                position: relative;
               }
               .Account.active {
                 width: 15rem;
@@ -769,62 +827,46 @@ class Account extends Component<any, any> {
                 box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
               }
               .Account .User::after {
-                content: "";
-                position: absolute;
-                background: #fff;
-                top: 100%;
-                height: 0.5rem;
-                width: 100%;
-                opacity: 0;
-              }
-              .Account.active .User::after {
-                opacity: 1;
+                display: block;
               }
               .Account .Info {
-                position: absolute;
-                /* height: 2rem; */
-                /* opacity: 0; */
-                max-height: 0;
-                /* visibility: hidden; */
+                top: 4rem;
               }
               .Account.active .Info {
-                /* box-shadow: -1px 2px 2px 1px rgba(0, 0, 0, 0.2); */
                 box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 4px;
-                padding-bottom: 3rem;
-                /* opacity: 1; */
-                /* visibility: visible; */
-                max-height: calc(
-                  4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem +
-                    1rem + 0.2rem + ((1rem + (0.2rem * 2)) * 3) + 3rem
-                );
-              }
-              .Account.active .Info::before {
-                opacity: 1;
+                padding: 0 0 3rem;
               }
             }
           `}</style>
           <style jsx global>{`
-            .Account svg.arrow {
+            .Account .image,
+            .Account .User .image {
+              width: 2.5rem !important;
+              height: 2.5rem !important;
+              user-select: none;
+              border-radius: 50%;
+            }
+
+            .Account .arrow.desktop {
+              display: none;
               position: absolute;
               top: calc(0.2rem + 4rem);
               left: 0;
               right: 0;
               width: 1.2rem;
               height: 1.2rem;
-              color: #cc0000;
+              fill: #cc0000;
               margin: 0 auto;
               order: 1;
               opacity: 1;
               z-index: 20;
-              visibility: hidden;
               cursor: pointer;
               user-select: none;
               transition: all 0.3s;
             }
 
-            .Account.active svg.arrow {
+            .Account.active .arrow.desktop {
               transform: scaleY(-1);
-              filter: FlipV;
               order: 5;
               top: calc(
                 4rem + ${this.state.nametagHeight} + 0.5rem + 1rem + 1rem + 1rem +
@@ -832,14 +874,51 @@ class Account extends Component<any, any> {
               );
               height: 2rem;
             }
+
+            .Account .arrow.mobile {
+              position: absolute;
+              top: calc(0.2rem + 4rem);
+              right: calc(15px + 0.5rem + 0.7rem + 0.2rem);
+              width: 0.7rem;
+              height: 0.7rem;
+              border: 2px solid #cc0000;
+              border-top: transparent;
+              border-left: transparent;
+              box-shadow: none;
+              z-index: 10;
+              transform: rotate(45deg);
+              transition: all 0.3s;
+            }
+
+            .Account.active .arrow.mobile {
+              /* transform: rotate(45deg) scaleY(-1); */
+              top: calc(0.2rem + 4rem);
+              right: calc(15px + 0.5rem + 0.7rem);
+              height: 1.2rem;
+              width: 1.2rem;
+              background: #fff;
+              border: 0;
+              box-shadow: -6px -5px 4px -5px rgba(0, 0, 0, 0.15);
+            }
             @media (min-width: 992px),
               @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
-              .Account svg.arrow {
-                visibility: visible;
+              .Account .image,
+              .Account .User .image {
+                width: 3.56rem !important;
+                height: 3.56rem !important;
+                user-select: none;
+                border-radius: 50%;
+                cursor: pointer;
+              }
+              .Account .arrow.desktop {
+                display: block;
+              }
+              .Account .arrow.mobile {
+                display: none;
               }
             }
           `}</style>
-        </div>
+        </React.Fragment>
       );
     }
   }

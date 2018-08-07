@@ -18,7 +18,7 @@ class Arrow extends Component<Props> {
         onClick={this.props.onClick ? this.props.onClick : () => {}}
       >
         <polygon
-          fill="#C31A00"
+          // fill="#C31A00"
           points="0 1.33068458 10.9466326 13 22.0176345 1.33068458 20.7902166 0 10.9466326 10.0147463 1.46036815 0"
           id="Arrow"
           fillRule="evenodd"
