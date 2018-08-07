@@ -28,7 +28,8 @@ import {
   faEye,
   faEyeSlash,
   faHeart as faHeartFill,
-  faShareSquare
+  faShareSquare,
+  faVideo
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart, faImage } from "@fortawesome/free-regular-svg-icons";
 import {
@@ -50,7 +51,8 @@ fontawesome.library.add(
   faRedditAlien,
   faTwitter,
   faFacebookF,
-  faImage
+  faImage,
+  faVideo
 );
 
 interface Props {
@@ -75,8 +77,6 @@ class App extends Component<Props, any> {
     configureLoadingProgressBar();
 
     routerEvents.on("routerChangeComplete", url => {
-      console.log("Load complete");
-      
       this.addContainer(url);
     });
   }

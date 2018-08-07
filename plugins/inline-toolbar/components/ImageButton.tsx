@@ -109,7 +109,7 @@ class ImageButton extends Component<ImageButtonProps> {
           style={{ padding: "5px" }}
           onClick={this.uploadImage}
         >
-          <FontAwesomeIcon icon="image" />
+          <FontAwesomeIcon icon={["far", "image"]} />
         </button>
         <input
           type="file"
