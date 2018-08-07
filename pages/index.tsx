@@ -13,17 +13,27 @@ import App from "../components/App";
 
 import Highlights from "../components/Highlights";
 import Other from "../components/Other";
+import Marble from "../components/Marble";
 import Quote from "../components/Quote";
 
 import withData from "../lib/withData";
 
-import { HomeModel, QuoteModel, ThemeModel } from "../lib/db/models";
+import {
+  HomeModel,
+  ArticleModel,
+  QuoteModel,
+  ThemeModel
+} from "../lib/db/models";
+import { Quote as QuoteInterface } from "../lib/db/models/Quote";
+import { Article as ArticleInterface } from "../lib/db/models/Article";
+import { User as UserInterface } from "../lib/db/models/User";
 
 interface Props {
-  quote: any;
-  articles: any;
+  quote: QuoteInterface;
+  articles: ArticleInterface[];
+  allArticles: ArticleInterface[];
   theme: any;
-  user: any;
+  user: UserInterface;
   signInModal: any;
   error: any;
   dispatch: any;
@@ -40,13 +50,18 @@ class Index extends Component<Props> {
                 .startOf("week")
                 .format("MM-DD-YYYY")
             })
-              .then(theme => {
-                return {
-                  articles,
-                  quote,
-                  theme,
-                  user
-                };
+              .then(async theme => {
+                return await ArticleModel.getAll()
+                  .then(allArticles => {
+                    return {
+                      articles,
+                      quote,
+                      theme,
+                      allArticles,
+                      user
+                    };
+                  })
+                  .catch((err: Error) => ({ _error: err, user }));
               })
               .catch((err: Error) => ({ _error: err, user }));
           })
@@ -59,6 +74,7 @@ class Index extends Component<Props> {
     const {
       quote: { quote, author },
       articles,
+      allArticles,
       theme
     } = this.props;
 
@@ -75,6 +91,7 @@ class Index extends Component<Props> {
             <React.Fragment>
               <Highlights articles={articles} />
               <Other articles={articles} />
+              <Marble articles={allArticles} />
             </React.Fragment>
           )}
           <Quote author={author} quote={quote} />
@@ -145,7 +162,7 @@ class Index extends Component<Props> {
           }
 
           .Home .Other {
-            margin: 2rem 0 4rem;
+            margin: 2rem 0;
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
@@ -209,7 +226,7 @@ class Index extends Component<Props> {
               margin: 0 0 1.5rem 0;
             }
             .Home .Other {
-              margin: 1rem 0 4rem;
+              margin: 1rem 0;
             }
             /* .Home .Other .Article {
                height: 7rem;
@@ -243,7 +260,7 @@ class Index extends Component<Props> {
               margin: 0 1rem 0 0;
             }
             .Home .Other {
-              margin: 1.2rem 0 4rem 0;
+              margin: 1.2rem 0;
             }
             .Home .Other .Article {
               /* height: 10rem; */
@@ -275,7 +292,7 @@ class Index extends Component<Props> {
               margin: 0 0 0.5rem 0;
             }
             .Home .Other {
-              margin: 1.4rem 0 4rem 0;
+              margin: 1.4rem 0;
             }
             .Home .Other .Article {
               /* height: 15rem; */

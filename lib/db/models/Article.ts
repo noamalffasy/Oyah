@@ -14,6 +14,7 @@ export interface Article {
   authorID?: string;
   author: UserInterface;
   likes?: number;
+  dominantColor: string;
   createdAt?: string;
   isTimeBased?: boolean;
 }
@@ -40,10 +41,10 @@ class ArticleModel extends Model {
             .map(async article => {
               return await UserModel.get({ id: article.authorID })
                 .then((author: UserInterface) => ({
-                    ...article,
-                    createdAt: new Date(article.createdAt).toISOString(),
-                    author
-                  }))
+                  ...article,
+                  createdAt: new Date(article.createdAt).toISOString(),
+                  author
+                }))
                 .catch(err => reject(err));
             });
           Promise.all(fittingArticles)
@@ -61,10 +62,10 @@ class ArticleModel extends Model {
         .then(async (article: Article) => {
           await UserModel.get({ id: article.authorID })
             .then((author: UserInterface) => {
-              resolve({ 
-                ...article, 
-                createdAt: new Date(article.createdAt).toISOString(), 
-                author 
+              resolve({
+                ...article,
+                createdAt: new Date(article.createdAt).toISOString(),
+                author
               });
             })
             .catch(err => reject(err));
