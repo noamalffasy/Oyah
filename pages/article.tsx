@@ -562,10 +562,12 @@ class ArticlePage extends Component<Props, State> {
                   >
                     <div className="author">
                       <Link
-                        href={
-                          "/users/" +
-                          (this.props.author ? this.props.author.nametag : "")
-                        }
+                        href={`/Profile?nametag=${
+                          this.props.author ? this.props.author.nametag : ""
+                        }`}
+                        as={`/users/${
+                          this.props.author ? this.props.author.nametag : ""
+                        }`}
                       >
                         <a style={{ opacity: 1 }}>
                           <Image
@@ -604,31 +606,34 @@ class ArticlePage extends Component<Props, State> {
                           flexDirection: "column"
                         }}
                       >
-                        <a
-                          href={
-                            "/users/" +
-                            (this.props.author ? this.props.author.nametag : "")
-                          }
-                          style={{ opacity: 1 }}
+                        <Link
+                          href={`/Profile?nametag=${
+                            this.props.author ? this.props.author.nametag : ""
+                          }`}
+                          as={`/users/${
+                            this.props.author ? this.props.author.nametag : ""
+                          }`}
                         >
-                          <h3
-                            style={{
-                              display: "inline-block",
-                              color: "#212529",
-                              cursor: "pointer"
-                            }}
-                          >
-                            {this.props.author
-                              ? this.props.author.nametag
-                              : "Loading"}
-                          </h3>
-                          {this.props.author.is_team && (
-                            <Verification
-                              isArticle={false}
-                              style={{ marginLeft: ".5rem" }}
-                            />
-                          )}
-                        </a>
+                          <a style={{ opacity: 1 }}>
+                            <h3
+                              style={{
+                                display: "inline-block",
+                                color: "#212529",
+                                cursor: "pointer"
+                              }}
+                            >
+                              {this.props.author
+                                ? this.props.author.nametag
+                                : "Loading"}
+                            </h3>
+                            {this.props.author.is_team && (
+                              <Verification
+                                isArticle={false}
+                                style={{ marginLeft: ".5rem" }}
+                              />
+                            )}
+                          </a>
+                        </Link>
                         <span style={{ color: "rgba(0,0,0,.5)" }}>
                           {this.state.datePublished || ""}
                         </span>
@@ -657,8 +662,8 @@ class ArticlePage extends Component<Props, State> {
                         >
                           <li>
                             <Link
-                              href={"/WriteArticle?id=" + this.props.article.id}
-                              as={"/articles/new/" + this.props.article.id}
+                              href={`/WriteArticle?id=${this.props.article.id}`}
+                              as={`/articles/new/${this.props.article.id}`}
                             >
                               <a onClick={() => this.morePopup.open()}>Edit</a>
                             </Link>
@@ -1642,9 +1647,10 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
                     }}
                   >
                     <Link
-                      href={
-                        "/users/" + (elem.author ? elem.author.nametag : "")
-                      }
+                      href={`/Profile?nametag=${
+                        elem.author ? elem.author.nametag : ""
+                      }`}
+                      as={`/users/${elem.author ? elem.author.nametag : ""}`}
                     >
                       <a style={{ opacity: 1 }}>
                         <h3
