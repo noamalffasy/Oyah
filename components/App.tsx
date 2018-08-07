@@ -236,7 +236,7 @@ class App extends Component<Props, any> {
             color: #cc0000 !important;
             font-weight: 600;
             outline: 0;
-            opacity: 0.8;
+            opacity: 0.7;
             cursor: pointer;
             transition: all 0.15s;
           }
