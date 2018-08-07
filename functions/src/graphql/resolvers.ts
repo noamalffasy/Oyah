@@ -675,7 +675,7 @@ export default {
   },
   createArticle: async (
     _: any,
-    { id, title, content, authorID, authInfo }: any,
+    { id, title, content, authorID, theme, isTimeBased, authInfo }: any,
     ctx: any
   ) => {
     return await isLoggedIn(ctx, authInfo)
@@ -710,7 +710,9 @@ export default {
             content,
             authorID,
             likes: "",
-            createdAt: new Date().toString()
+            theme,
+            createdAt: new Date().toString(),
+            isTimeBased
           };
 
           return await Article.getOrCreate(
@@ -738,7 +740,7 @@ export default {
   },
   updateArticle: async (
     _: any,
-    { id, title, path: _path, content, authInfo }: any,
+    { id, title, path: _path, content, isTimeBased, authInfo }: any,
     ctx: any
   ) => {
     return await isLoggedIn(ctx, authInfo)
@@ -751,7 +753,8 @@ export default {
             id,
             title,
             path,
-            content
+            content,
+            isTimeBased
           };
 
           return await Article.update(newArticle)

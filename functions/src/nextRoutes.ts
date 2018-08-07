@@ -1,21 +1,17 @@
 import * as express from "express";
+import * as next from "next";
 import * as path from "path";
 import * as compression from "compression";
 import * as cookieParser from "cookie-parser";
 import * as uuid from "uuid/v4";
 // import * as LRUCache from "lru-cache";
 
-const rememberSession = (req, res, next) => {
+const rememberSession = (_, res, next) => {
   res.set("Cache-Control", "private");
   return next();
 };
 
-// const ssrCache = new LRUCache({
-//   max: 100,
-//   maxAge: 1000 * 60 * 60 * 24 // 1 Day
-// });
-
-export default async (app: express.Application, nextApp, handle) => {
+export default (app: express.Application, nextApp: next.Server, handle) => {
   nextApp.prepare().then(() => {
     // app.set("trust proxy", 1);
 
@@ -29,14 +25,14 @@ export default async (app: express.Application, nextApp, handle) => {
 
     app.use((req, res, next) => {
       if (req.url === "/sw.js") {
-        nextApp.serveStatic(req, res, path.resolve("../public/sw.js"));
+        nextApp.serveStatic(req, res, path.resolve("../app/public/sw.js"));
       }
       return next();
     });
 
     app.use((req, res, next) => {
       if (req.url.startsWith("/js")) {
-        nextApp.serveStatic(req, res, path.resolve(`../public${req.url}`));
+        nextApp.serveStatic(req, res, path.resolve(`../app/public${req.url}`));
       }
       return next();
     });
@@ -44,6 +40,13 @@ export default async (app: express.Application, nextApp, handle) => {
     app.get("/", (req: any, res) => {
       return nextApp.render(req, res, "/index", req.query);
     });
+
+    app.get("/theme/:title", (req, res) => {
+      return nextApp.render(req, res, "/theme", {
+        ...req.query,
+        title: req.params.title
+      })
+    })
 
     // app.get("/articles", (req, res) => {
     //   return nextApp.render(req, res, "/Articles", req.query);
@@ -71,10 +74,6 @@ export default async (app: express.Application, nextApp, handle) => {
       return nextApp.render(req, res, "/Search", req.query);
     });
 
-    // app.get("/reset", (req, res) => {
-    //   return nextApp.render(req, res, "/reset", req.query);
-    // });
-
     app.post("/login", (req, res) => {
       const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
 
@@ -89,15 +88,6 @@ export default async (app: express.Application, nextApp, handle) => {
 
       res.send("Success");
     });
-
-    app.get("/logout", (req, res) => {
-      return nextApp.render(req, res, "/logout", req.query);
-    });
-
-    // app.get("/profile", (req, res) => {
-    //   return nextApp.render(req, res, "/Profile", req.query);
-    // });
-
     app.get("/settings", (req, res) => {
       return nextApp.render(req, res, "/Settings", req.query);
     });

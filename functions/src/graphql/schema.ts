@@ -168,6 +168,16 @@ const Article = new GraphQLObjectType({
           }
         }
       },
+      theme: {
+        type: GraphQLString,
+        async resolve(obj) {
+          if (obj.exists && obj.theme) {
+            return obj.theme;
+          } else {
+            return null;
+          }
+        }
+      },
       createdAt: {
         type: GraphQLString,
         async resolve(obj) {
@@ -175,6 +185,9 @@ const Article = new GraphQLObjectType({
             return new Date(obj.createdAt).toISOString();
           }
         }
+      },
+      isTimeBased: {
+        type: GraphQLBoolean
       }
     };
   }
@@ -540,6 +553,12 @@ const Mutation = new GraphQLObjectType({
           authorID: {
             type: GraphQLString
           },
+          theme: {
+            type: GraphQLString
+          },
+          isTimeBased: {
+            type: GraphQLBoolean
+          },
           authInfo: {
             type: AuthInfo
           }
@@ -560,6 +579,12 @@ const Mutation = new GraphQLObjectType({
           },
           content: {
             type: GraphQLString
+          },
+          theme: {
+            type: GraphQLString
+          },
+          isTimeBased: {
+            type: GraphQLBoolean
           },
           authInfo: {
             type: AuthInfo

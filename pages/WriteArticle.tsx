@@ -10,6 +10,8 @@ import Textarea from "react-textarea-autosize";
 import * as MarkdownIt from "markdown-it";
 import Editor from "../components/Editor";
 import ActionButtons from "../components/ActionButtons";
+import Modal from "../components/Modal";
+import SwitchToggle from "../components/SwitchToggle";
 // import * as Editor from "react-simplemde-editor";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,7 +22,7 @@ import * as uuid from "uuid/v4";
 // import { prototype } from "react-markdown";
 
 import Head from "next/head";
-import Router, { withRouter } from "next/router";
+import Router, { withRouter, SingletonRouter } from "next/router";
 
 import App from "../components/App";
 
@@ -29,6 +31,7 @@ import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
+import { ArticleModel } from "../lib/db/models";
 
 interface Props {
   uploadFile?: any;
@@ -36,7 +39,7 @@ interface Props {
   updateArticle?: any;
   newArticle: any;
   notAuthorized?: any;
-  router: any;
+  router: SingletonRouter;
   user: any;
   signInModal: any;
   error: any;
@@ -54,6 +57,8 @@ interface State {
   scaleRatio: any;
   content: any;
   edit: any;
+  prePublishModalOpen: boolean;
+  isTimeBased: boolean;
   value?: any;
 }
 
@@ -88,12 +93,16 @@ interface State {
       $title: String!
       $content: String!
       $authorID: String!
+      $theme: String
+      $isTimeBased: Boolean!
     ) {
       createArticle(
         id: $id
         title: $title
         content: $content
         authorID: $authorID
+        theme: $theme
+        isTimeBased: $isTimeBased
       ) {
         id
         title
@@ -112,8 +121,10 @@ interface State {
       $title: String!
       $path: String
       $content: String!
+      $theme: String
+      $isTimeBased: Boolean!
     ) {
-      updateArticle(id: $id, title: $title, path: $path, content: $content) {
+      updateArticle(id: $id, title: $title, path: $path, content: $content, theme: $theme, isTimeBased: $isTimeBased) {
         id
         title
         content
@@ -135,7 +146,10 @@ class WriteArticle extends Component<Props, State> {
     image: null,
     scaleRatio: "33.3%",
     content: undefined,
-    edit: false
+    edit: false,
+    isTimeBased: false,
+    prePublishModalOpen: false,
+    theme: null
   };
 
   setImageScaleRatio = this._setImageScaleRatio.bind(this);
@@ -149,68 +163,43 @@ class WriteArticle extends Component<Props, State> {
   ActionButtons: ActionButtons;
 
   static async getInitialProps(
-    { query: { id: _id } }: any,
-    apolloClient: any,
+    { query: { id: _id, theme } }: any,
+    _,
     user: any
   ) {
-    const id =
-      _id === undefined
-        ? uuid()
-        : _id.indexOf("_small.jpeg") > -1
-          ? _id.replace("_small.jpeg", "")
-          : _id;
-    if (_id === undefined) {
-      this.props.router.push("/articles/new/" + id);
-
+    const id = _id
+      ? _id.indexOf("_small.jpeg") > -1
+        ? _id.replace("_small.jpeg", "")
+        : _id
+      : null;
+    if (!id) {
       return {
-        newArticle: { id }
+        newArticle: { id, theme }
       };
     }
+
     if (user !== undefined) {
-      return await apolloClient
-        .mutate({
-          mutation: gql`
-            mutation getArticle($id: String!) {
-              getArticle(id: $id) {
-                id
-                title
-                path
-                content
-                author {
-                  id
-                }
-              }
-            }
-          `,
-          variables: {
-            id
-          }
-        })
-        .then(res => {
-          if (res.errors) {
-            res.errors.forEach((error: any) => {
-              console.error(error);
-            });
-          } else if (res.data.getArticle.id !== null) {
-            if (
-              user.id === res.data.getArticle.author.id &&
-              res.data.getArticle.content !== null
-            ) {
+      return await ArticleModel.get({ id })
+        .then(article => {
+          if (article.id) {
+            if (user.id === article.author.id && article.content) {
               return {
                 newArticle: {
                   id,
+                  theme,
                   edit: true,
-                  title: res.data.getArticle.title,
-                  image: res.data.getArticle.path,
-                  content: res.data.getArticle.content
+                  title: article.title,
+                  image: article.path,
+                  content: article.content
                 },
                 user
               };
-            } else if (res.data.getArticle.content !== null) {
+            } else if (article.content !== null) {
               return {
                 newArticle: {
                   id,
-                  authorID: res.data.getArticle.author.id
+                  theme,
+                  authorID: article.author.id
                 },
                 notAuthorized: true,
                 user
@@ -219,6 +208,7 @@ class WriteArticle extends Component<Props, State> {
               return {
                 newArticle: {
                   id,
+                  theme,
                   edit: true
                 },
                 user
@@ -227,7 +217,8 @@ class WriteArticle extends Component<Props, State> {
           } else {
             return {
               newArticle: {
-                id
+                id,
+                theme
               },
               user
             };
@@ -239,7 +230,8 @@ class WriteArticle extends Component<Props, State> {
           ) {
             return {
               newArticle: {
-                id
+                id,
+                theme
               },
               user
             };
@@ -250,9 +242,10 @@ class WriteArticle extends Component<Props, State> {
         });
     } else {
       return {
-        // newArticle: {
-        //   id
-        // },
+        newArticle: {
+          id,
+          theme
+        },
         notAuthorized: true
       };
     }
@@ -260,6 +253,15 @@ class WriteArticle extends Component<Props, State> {
 
   componentDidMount() {
     const id = Router.query.id;
+
+    if (!id) {
+      const id = uuid();
+
+      this.props.router.push(
+        { pathname: "/WriteArticle", query: { ...Router.query, id } },
+        { pathname: `/articles/new/${id}/`, query: Router.query }
+      );
+    }
 
     if (
       this.props.newArticle !== undefined &&
@@ -269,7 +271,10 @@ class WriteArticle extends Component<Props, State> {
         prevState => ({
           ...prevState,
           id,
-          title: this.props.newArticle.title,
+          theme: Router.query.theme,
+          title: this.props.newArticle.title
+            ? this.props.newArticle.title
+            : null,
           image: this.props.newArticle.image,
           content: this.props.newArticle.content,
           edit: this.props.newArticle.edit ? true : false
@@ -278,55 +283,179 @@ class WriteArticle extends Component<Props, State> {
           this.setImageScaleRatio();
         }
       );
-    }
 
-    if (localStorage.getItem("article_" + id) !== null) {
-      const saved = JSON.parse(localStorage.getItem("article_" + id));
-      this.setState(
-        (prevState: any) => ({
-          ...prevState,
-          title: saved.title
-            ? saved.title
-            : this.state.title
-              ? this.state.title
-              : this.props.newArticle.title,
-          image: saved.image,
-          content: saved.content
-        }),
-        () => {
-          this.setImageScaleRatio();
-        }
-      );
-    }
-
-    setInterval(() => {
-      if (
-        Object.keys(this.props.user).length !== 0 &&
-        Router.pathname === "/WriteArticle"
-      ) {
-        let seen: any = [];
-
-        localStorage.setItem(
-          "article_" + id,
-          JSON.stringify(
-            {
-              title: this.state.title,
-              image: this.state.image ? this.state.image : null,
-              content: this.editor.text() || this.editor.props.value || ""
-            },
-            (_, val) => {
-              if (val !== null && typeof val === "object") {
-                if (seen.indexOf(val) >= 0) {
-                  return;
-                }
-                seen.push(val);
-              }
-              return val;
-            }
-          )
+      if (localStorage.getItem("article_" + id) !== null) {
+        const saved = JSON.parse(localStorage.getItem("article_" + id));
+        this.setState(
+          (prevState: any) => ({
+            ...prevState,
+            title: saved.title
+              ? saved.title
+              : this.state.title
+                ? this.state.title
+                : this.props.newArticle.title,
+            image: saved.image,
+            content: saved.content,
+            theme: saved.theme ? saved.theme : null
+          }),
+          () => {
+            this.setImageScaleRatio();
+          }
         );
       }
-    }, 10000);
+
+      setInterval(() => {
+        if (
+          Object.keys(this.props.user).length !== 0 &&
+          Router.pathname === "/WriteArticle"
+        ) {
+          let seen: any = [];
+
+          localStorage.setItem(
+            "article_" + id,
+            JSON.stringify(
+              {
+                title: this.state.title,
+                image: this.state.image ? this.state.image : null,
+                content: this.editor.text() || this.editor.props.value || "",
+                theme: this.state.theme ? this.state.theme : null
+              },
+              (_, val) => {
+                if (val !== null && typeof val === "object") {
+                  if (seen.indexOf(val) >= 0) {
+                    return;
+                  }
+                  seen.push(val);
+                }
+                return val;
+              }
+            )
+          );
+        }
+      }, 10000);
+    }
+  }
+
+  async componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.user.id !== this.props.user.id &&
+      nextProps.user !== this.props.user
+    ) {
+      if (nextProps.user && !nextProps.user.loading) {
+        const { id, theme } = Router.query;
+        const user = nextProps.user;
+
+        await ArticleModel.get({ id }).then(article => {
+          if (article.id) {
+            if (user.id === article.author.id && article.content) {
+              this.setState(
+                prevState => ({
+                  ...prevState,
+                  id,
+                  theme,
+                  title: article.title,
+                  image: article.path,
+                  content: article.content,
+                  edit: true,
+                  notAuthorized: false
+                }),
+                () => {
+                  this.setImageScaleRatio();
+                }
+              );
+            } else if (article.content !== null) {
+              this.setState(
+                prevState => ({
+                  ...prevState,
+                  id,
+                  theme,
+                  authorID: article.author.id,
+                  title: this.state.title ? this.state.title : null,
+                  image: this.state.image,
+                  content: this.state.content,
+                  edit: this.state.edit ? true : false,
+                  notAuthorized: true
+                }),
+                () => {
+                  this.setImageScaleRatio();
+                }
+              );
+            } else {
+              this.setState(
+                prevState => ({
+                  ...prevState,
+                  id,
+                  theme,
+                  title: this.state.title ? this.state.title : null,
+                  image: this.state.image,
+                  content: this.state.content,
+                  edit: this.state.edit ? true : false,
+                  notAuthorized: false
+                }),
+                () => {
+                  this.setImageScaleRatio();
+                }
+              );
+            }
+          }
+        });
+
+        if (localStorage.getItem("article_" + id) !== null) {
+          const saved = JSON.parse(localStorage.getItem("article_" + id));
+          this.setState(
+            (prevState: any) => ({
+              ...prevState,
+              title: saved.title
+                ? saved.title
+                : this.state.title
+                  ? this.state.title
+                  : this.props.newArticle.title,
+              image: saved.image,
+              content: saved.content,
+              theme: saved.theme ? saved.theme : null
+            }),
+            () => {
+              this.setImageScaleRatio();
+            }
+          );
+        }
+
+        setInterval(() => {
+          if (
+            Object.keys(this.props.user).length !== 0 &&
+            Router.pathname === "/WriteArticle"
+          ) {
+            let seen: any = [];
+
+            localStorage.setItem(
+              "article_" + id,
+              JSON.stringify(
+                {
+                  title: this.state.title,
+                  image: this.state.image ? this.state.image : null,
+                  content: this.editor.text() || this.editor.props.value || "",
+                  theme: this.state.theme ? this.state.theme : null
+                },
+                (_, val) => {
+                  if (val !== null && typeof val === "object") {
+                    if (seen.indexOf(val) >= 0) {
+                      return;
+                    }
+                    seen.push(val);
+                  }
+                  return val;
+                }
+              )
+            );
+          }
+        }, 10000);
+      } else if (!this.state.notAuthorized) {
+        this.setState(prevState => ({
+          ...prevState,
+          notAuthorized: true
+        }));
+      }
+    }
   }
 
   getDimensionsOfImage = imageURL => {
@@ -439,7 +568,9 @@ class WriteArticle extends Component<Props, State> {
                     title,
                     path: res.data.uploadFile.path,
                     content,
-                    authorID: this.props.user.id
+                    authorID: this.props.user.id,
+                    theme: this.state.theme,
+                    isTimeBased: this.state.isTimeBased
                   }
                 })
                 .then((res: any) => {
@@ -469,7 +600,9 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     path: res.data.uploadFile.path,
-                    content
+                    content,
+                    theme: this.state.theme,
+                    isTimeBased: this.state.isTimeBased
                   }
                 })
                 .then((res: any) => {
@@ -529,7 +662,9 @@ class WriteArticle extends Component<Props, State> {
                     title,
                     path: res.data.uploadFile.path,
                     content,
-                    authorID: this.props.user.id
+                    authorID: this.props.user.id,
+                    theme: this.state.theme,
+                    isTimeBased: this.state.isTimeBased
                   }
                 })
                 .then((res: any) => {
@@ -557,7 +692,9 @@ class WriteArticle extends Component<Props, State> {
                     id: this.props.newArticle.id,
                     title,
                     path: res.data.uploadFile.path,
-                    content
+                    content,
+                    theme: this.state.theme,
+                    isTimeBased: this.state.isTimeBased
                   }
                 })
                 .then((res: any) => {
@@ -596,7 +733,9 @@ class WriteArticle extends Component<Props, State> {
               id: this.props.newArticle.id,
               title,
               content,
-              authorID: this.props.user.id
+              authorID: this.props.user.id,
+              theme: this.state.theme,
+              isTimeBased: this.state.isTimeBased
             }
           })
           .then((res: any) => {
@@ -625,7 +764,9 @@ class WriteArticle extends Component<Props, State> {
             variables: {
               id: this.props.newArticle.id,
               title,
-              content
+              content,
+              theme: this.state.theme,
+              isTimeBased: this.state.isTimeBased
             }
           })
           .then((res: any) => {
@@ -658,7 +799,7 @@ class WriteArticle extends Component<Props, State> {
   );
 
   render() {
-    if (!this.props.notAuthorized) {
+    if (!this.state.notAuthorized) {
       return (
         <App {...this.props}>
           <div className="WriteArticle">
@@ -777,7 +918,12 @@ class WriteArticle extends Component<Props, State> {
                 />
                 <ActionButtons
                   primaryText="Publish"
-                  primaryAction={this.publish}
+                  primaryAction={() =>
+                    this.setState(prevState => ({
+                      ...prevState,
+                      prePublishModalOpen: true
+                    }))
+                  }
                   style={{
                     margin: "1rem 0"
                   }}
@@ -785,6 +931,31 @@ class WriteArticle extends Component<Props, State> {
                 />
               </div>
             </div>
+            <Modal
+              title="Is your article time based?"
+              primaryText="Publish"
+              primaryAction={this.publish}
+              secondaryText="Cancel"
+              isOpen={this.state.prePublishModalOpen}
+              onToggle={isOpen => {
+                this.setState(prevState => ({
+                  ...prevState,
+                  prePublishModalOpen: isOpen
+                }));
+              }}
+            >
+              <p>
+                If your article won't be relevant in some time then it is time
+                based.
+                {`
+                `}If it is time based, enable the switch below:
+              </p>
+              <SwitchToggle
+                toggled={isTimeBased => {
+                  this.setState(prevState => ({ ...prevState, isTimeBased }));
+                }}
+              />
+            </Modal>
           </div>
           <style jsx global>{`
             .alert.alert-danger {
@@ -938,7 +1109,7 @@ class WriteArticle extends Component<Props, State> {
               {/* <base href="http://localhost:8081/" /> */}
             </Head>
             <h2>Not Authorized</h2>
-            <p>You must be authorized in order to access this page</p>
+            <p>You must login in order to access this page</p>
           </div>
           <style jsx>{`
             .NotAuthorized {

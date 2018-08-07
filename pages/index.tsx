@@ -61,6 +61,7 @@ class Index extends Component<Props> {
       articles,
       theme
     } = this.props;
+
     return (
       <App {...this.props}>
         <div className="Home Content">
@@ -246,7 +247,7 @@ class Index extends Component<Props> {
             }
             .Home .Other .Article {
               /* height: 10rem; */
-              margin: 0 1rem 1rem;
+              margin: 0 1rem 1rem 0;
               width: calc(1 / 2 * 100% - (1 / 2 * 1rem));
             }
             .Home .Other .Article:nth-child(2n) {
@@ -306,10 +307,13 @@ class Theme extends Component<ThemeProps> {
         <span>This week's theme</span>
         <div className="bottom">
           <h2>{theme.title}</h2>
-          <Link href={`/articles/tag/${theme.tag}`}>
+          <Link href={`/theme?tag=${theme.tag}`} as={`/theme/${theme.tag}`}>
             <a>Read articles</a>
           </Link>
-          <Link href={`/articles/new/?theme=${theme.tag}`}>
+          <Link
+            href={`/WriteArticle?theme=${theme.tag}`}
+            as={`/articles/new/?theme=${theme.tag}`}
+          >
             <a className="button">Take part</a>
           </Link>
         </div>
