@@ -3,7 +3,7 @@ import Model from "./Model";
 
 const comments = db.ref("comments");
 
-export interface Interface {
+export interface Comment {
   id: string;
   articleID?: string;
   authorID?: string;

@@ -3,7 +3,7 @@ import Model from "./Model";
 
 const quotes = db.ref().child("quotes");
 
-export interface Interface {
+export interface Quote {
   id: string;
   quote: string;
   author: string;
@@ -11,11 +11,11 @@ export interface Interface {
 
 class QuoteModel extends Model {
   async getRandom() {
-    return new Promise<Interface>(async (resolve, reject) => {
+    return new Promise<Quote>(async (resolve, reject) => {
       await this.getAll({
         order: "random"
       })
-        .then((quotes: Interface[]) => {
+        .then((quotes: Quote[]) => {
           resolve(quotes[0]);
         })
         .catch((err: Error) => {
