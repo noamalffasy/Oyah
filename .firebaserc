@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "oyah-200816"
+    "default": "oyah-200816",
+    "dev": "test-7990d"
   }
 }
