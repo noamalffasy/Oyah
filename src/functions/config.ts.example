@@ -1,0 +1,10 @@
+export const cookieSecret = YOUR_COOKIE_SECRET;
+export const algoliaKeys = {
+  ApplicationID: YOUR_APP_ID,
+  APIKey: YOUR_API_KEY
+};
+
+export default {
+  cookieSecret,
+  algoliaKeys
+};
