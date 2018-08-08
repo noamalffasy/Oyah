@@ -3,8 +3,6 @@ import Document from "next/document";
 import { Head, Main, NextScript } from "next/document";
 import flush from "styled-jsx/server";
 
-import "../lib/firebase";
-
 class MyDocument extends Document {
   static getInitialProps({ renderPage }: any) {
     const { html, head, errorHtml, chunks } = renderPage();
@@ -60,6 +58,7 @@ class MyDocument extends Document {
             content="https://storage.googleapis.com/oyah.xyz/assets/favicons/browserconfig.xml"
           />
           <meta name="theme-color" content="#ffffff" />
+          <meta name="keywords" content="Oyah,Melee,News,Gaming" />
         </Head>
         <body>
           <Main />
@@ -69,7 +68,7 @@ class MyDocument extends Document {
           <script src="/js/bootstrap.bundle.min.js" /> */}
           <link
             rel="stylesheet"
-            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css"
           />
         </body>
         <style jsx global>{`
