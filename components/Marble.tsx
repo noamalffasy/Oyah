@@ -82,17 +82,36 @@ class Marble extends Component<Props> {
           }
         `}</style>
         <style jsx global>{`
-          .Home .Marble .articles .Article {
-            width: calc(1 / 3 * 100% - (1 / 3 * 2rem));
-            margin: 0 1rem 1rem 0;
+          .Marble .articles .Article {
+            margin: 0 0 1.5rem;
+            width: 100%;
           }
 
-          .Home .Marble .articles .Article:nth-child(2n) {
-            margin: 0 1rem 1rem 0;
+          @media (min-width: 768px),
+            @media (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Marble .articles .Article {
+              margin: 0 1rem 1rem 0;
+              width: calc(1 / 2 * 100% - (1 / 2 * 1rem));
+            }
+            .Marble .articles .Article:nth-child(2n) {
+              margin: 0 0 1rem;
+            }
           }
 
-          .Home .Marble .articles .Article:nth-child(3n) {
-            margin: 0 0 1rem;
+          @media (min-width: 992px),
+            @media (min-width: 992px) and (-webkit-min-device-pixel-ratio: 1) {
+            .Home .Marble .articles .Article {
+              width: calc(1 / 3 * 100% - (1 / 3 * 2rem));
+              margin: 0 1rem 1rem 0;
+            }
+
+            .Home .Marble .articles .Article:nth-child(2n) {
+              margin: 0 1rem 1rem 0;
+            }
+
+            .Home .Marble .articles .Article:nth-child(3n) {
+              margin: 0 0 1rem;
+            }
           }
         `}</style>
       </div>
