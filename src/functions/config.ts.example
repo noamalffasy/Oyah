@@ -1,3 +1,4 @@
+export const projectId = YOUR_PROJECT_ID;
 export const cookieSecret = YOUR_COOKIE_SECRET;
 export const algoliaKeys = {
   ApplicationID: YOUR_APP_ID,
@@ -5,6 +6,7 @@ export const algoliaKeys = {
 };
 
 export default {
+  projectId,
   cookieSecret,
   algoliaKeys
 };

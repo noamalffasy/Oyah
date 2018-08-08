@@ -5,6 +5,8 @@ import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import * as fetch from "isomorphic-unfetch";
 
+import { projectId } from "./config";
+
 let apolloClient: any = null;
 
 // Polyfill fetch() on the server (used by apollo-client)
@@ -15,8 +17,8 @@ if (!process.browser) {
 function create(initialState: any, { req }: any = {}) {
   const domain =
     process.env.NODE_ENV !== "production"
-      ? "http://localhost:5001/test-7990d/us-central1/api"
-      : "https://us-central1-test-7990d.cloudfunctions.net/api";
+      ? `http://localhost:5001/${projectId}/us-central1/api`
+      : `https://us-central1-${projectId}.cloudfunctions.net/api`;
   const uri = domain + "/";
 
   const authLink = new ApolloLink((operation, forward) => {

@@ -1,8 +1,15 @@
+export const apiKey = YOUR_API_KEY;
+export const authDomain = YOUR_AUTH_DOMAIN;
+export const databaseURL = YOUR_DATABASE_URL;
+export const projectId = YOUR_PROJECT_ID;
+export const storageBucket = YOUR_STORAGE_BUCKET;
+export const messagingSenderId = YOUR_MESSAGING_ID;
+
 export default {
-  apiKey: YOUR_API_KEY,
-  authDomain: YOUR_AUTH_DOMAIN,
-  databaseURL: YOUR_DATABASE_URL,
-  projectId: YOUR_PROJECT_ID,
-  storageBucket: YOUR_STORAGE_BUCKET,
-  messagingSenderId: YOUR_MESSAGING_ID
+  apiKey,
+  authDomain,
+  databaseURL,
+  projectId,
+  storageBucket,
+  messagingSenderId
 };

@@ -1,10 +1,12 @@
 import * as admin from "firebase-admin";
 
+import { projectId } from "../config";
+
 const serviceAccount = require("../serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://oyah-200816.firebaseio.com"
+  databaseURL: `https://${projectId}.firebaseio.com`
 });
 
 const db = admin.database();

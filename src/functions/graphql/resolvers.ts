@@ -23,7 +23,7 @@ const bucket = admin.storage().bucket("oyah.xyz");
 !admin.apps.length
   ? admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      databaseURL: "https://oyah-200816.firebaseapp.com"
+      databaseURL: `https://${config.projectId}.firebaseapp.com`
     })
   : admin.app();
 
