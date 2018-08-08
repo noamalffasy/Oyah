@@ -12,6 +12,7 @@ Visit [oyah.xyz](https://oyah.xyz) to see it.
   - [Configuration](#configuration)
   - [Running Oyah](#running-oyah)
 - [Issues](#issues)
+- [License](#license)
 
 ---
 
@@ -64,3 +65,9 @@ It is without the server so custom routes and cookies won't work.
 ## Issues
 
 If you have any issues or features that you want to add, open an issue [here](https://github.com/noamalffasy/Oyah/issues).
+
+---
+
+## License
+
+Licensed under the [MIT](https://github.com/noamalffasy/Oyah/blob/master/LICENSE) License

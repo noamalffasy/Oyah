@@ -123,5 +123,5 @@
     "webpack-plugin-critical": "^1.0.0"
   },
   "author": "Noam Alffasy",
-  "license": "ISC"
+  "license": "MIT"
 }
