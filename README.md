@@ -18,12 +18,12 @@ Visit [oyah.xyz](https://oyah.xyz) to see it.
 
 ### Prerequests
 
-    1. **Node.js** = 6.14.0
-        You can install it from [Node.js' website](https://nodejs.org)
-    2. **Yarn**
-        You can install it from [Yarn's website](https://yarnpkg.com)
-    2. **Git**
-        You can install it from [Git's website](https://git-scm.com)
+1. **Node.js** = 6.14.0
+    You can install it from [Node.js' website](https://nodejs.org)
+2. **Yarn**
+    You can install it from [Yarn's website](https://yarnpkg.com)
+2. **Git**
+    You can install it from [Git's website](https://git-scm.com)
 
 ### Installation
 
@@ -37,6 +37,7 @@ After installing the prerequests:
 1.  Create a Firebase project [here]().
 2.  Create the config files (`src/functions/config.ts` and `src/app/config.ts`).
     Use the associated example files ending with `.example` to make them in the correct format.
+
     Put in info from your Firebase project or generate your own (for the cookie's secret).
 3.  Download the `serviceAccountKey.json` from Firebase.
     To get it:
@@ -56,6 +57,7 @@ After installing the prerequests:
 ### Running Oyah
 
 After finishing the installation and configuration use `yarn next-dev` and a development version of the site will run.
+
 It is without the server so custom routes and cookies won't work.
 
 ## Issues
