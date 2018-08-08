@@ -10,7 +10,7 @@ import * as userActionCreators from "../actions/user";
 import initApollo from "./initApollo";
 import initRedux from "./initRedux";
 
-// import firebase, { app } from "./firebase";
+// import firebase from "./firebase";
 // import { parse as parseCookie } from "../utils/cookie";
 
 import gql from "graphql-tag";
@@ -20,12 +20,12 @@ const currentUserQuery = gql`
     currentUser {
       user {
         id
+        name
         nametag
         email
         small_image
         image
         bio
-        name
         mains
         reddit
         twitter
