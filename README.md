@@ -14,8 +14,6 @@ Visit [oyah.xyz](https://oyah.xyz) to see it.
 - [Issues](#issues)
 - [License](#license)
 
----
-
 ## Contributing
 
 ### Prerequests
@@ -53,20 +51,16 @@ After installing the prerequests:
 6.  Login to Firebase using `firebase login`.
 7.  Add your Firebase project using `firebase use --add`.
     1.  Choose your project from the list.
-    2.  Call it `default`.
+    2.  Name it `default`.
 
 ### Running Oyah
 
 After finishing the installation and configuration use `yarn next-dev` and a development version of the site will run.
 It is without the server so custom routes and cookies won't work.
 
----
-
 ## Issues
 
 If you have any issues or features that you want to add, open an issue [here](https://github.com/noamalffasy/Oyah/issues).
-
----
 
 ## License
 
