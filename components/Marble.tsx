@@ -29,8 +29,8 @@ class Marble extends Component<Props> {
   getBestArticle(_articles, weeksAgo) {
     const articles = _articles.filter(
       article =>
-        moment(article.createdAt).diff(moment(), "weeks") >= -weeksAgo &&
-        moment(article.createdAt).diff(moment(), "weeks") <= -weeksAgo + 1
+        moment(article.createdAt).diff(moment(), "weeks") >= -weeksAgo - 1 &&
+        moment(article.createdAt).diff(moment(), "weeks") <= -weeksAgo
     );
 
     const bestArticle = articles.sort((a, b) => {
