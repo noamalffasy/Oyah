@@ -10,7 +10,6 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 import { GraphQLID, GraphQLBoolean } from "graphql/type/scalars";
-import { GraphQLUpload } from "apollo-upload-server";
 import { User as UserModel, Comment as CommentModel } from "../db/models";
 
 import resolvers from "./resolvers";

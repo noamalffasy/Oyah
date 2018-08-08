@@ -6,7 +6,6 @@ import {
   graphqlExpress as graphql,
   graphiqlExpress as graphiql
 } from "apollo-server-express";
-import { apolloUploadExpress } from "apollo-upload-server";
 
 import schema from "./graphql/schema";
 

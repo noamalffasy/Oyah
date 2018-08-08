@@ -1,8 +1,8 @@
 import { ApolloClient } from "apollo-client";
 // import { setContext } from "apollo-link-context";
+import { createHttpLink } from "apollo-link-http";
 import { ApolloLink, concat } from "apollo-link";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { createUploadLink } from "apollo-upload-client";
 import * as fetch from "isomorphic-unfetch";
 
 let apolloClient: any = null;
@@ -14,15 +14,13 @@ if (!process.browser) {
 
 function create(initialState: any, { req }: any = {}) {
   const domain =
-    // process.env.NODE_ENV === "production"
-    //   ? "https://www.oyah.xyz"
-    // :
-    // "https://oyah.xyz";
-    "http://localhost:5001/oyah-200816/us-central1/api";
+    process.env.NODE_ENV !== "production"
+      ? "http://localhost:5001/test-7990d/us-central1/api"
+      : "https://us-central1-test-7990d.cloudfunctions.net/api";
   const uri = domain + "/";
 
   const authLink = new ApolloLink((operation, forward) => {
-    if (req !== undefined) {
+    if (req && req.cookies) {
       const token = req.cookies["__session"];
 
       operation.setContext(({ headers }) => ({
@@ -36,7 +34,7 @@ function create(initialState: any, { req }: any = {}) {
     return forward(operation);
   });
 
-  const httpLink = createUploadLink({ uri, credentials: "include", fetch });
+  const httpLink = createHttpLink({ uri, credentials: "include", fetch });
 
   return new ApolloClient({
     connectToDevTools:
