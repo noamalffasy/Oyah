@@ -57,7 +57,6 @@ export default (app: express.Application) => {
   app.post(
     "/",
     bodyParser.json(),
-    apolloUploadExpress(),
     graphql((req, res) => ({
       context: { req, res },
       schema

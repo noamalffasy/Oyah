@@ -4,19 +4,19 @@
   "description": "Oyah's website source code",
   "scripts": {
     "analyze": "cross-env ANALYZE=1 next build",
-    "next-dev": "next",
+    "next-dev": "next src/app",
     "dev": "cd dist/functions && firebase serve",
     "prod-serve": "cd dist/functions && NODE_ENV=production firebase serve --only functions,hosting",
     "deploy": "cd dist/functions && firebase deploy",
     "build": "npm run clean && npm run build-all && npm run copy-deps && npm run install-deps && npm run copy-servicekey",
     "clean": "rimraf \"dist/functions\" && rimraf \"dist/public\"",
-    "build-public": "cpx \"public/**/*.*\" \"dist/public\" -C",
-    "build-app": "NODE_ENV=production next build",
-    "build-funcs": "tsc --project functions/tsconfig.json",
+    "build-public": "cpx \"src/app/public/**/*.*\" \"dist/public\" -C",
+    "build-app": "NODE_ENV=production next build src/app",
+    "build-funcs": "tsc --project src/functions/tsconfig.json",
     "build-all": "npm run build-public && npm run build-funcs && npm run build-app",
     "copy-deps": "del dist/functions/{package.json,yarn.lock} && cpx \"{package.json,yarn.lock}\" \"dist/functions\"",
     "install-deps": "cd \"dist/functions\" && yarn --prod",
-    "copy-servicekey": "cpx \"functions/src/serviceAccountKey.json\" \"dist/functions\""
+    "copy-servicekey": "cpx \"src/functions/serviceAccountKey.json\" \"dist/functions\""
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.0",

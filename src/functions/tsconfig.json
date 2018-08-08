@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["es6"],
     "module": "commonjs",
-    "outDir": "../dist/functions",
+    "outDir": "../../dist/functions",
     "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -16,6 +16,5 @@
     "skipLibCheck": true,
     "noEmitOnError": true,
     "target": "es6"
-  },
-  "include": ["src"]
+  }
 }

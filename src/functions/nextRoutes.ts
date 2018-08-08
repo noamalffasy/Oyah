@@ -19,7 +19,7 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
 
     app.use(rememberSession);
 
-    app.use(express.static(path.join(__dirname, "../public")));
+    app.use(express.static(path.join(__dirname, "../app/public")));
 
     app.use(compression());
 

@@ -15,7 +15,7 @@ module.exports = withCSS(
       localIdentName: "[local]___[hash:base64:5]"
     },
     useFileSystemPublicRoutes: dev,
-    distDir: dev ? ".next" : "./dist/functions/next",
+    distDir: dev ? ".next" : "../../dist/functions/next",
     webpack: (config, {
       dev
     }) => {
@@ -24,7 +24,7 @@ module.exports = withCSS(
       config.entry = () =>
         prevEntry().then(entry => {
           if (entry["main.js"]) {
-            entry["main.js"].push(path.resolve(dev ? "./utils/offline" : "./utils/offline"));
+            entry["main.js"].push(path.resolve(dev ? "./src/app/utils/offline" : "./src/app/utils/offline"));
           }
           return entry;
         });
@@ -32,7 +32,7 @@ module.exports = withCSS(
         config.plugins.push(
           new SWPrecacheWebpackPlugin({
             cacheId: "oyah",
-            filepath: path.resolve(dev ? "./public/sw.js" : "./public/sw.js"),
+            filepath: path.resolve(dev ? "./src/app/public/sw.js" : "./src/app/public/sw.js"),
             minify: true,
             staticFileGlobsIgnorePatterns: [/next\//, /bundles/],
             runtimeCaching: [{

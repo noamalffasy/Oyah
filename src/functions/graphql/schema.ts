@@ -16,8 +16,6 @@ import resolvers from "./resolvers";
 
 // ----------------------
 
-const Upload = GraphQLUpload;
-
 const User = new GraphQLObjectType({
   name: "User",
   description: "User object",
@@ -607,7 +605,7 @@ const Mutation = new GraphQLObjectType({
         type: UploadFilePayload,
         args: {
           file: {
-            type: Upload
+            type: GraphQLString
           },
           where: {
             type: GraphQLString
@@ -634,13 +632,5 @@ const Mutation = new GraphQLObjectType({
 export default new GraphQLSchema({
   query: Query,
   mutation: Mutation,
-  types: [
-    User,
-    Article,
-    comment,
-    SigninPayload,
-    UploadFilePayload,
-    Status,
-    Upload
-  ]
+  types: [User, Article, comment, SigninPayload, UploadFilePayload, Status]
 });
