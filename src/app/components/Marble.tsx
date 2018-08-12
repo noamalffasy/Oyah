@@ -20,7 +20,10 @@ class Marble extends Component<Props> {
     );
 
     for (let i = 1; i <= time; i++) {
-      bestArticles.push(this.getBestArticle(articles, i));
+      const article = this.getBestArticle(articles, i);
+      if (article) {
+        bestArticles.push(article);
+      }
     }
 
     return bestArticles;
