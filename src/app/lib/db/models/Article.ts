@@ -60,15 +60,19 @@ class ArticleModel extends Model {
       await Model.prototype.get
         .call(this, identifier)
         .then(async (article: Article) => {
-          await UserModel.get({ id: article.authorID })
-            .then((author: UserInterface) => {
-              resolve({
-                ...article,
-                createdAt: new Date(article.createdAt).toISOString(),
-                author
-              });
-            })
-            .catch(err => reject(err));
+          if (article.exists === true) {
+            await UserModel.get({ id: article.authorID })
+              .then((author: UserInterface) => {
+                resolve({
+                  ...article,
+                  createdAt: new Date(article.createdAt).toISOString(),
+                  author
+                });
+              })
+              .catch(err => reject(err));
+          } else {
+            resolve(null);
+          }
         })
         .catch(err => reject(err));
     });

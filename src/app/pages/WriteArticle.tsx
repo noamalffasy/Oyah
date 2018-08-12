@@ -124,7 +124,14 @@ interface State {
       $theme: String
       $isTimeBased: Boolean!
     ) {
-      updateArticle(id: $id, title: $title, path: $path, content: $content, theme: $theme, isTimeBased: $isTimeBased) {
+      updateArticle(
+        id: $id
+        title: $title
+        path: $path
+        content: $content
+        theme: $theme
+        isTimeBased: $isTimeBased
+      ) {
         id
         title
         content
@@ -163,7 +170,7 @@ class WriteArticle extends Component<Props, State> {
   ActionButtons: ActionButtons;
 
   static async getInitialProps(
-    { query: { id: _id, theme } }: any,
+    { res, query: { id: _id, theme } }: any,
     _,
     user: any
   ) {
@@ -172,16 +179,29 @@ class WriteArticle extends Component<Props, State> {
         ? _id.replace("_small.jpeg", "")
         : _id
       : null;
+
     if (!id) {
-      return {
-        newArticle: { id, theme }
-      };
+      const id = uuid();
+
+      if (res) {
+        res.writeHead(302, {
+          Location: `/articles/new/${id}/${
+            Router.query.theme ? `?theme=${Router.query.theme}` : ""
+          }`
+        });
+        res.end();
+      } else {
+        Router.push(
+          { pathname: "/WriteArticle", query: { ...Router.query, id } },
+          { pathname: `/articles/new/${id}/`, query: Router.query }
+        );
+      }
     }
 
-    if (user !== undefined) {
+    if (user && Object.keys(user).length > 0) {
       return await ArticleModel.get({ id })
         .then(article => {
-          if (article.id) {
+          if (article !== null && article.id) {
             if (user.id === article.author.id && article.content) {
               return {
                 newArticle: {
@@ -253,15 +273,6 @@ class WriteArticle extends Component<Props, State> {
 
   componentDidMount() {
     const id = Router.query.id;
-
-    if (!id) {
-      const id = uuid();
-
-      this.props.router.push(
-        { pathname: "/WriteArticle", query: { ...Router.query, id } },
-        { pathname: `/articles/new/${id}/`, query: Router.query }
-      );
-    }
 
     if (
       this.props.newArticle !== undefined &&
@@ -948,7 +959,8 @@ class WriteArticle extends Component<Props, State> {
                 If your article won't be relevant in some time then it is time
                 based.
                 {`
-                `}If it is time based, enable the switch below:
+                `}
+                If it is time based, enable the switch below:
               </p>
               <SwitchToggle
                 toggled={isTimeBased => {
