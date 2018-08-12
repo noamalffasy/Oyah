@@ -19,6 +19,7 @@
     "copy-servicekey": "cpx \"src/functions/serviceAccountKey.json\" \"dist/functions\""
   },
   "dependencies": {
+    "@babel/runtime": "7.0.0-beta.42",
     "@fortawesome/fontawesome-svg-core": "^1.2.0",
     "@fortawesome/free-brands-svg-icons": "^5.1.0",
     "@fortawesome/free-regular-svg-icons": "^5.1.0",

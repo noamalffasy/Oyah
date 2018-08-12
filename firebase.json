@@ -3,7 +3,7 @@
     "source": "dist/functions"
   },
   "hosting": {
-    "public": "public",
+    "public": "dist/public",
     "rewrites": [
       {
         "source": "**/**",
