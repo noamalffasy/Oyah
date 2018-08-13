@@ -12,7 +12,6 @@ import * as uuid from "uuid/v4";
 import Router from "next/router";
 import Head from "next/head";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlaceholder from "react-placeholder";
@@ -42,10 +41,8 @@ import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 
-// import { ArticleModel, CommentModel, UserModel } from "../lib/db/models";
-const { ArticleModel, CommentModel } = dynamic(import("../lib/db/models"), {
-  ssr: false
-});
+import { ArticleModel, CommentModel } from "../lib/db/models";
+import { Article } from "../lib/db/models/Article";
 
 class AuthorImagePlaceholder extends Component {
   render() {
@@ -144,17 +141,6 @@ interface User {
   twitter?: string;
   editor?: boolean;
   is_team?: boolean;
-}
-
-interface Article {
-  id: string;
-  path: string;
-  dominantColor: string;
-  title: string;
-  content: string;
-  comments: object[];
-  likes: object;
-  createdAt: Date;
 }
 
 interface Props extends React.Props<ArticlePage> {
@@ -1100,7 +1086,7 @@ class Bottombar extends Component<BottombarProps, BottombarState> {
           );
           break;
         default:
-          await ArticleModel.get({ id }).then(async (article: Article) => {
+          await ArticleModel.get({ id }).then(async article => {
             if (article.likes) {
               const {
                 [this.props.user.id]: value,
