@@ -3,12 +3,16 @@ import Model from "./Model";
 
 const comments = db.ref("comments");
 
+interface Likes {
+  [name: string]: boolean
+}
+
 export interface Comment {
   id: string;
   articleID?: string;
   authorID?: string;
   message?: string;
-  likes?: number;
+  likes?: Likes;
   createdAt?: Date;
 }
 

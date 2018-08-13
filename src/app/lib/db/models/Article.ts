@@ -6,6 +6,10 @@ import { User as UserInterface } from "./User";
 
 const articles = db.ref("articles");
 
+interface Likes {
+  [name: string]: boolean
+}
+
 export interface Article {
   id: string;
   title?: string;
@@ -13,7 +17,7 @@ export interface Article {
   content?: string;
   authorID?: string;
   author: UserInterface;
-  likes?: number;
+  likes?: Likes;
   dominantColor: string;
   createdAt?: string;
   isTimeBased?: boolean;
