@@ -32,6 +32,7 @@ import gql from "graphql-tag";
 
 import withData from "../lib/withData";
 import { ArticleModel } from "../lib/db/models";
+import { User as UserInterface } from "lib/db/models/User";
 
 interface Props {
   uploadFile?: any;
@@ -40,7 +41,7 @@ interface Props {
   newArticle: any;
   notAuthorized?: any;
   router: SingletonRouter;
-  user: any;
+  user: UserInterface;
   signInModal: any;
   error: any;
   dispatch: any;
@@ -172,7 +173,7 @@ class WriteArticle extends Component<Props, State> {
   static async getInitialProps(
     { res, query: { id: _id, theme } }: any,
     _,
-    user: any
+    user: UserInterface
   ) {
     const id = _id
       ? _id.indexOf("_small.jpeg") > -1

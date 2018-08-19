@@ -18,4 +18,15 @@ export interface User {
   is_team?: boolean;
 }
 
-export default new Model(users);
+class UserModel extends Model {
+  get(identifier: object) {
+    return new Promise<User>(async (resolve, reject) => {
+      await Model.prototype.get
+        .call(this, identifier)
+        .then(async (user: User) => resolve(user))
+        .catch(err => reject(err));
+    });
+  }
+}
+
+export default new UserModel(users);

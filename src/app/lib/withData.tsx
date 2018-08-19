@@ -3,6 +3,8 @@ import * as PropTypes from "prop-types";
 import { ApolloProvider, getDataFromTree } from "react-apollo";
 import { Provider as ReduxProvider } from "react-redux";
 import { bindActionCreators } from "redux";
+import jwtDecode from "jwt-decode";
+
 import Head from "next/head";
 
 import * as userActionCreators from "../actions/user";
@@ -10,31 +12,27 @@ import * as userActionCreators from "../actions/user";
 import initApollo from "./initApollo";
 import initRedux from "./initRedux";
 
-// import firebase from "./firebase";
-// import { parse as parseCookie } from "../utils/cookie";
+import { UserModel } from "./db/models";
+import { User as UserInterface } from "./db/models/User";
 
-import gql from "graphql-tag";
+async function getUser(req) {
+  return new Promise<UserInterface>(async (resolve, reject) => {
+    const token = req && req.cookies ? req.cookies["__session"] : null;
+    
+    if (token) {
+      const decodedClaims: { user_id?: string } = jwtDecode(token);
 
-const currentUserQuery = gql`
-  {
-    currentUser {
-      user {
-        id
-        name
-        nametag
-        email
-        small_image
-        image
-        bio
-        mains
-        reddit
-        twitter
-        editor
-        is_team
-      }
+      const user = await UserModel.get({ id: decodedClaims.user_id })
+        .then(user => (user ? user : null))
+        .catch(err => {
+          reject(err);
+        });
+      resolve(user);
+    } else {
+      resolve(null);
     }
-  }
-`;
+  });
+}
 
 // Gets the display name of a JSX component for dev tools
 function getComponentDisplayName(Component: any) {
@@ -64,27 +62,28 @@ export default (ComposedComponent: any) => {
       // rendering (on server)
       const apollo = initApollo(stateRedux, ctx);
       const redux = initRedux(stateRedux);
-      
-      const currentUser = await apollo
-        .query({
-          query: currentUserQuery
-        })
-        .then(res => res.data.currentUser)
-        .catch(() => null);
+
+      // const currentUser = await apollo
+      //   .query({
+      //     query: currentUserQuery
+      //   })
+      //   .then(res => res.data.currentUser)
+      //   .catch(() => null);
       // : null;
 
-      const user =
-        currentUser && currentUser.user
-          ? {
-              ...currentUser.user,
-              mains:
-                typeof currentUser.user.mains === "string"
-                  ? currentUser.user.mains.split(", ")
-                  : typeof currentUser.user.mains === "object"
-                    ? currentUser.user.mains
-                    : null
-            }
-          : null;
+      const currentUser = await getUser(ctx.req);
+
+      const user = currentUser
+        ? {
+            ...currentUser,
+            mains:
+              typeof currentUser.mains === "string"
+                ? currentUser.mains.split(", ")
+                : typeof currentUser.mains === "object"
+                  ? currentUser.mains
+                  : null
+          }
+        : null;
 
       // apollo.writeQuery({ query: currentUserQuery, data: { currentUser } });
 
@@ -135,6 +134,7 @@ export default (ComposedComponent: any) => {
       };
 
       return {
+        user,
         stateApollo,
         stateRedux,
         ...composedInitialProps
@@ -163,29 +163,15 @@ export default (ComposedComponent: any) => {
           });
         }
       } else if (props.stateRedux.user === undefined) {
-        // const user = app.auth().currentUser;
-        // if (user) {
-        this.apollo
-          .query({
-            query: currentUserQuery
-          })
-          .then(res => {
-            if (res.data.currentUser.user) {
-              login({
-                ...res.data.currentUser.user,
-                mains:
-                  typeof res.data.currentUser.user.mains === "string"
-                    ? res.data.currentUser.user.mains.split(", ")
-                    : typeof res.data.currentUser.user.mains === "object"
-                      ? res.data.currentUser.user.mains
-                      : null
-              });
-            }
-          })
-          .catch(() => null);
-        // }
+        const { user } = props;
+        if (user) {
+          login(user);
+        }
       }
     }
+
+    apollo;
+    redux;
 
     render() {
       return (
