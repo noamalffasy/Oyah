@@ -1,13 +1,14 @@
 import { db } from "../../firebase";
 import Model from "./Model";
 
-import { UserModel } from "./index";
+import { UserModel, CommentModel } from "./index";
 import { User as UserInterface } from "./User";
+import { Comment as CommentInterface } from "./Comment";
 
 const articles = db.ref("articles");
 
 interface Likes {
-  [name: string]: boolean
+  [name: string]: boolean;
 }
 
 export interface Article {
@@ -18,6 +19,7 @@ export interface Article {
   authorID?: string;
   author: UserInterface;
   likes?: Likes;
+  comments?: CommentInterface[];
   dominantColor: string;
   createdAt?: string;
   isTimeBased?: boolean;
@@ -66,12 +68,17 @@ class ArticleModel extends Model {
         .then(async (article: Article) => {
           if (article.exists === true) {
             await UserModel.get({ id: article.authorID })
-              .then((author: UserInterface) => {
-                resolve({
-                  ...article,
-                  createdAt: new Date(article.createdAt).toISOString(),
-                  author
-                });
+              .then(async (author: UserInterface) => {
+                await CommentModel.getAll({ articleId: article.id })
+                  .then((comments: CommentInterface[]) => {
+                    resolve({
+                      ...article,
+                      createdAt: new Date(article.createdAt).toISOString(),
+                      comments,
+                      author
+                    });
+                  })
+                  .catch(err => reject(err));
               })
               .catch(err => reject(err));
           } else {

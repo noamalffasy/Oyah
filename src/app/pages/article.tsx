@@ -35,14 +35,11 @@ import { More as MoreSvg } from "../components/svgs";
 
 import Error from "./_error";
 
-// GraphQL
-import graphql from "../utils/graphql";
-import gql from "graphql-tag";
-
 import withData from "../lib/withData";
 
 import { ArticleModel, CommentModel } from "../lib/db/models";
 import { Article } from "../lib/db/models/Article";
+import { Comment as CommentInterface } from "../lib/db/models/Comment";
 
 class AuthorImagePlaceholder extends Component {
   render() {
@@ -149,7 +146,6 @@ interface Props extends React.Props<ArticlePage> {
   author: User;
   article: Article;
   profile?: User;
-  deleteArticle?: any;
   signInModal: any;
   error: any;
   dispatch: any;
@@ -164,18 +160,6 @@ interface State {
   notFound?: boolean;
 }
 
-@graphql(
-  gql`
-    mutation deleteArticle($id: String!, $authInfo: AuthInfo) {
-      deleteArticle(id: $id, authInfo: $authInfo) {
-        status
-      }
-    }
-  `,
-  {
-    name: "deleteArticle"
-  }
-)
 class ArticlePage extends Component<Props, State> {
   state = {
     datePublished: undefined,
@@ -191,60 +175,12 @@ class ArticlePage extends Component<Props, State> {
   firstContainer: HTMLDivElement = null;
   deletePopup: DeletePopup = null;
 
-  static async getInitialProps(
-    { query: { id } }: any,
-    apolloClient: any,
-    user
-  ) {
-    return await apolloClient
-      .mutate({
-        mutation: gql`
-          mutation getArticle($id: String!) {
-            getArticle(id: $id) {
-              id
-              path
-              title
-              content
-              author {
-                id
-                nametag
-                small_image
-                image
-                is_team
-              }
-              likes
-              comments {
-                id
-                author {
-                  id
-                  nametag
-                  small_image
-                  image
-                  is_team
-                }
-                message
-                likes
-                createdAt
-              }
-              createdAt
-            }
-          }
-        `,
-        variables: {
-          id:
-            id.indexOf("_small.jpeg") > -1 ? id.replace("_small.jpeg", "") : id
-        }
-      })
-      .then(async (getArticle: any) => {
-        if (getArticle.error) {
-          if (
-            getArticle.error[0].message === "Cannot read property 'get' of null"
-          ) {
-            return {
-              error: getArticle.error
-            };
-          }
-        } else if (getArticle.data.getArticle.id === null) {
+  static async getInitialProps({ query: { id } }: any, _: any, user) {
+    return await ArticleModel.get({
+      id: id.indexOf("_small.jpeg") > -1 ? id.replace("_small.jpeg", "") : id
+    })
+      .then(async article => {
+        if (!article.id) {
           return {
             error: "Not found"
           };
@@ -252,44 +188,14 @@ class ArticlePage extends Component<Props, State> {
 
         if (user) {
           return {
+            article,
             profile: user,
-            article: {
-              ...getArticle.data.getArticle,
-              likes: JSON.parse(getArticle.data.getArticle.likes),
-              comments: Object.keys(getArticle.data.getArticle.comments).map(
-                (_, i) => {
-                  const comment = getArticle.data.getArticle.comments[i];
-                  return {
-                    ...comment,
-                    likes: JSON.parse(comment.likes)
-                  };
-                }
-              )
-            },
-            author: {
-              ...getArticle.data.getArticle.author,
-              image: getArticle.data.getArticle.author.image
-            }
+            author: article.author
           };
         } else {
           return {
-            article: {
-              ...getArticle.data.getArticle,
-              likes: JSON.parse(getArticle.data.getArticle.likes),
-              comments: Object.keys(getArticle.data.getArticle.comments).map(
-                (_, i) => {
-                  const comment = getArticle.data.getArticle.comments[i];
-                  return {
-                    ...comment,
-                    likes: JSON.parse(comment.likes)
-                  };
-                }
-              )
-            },
-            author: {
-              ...getArticle.data.getArticle.author,
-              image: getArticle.data.getArticle.author.image
-            }
+            article,
+            author: article.author
           };
         }
       })
@@ -477,27 +383,21 @@ class ArticlePage extends Component<Props, State> {
   };
 
   deleteArticle = actionButtons => {
-    this.props
-      .deleteArticle({
-        variables: {
-          id: this.props.article.id,
-          authInfo: {
-            idToken: this.props.user.idToken
-          }
-        }
-      })
-      .then((res: any) => {
-        actionButtons.reset();
+    if (this.props.user.id === this.props.author.id) {
+      ArticleModel.destroy({ id: this.props.article.id })
+        .then((res: any) => {
+          actionButtons.reset();
 
-        if (res.error) {
-          console.error(res.error.message);
-        } else {
-          Router.push("/");
-        }
-      })
-      .catch((err: Error) => {
-        console.error(err);
-      });
+          if (res.error) {
+            console.error(res.error.message);
+          } else {
+            Router.push("/");
+          }
+        })
+        .catch((err: Error) => {
+          console.error(err);
+        });
+    }
   };
 
   deleteComment = (id: string) => {
@@ -940,8 +840,6 @@ interface BottombarProps {
   contentLoaded: any;
   openSignInModal: any;
   setError: any;
-  likeArticle?: any;
-  likeComment?: any;
 }
 
 interface BottombarState {
@@ -951,44 +849,6 @@ interface BottombarState {
   showPopup: boolean;
 }
 
-@graphql(
-  gql`
-    mutation likeArticle(
-      $articleID: String!
-      $liked: Boolean!
-      $authInfo: AuthInfo
-    ) {
-      likeArticle(articleID: $articleID, liked: $liked, authInfo: $authInfo) {
-        likes
-      }
-    }
-  `,
-  {
-    name: "likeArticle"
-  }
-)
-@graphql(
-  gql`
-    mutation likeComment(
-      $id: String!
-      $articleID: String!
-      $liked: Boolean!
-      $authInfo: AuthInfo
-    ) {
-      likeComment(
-        id: $id
-        articleID: $articleID
-        liked: $liked
-        authInfo: $authInfo
-      ) {
-        likes
-      }
-    }
-  `,
-  {
-    name: "likeComment"
-  }
-)
 class Bottombar extends Component<BottombarProps, BottombarState> {
   constructor(props: any) {
     super(props);
@@ -1301,8 +1161,6 @@ interface ResponsesProps {
   openDeletePopup: any;
   setError: any;
   getUser?: any;
-  sendComment?: any;
-  updateComment?: any;
 }
 
 interface ResponsesState {
@@ -1311,68 +1169,6 @@ interface ResponsesState {
   edit: boolean;
 }
 
-@graphql(
-  gql`
-    mutation sendComment(
-      $id: String!
-      $articleID: String!
-      $message: String!
-      $authInfo: AuthInfo
-    ) {
-      sendComment(
-        id: $id
-        articleID: $articleID
-        message: $message
-        authInfo: $authInfo
-      ) {
-        id
-        articleID
-        author {
-          id
-          nametag
-          image
-        }
-        message
-        likes
-        createdAt
-      }
-    }
-  `,
-  {
-    name: "sendComment"
-  }
-)
-@graphql(
-  gql`
-    mutation updateComment(
-      $id: String!
-      $articleID: String!
-      $message: String!
-      $authInfo: AuthInfo
-    ) {
-      updateComment(
-        id: $id
-        articleID: $articleID
-        message: $message
-        authInfo: $authInfo
-      ) {
-        id
-        articleID
-        author {
-          id
-          nametag
-          image
-        }
-        message
-        likes
-        createdAt
-      }
-    }
-  `,
-  {
-    name: "updateComment"
-  }
-)
 class Responses extends Component<ResponsesProps, ResponsesState> {
   state = { comments: [], menuOpen: false, edit: false };
 
@@ -1438,43 +1234,33 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
     ) {
       triggerLoading();
 
-      this.props
-        .sendComment({
-          variables: {
-            id: uuid(),
-            articleID: this.props.articleID,
-            message: (this.input.input as HTMLTextAreaElement).value.trim(),
-            authInfo: {
-              idToken: this.props.user.idToken
-            }
-          }
-        })
-        .then((res: any) => {
+      CommentModel.create({
+        id: uuid(),
+        articleID: this.props.articleID,
+        message: (this.input.input as HTMLTextAreaElement).value.trim()
+      })
+        .then(comment => {
           this.inputActionButtons.reset();
 
-          if (res.error) {
-            console.error(res.error.message);
-          } else {
-            this.input.reset();
+          this.input.reset();
 
-            this.setState(prevState => ({
-              ...prevState,
-              comments: [
-                {
-                  ...res.data.sendComment,
-                  author: {
-                    ...this.props.user,
-                    image:
-                      this.props.user.image !== null &&
-                      this.props.user.image !== undefined
-                        ? this.props.user.image
-                        : "User.png"
-                  }
-                },
-                ...this.state.comments
-              ]
-            }));
-          }
+          this.setState(prevState => ({
+            ...prevState,
+            comments: [
+              {
+                ...comment,
+                author: {
+                  ...this.props.user,
+                  image:
+                    this.props.user.image !== null &&
+                    this.props.user.image !== undefined
+                      ? this.props.user.image
+                      : "User.png"
+                }
+              },
+              ...this.state.comments
+            ]
+          }));
         })
         .catch((err: Error) => {
           console.error(err);
@@ -1489,28 +1275,20 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
     ) {
       triggerLoading();
 
-      this.props
-        .updateComment({
-          variables: {
-            id,
-            articleID: this.props.articleID,
-            message: this["edit_" + id].input.value.trim(),
-            authInfo: {
-              idToken: this.props.user.idToken
-            }
-          }
+      if (this.props.user.id === this.state.comments[id].author.id) {
+        CommentModel.update({
+          id,
+          articleID: this.props.articleID,
+          message: this["edit_" + id].input.value.trim()
         })
-        .then(res => {
-          this["edit_" + id + "ActionButtons"].reset();
+          .then(_comment => {
+            this["edit_" + id + "ActionButtons"].reset();
 
-          if (res.error) {
-            console.error(res.error.message);
-          } else {
             this.setState(prevState => {
               let state: any = prevState;
-              state.comments = this.state.comments.map((comment: any) => {
+              state.comments = this.state.comments.map(comment => {
                 if (comment.id === id) {
-                  return { ...comment, ...res.data.updateComment };
+                  return { ...comment, ..._comment };
                 }
                 return comment;
               });
@@ -1518,11 +1296,11 @@ class Responses extends Component<ResponsesProps, ResponsesState> {
 
               return state;
             });
-          }
-        })
-        .catch(err => {
-          console.error(err);
-        });
+          })
+          .catch(err => {
+            console.error(err);
+          });
+      }
     }
   }
 
@@ -2072,7 +1850,6 @@ interface DeletePopupProps {
   isOpen: any;
   deleteArticle: any;
   deleteCommentFromDOM: any;
-  deleteComment?: any;
 }
 
 interface DeletePopupState {
@@ -2081,22 +1858,6 @@ interface DeletePopupState {
   popup: boolean;
 }
 
-@graphql(
-  gql`
-    mutation deleteComment(
-      $id: String
-      $articleID: String
-      $authInfo: AuthInfo
-    ) {
-      deleteComment(id: $id, articleID: $articleID, authInfo: $authInfo) {
-        status
-      }
-    }
-  `,
-  {
-    name: "deleteComment"
-  }
-)
 class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
   state = { popup: false, what: "article", id: null };
 
@@ -2130,23 +1891,26 @@ class DeletePopup extends Component<DeletePopupProps, DeletePopupState> {
         this.props.deleteArticle(this.ActionButtons);
         break;
       case "comment":
-        this.props
-          .deleteComment({
-            variables: {
-              id: this.state.id,
-              articleID: this.props.id,
-              authInfo: {
-                idToken: this.props.user.idToken
-              }
+        CommentModel.get({ id: this.state.id })
+          .then((comment: CommentInterface) => {
+            if (this.props.user.id === comment.author.id) {
+              CommentModel.destroy({
+                id: this.state.id,
+                articleID: this.props.id
+              })
+                .then(() => {
+                  this.ActionButtons.reset();
+                  this.props.deleteCommentFromDOM(this.state.id);
+                })
+                .catch((err: any) => {
+                  console.error(err);
+                });
             }
           })
-          .then(() => {
-            this.ActionButtons.reset();
-            this.props.deleteCommentFromDOM(this.state.id);
-          })
-          .catch((err: any) => {
+          .catch(err => {
             console.error(err);
           });
+
         break;
     }
   };
