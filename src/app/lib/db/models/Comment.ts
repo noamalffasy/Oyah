@@ -11,8 +11,9 @@ interface Likes {
 }
 
 export interface Comment {
-  id: string;
+  id?: string;
   articleID?: string;
+  author: UserInterface;
   authorID?: string;
   message?: string;
   likes?: Likes;
