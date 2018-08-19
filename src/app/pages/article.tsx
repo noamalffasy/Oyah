@@ -191,60 +191,12 @@ class ArticlePage extends Component<Props, State> {
   firstContainer: HTMLDivElement = null;
   deletePopup: DeletePopup = null;
 
-  static async getInitialProps(
-    { query: { id } }: any,
-    apolloClient: any,
-    user
-  ) {
-    return await apolloClient
-      .mutate({
-        mutation: gql`
-          mutation getArticle($id: String!) {
-            getArticle(id: $id) {
-              id
-              path
-              title
-              content
-              author {
-                id
-                nametag
-                small_image
-                image
-                is_team
-              }
-              likes
-              comments {
-                id
-                author {
-                  id
-                  nametag
-                  small_image
-                  image
-                  is_team
-                }
-                message
-                likes
-                createdAt
-              }
-              createdAt
-            }
-          }
-        `,
-        variables: {
-          id:
-            id.indexOf("_small.jpeg") > -1 ? id.replace("_small.jpeg", "") : id
-        }
-      })
-      .then(async (getArticle: any) => {
-        if (getArticle.error) {
-          if (
-            getArticle.error[0].message === "Cannot read property 'get' of null"
-          ) {
-            return {
-              error: getArticle.error
-            };
-          }
-        } else if (getArticle.data.getArticle.id === null) {
+  static async getInitialProps({ query: { id } }: any, _: any, user) {
+    return await ArticleModel.get({
+      id: id.indexOf("_small.jpeg") > -1 ? id.replace("_small.jpeg", "") : id
+    })
+      .then(async article => {
+        if (!article.id) {
           return {
             error: "Not found"
           };
@@ -252,44 +204,14 @@ class ArticlePage extends Component<Props, State> {
 
         if (user) {
           return {
+            article,
             profile: user,
-            article: {
-              ...getArticle.data.getArticle,
-              likes: JSON.parse(getArticle.data.getArticle.likes),
-              comments: Object.keys(getArticle.data.getArticle.comments).map(
-                (_, i) => {
-                  const comment = getArticle.data.getArticle.comments[i];
-                  return {
-                    ...comment,
-                    likes: JSON.parse(comment.likes)
-                  };
-                }
-              )
-            },
-            author: {
-              ...getArticle.data.getArticle.author,
-              image: getArticle.data.getArticle.author.image
-            }
+            author: article.author
           };
         } else {
           return {
-            article: {
-              ...getArticle.data.getArticle,
-              likes: JSON.parse(getArticle.data.getArticle.likes),
-              comments: Object.keys(getArticle.data.getArticle.comments).map(
-                (_, i) => {
-                  const comment = getArticle.data.getArticle.comments[i];
-                  return {
-                    ...comment,
-                    likes: JSON.parse(comment.likes)
-                  };
-                }
-              )
-            },
-            author: {
-              ...getArticle.data.getArticle.author,
-              image: getArticle.data.getArticle.author.image
-            }
+            article,
+            author: article.author
           };
         }
       })
