@@ -1,6 +1,7 @@
 import * as express from "express";
 import * as next from "next";
 import * as path from "path";
+import * as bodyParser from "body-parser";
 import * as compression from "compression";
 import * as cookieParser from "cookie-parser";
 import * as uuid from "uuid/v4";
@@ -22,6 +23,9 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
 
   nextApp.prepare().then(() => {
     // app.set("trust proxy", 1);
+
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
     app.use(cookieParser());
 
@@ -82,12 +86,12 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
       return nextApp.render(req, res, "/Search", req.query);
     });
 
-    app.post("/login", (req, res) => {
+    app.post("/login", async (req, res) => {
       const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
 
-      admin
+      await admin
         .auth()
-        .createSessionCookie(req.body, { expiresIn })
+        .createSessionCookie(req.body.idToken, { expiresIn })
         .then(cookie => {
           const options: express.CookieOptions = {
             maxAge: expiresIn,
@@ -95,7 +99,7 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
             // secure: false
             secure: true
           };
-          
+
           res.cookie("__session", cookie, options);
         })
         .catch(err => {

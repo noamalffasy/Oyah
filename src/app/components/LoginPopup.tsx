@@ -101,12 +101,15 @@ class LoginPopup extends Component<Props, State> {
 
                 await fetch(
                   `${
-                    window.location.hostname !== "localhost"
-                      ? "https://oyah.xyz"
-                      : `http://${window.location.host}`
+                  window.location.hostname !== "localhost"
+                    ? "https://oyah.xyz"
+                    : `http://${window.location.host}`
                   }/login`,
                   {
-                    body: idToken,
+                    body: JSON.stringify({ idToken }),
+                    headers: {
+                      "Content-Type": "application/json"
+                    },
                     credentials: "include",
                     method: "POST"
                   }
@@ -150,12 +153,15 @@ class LoginPopup extends Component<Props, State> {
 
                 await fetch(
                   `${
-                    window.location.hostname !== "localhost"
-                      ? "https://oyah.xyz"
-                      : `http://${window.location.host}`
+                  window.location.hostname !== "localhost"
+                    ? "https://oyah.xyz"
+                    : `http://${window.location.host}`
                   }/login`,
                   {
-                    body: idToken,
+                    body: JSON.stringify({ idToken }),
+                    headers: {
+                      "Content-Type": "application/json"
+                    },
                     credentials: "include",
                     method: "POST"
                   }
@@ -202,7 +208,7 @@ class LoginPopup extends Component<Props, State> {
       (typeof this.state.error !== "boolean" &&
         typeof prevState.error !== "boolean" &&
         this.state.error.split("\n• ").length !==
-          prevState.error.split("\n• ").length) ||
+        prevState.error.split("\n• ").length) ||
       typeof this.state.error !== typeof prevState.error
     ) {
       const defaultMinHeight = 0;
@@ -287,10 +293,10 @@ class LoginPopup extends Component<Props, State> {
               style={
                 !this.state.error
                   ? {
-                      maxHeight: 0,
-                      padding: 0,
-                      margin: 0
-                    }
+                    maxHeight: 0,
+                    padding: 0,
+                    margin: 0
+                  }
                   : { maxHeight: "9999rem" }
               }
               ref={div => (this.error = div)}
@@ -331,12 +337,12 @@ class LoginPopup extends Component<Props, State> {
               style={
                 !this.state.login || this.state.reset
                   ? {
-                      opacity: 0,
-                      display: "none"
-                    }
+                    opacity: 0,
+                    display: "none"
+                  }
                   : {
-                      marginTop: this.state.errorHeight
-                    }
+                    marginTop: this.state.errorHeight
+                  }
               }
               ref={div => (this.signin = div)}
             />
@@ -347,12 +353,12 @@ class LoginPopup extends Component<Props, State> {
               style={
                 this.state.login || this.state.reset
                   ? {
-                      opacity: 0,
-                      display: "none"
-                    }
+                    opacity: 0,
+                    display: "none"
+                  }
                   : {
-                      marginTop: this.state.errorHeight
-                    }
+                    marginTop: this.state.errorHeight
+                  }
               }
               ref={div => (this.createAccount = div)}
             />
@@ -386,20 +392,20 @@ class LoginPopup extends Component<Props, State> {
                   </a>
                 </p>
               ) : (
-                <p>
-                  Already have an account?{" "}
-                  <a
-                    onClick={() =>
-                      this.setState(prevState => ({
-                        ...prevState,
-                        login: true
-                      }))
-                    }
-                  >
-                    Sign in
+                  <p>
+                    Already have an account?{" "}
+                    <a
+                      onClick={() =>
+                        this.setState(prevState => ({
+                          ...prevState,
+                          login: true
+                        }))
+                      }
+                    >
+                      Sign in
                   </a>
-                </p>
-              )}
+                  </p>
+                )}
               <p className="small-notice">
                 By {this.state.login ? "signing in" : "signing up"} you agree to
                 the following{" "}
@@ -519,7 +525,7 @@ class Login extends Component<LoginProps, LoginState> {
     loggingWith: null
   };
 
-  unregisterAuthObserver = () => {};
+  unregisterAuthObserver = () => { };
 
   GoogleProvider = new firebase.auth.GoogleAuthProvider();
   TwitterProvider = new firebase.auth.TwitterAuthProvider();
@@ -669,7 +675,7 @@ class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
     signingUpWith: null
   };
 
-  unregisterAuthObserver = () => {};
+  unregisterAuthObserver = () => { };
 
   GoogleProvider = new firebase.auth.GoogleAuthProvider();
   TwitterProvider = new firebase.auth.TwitterAuthProvider();
