@@ -5,10 +5,11 @@
   "scripts": {
     "analyze": "cross-env ANALYZE=1 next build",
     "next-dev": "next src/app",
-    "dev": "cd dist/functions && firebase serve",
-    "prod-serve": "cd dist/functions && NODE_ENV=production firebase serve --only functions,hosting",
-    "deploy": "cd dist/functions && firebase deploy",
-    "build": "npm run clean && npm run build-all && npm run copy-deps && npm run install-deps && npm run copy-servicekey",
+    "dev": "cd dist/functions && node index.js",
+    "start": "NODE_ENV=production node index.js",
+    "prod-serve": "cd dist/functions && NODE_ENV=production node index.js",
+    "deploy": "cd dist/functions && gcloud app deploy",
+    "build": "npm run clean && npm run build-all && npm run copy-deps && npm run install-deps && npm run copy-servicekey && copy-appconf",
     "clean": "rimraf \"dist/functions\" && rimraf \"dist/public\"",
     "build-public": "cpx \"src/app/public/**/*.*\" \"dist/public\" -C",
     "build-app": "NODE_ENV=production next build src/app",
@@ -16,7 +17,8 @@
     "build-all": "npm run build-public && npm run build-funcs && npm run build-app",
     "copy-deps": "del dist/functions/{package.json,yarn.lock} && cpx \"{package.json,yarn.lock}\" \"dist/functions\"",
     "install-deps": "cd \"dist/functions\" && yarn --prod",
-    "copy-servicekey": "cpx \"src/functions/serviceAccountKey.json\" \"dist/functions\""
+    "copy-servicekey": "cpx \"src/functions/serviceAccountKey.json\" \"dist/functions\"",
+    "copy-appconf": "cpx \"app.yaml\" \"dist/functions\""
   },
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.0.0-beta.42",
