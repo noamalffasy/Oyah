@@ -24,15 +24,11 @@ import { UserModel, ArticleModel } from "../lib/db/models";
 import { User as UserInterface } from "../lib/db/models/User";
 import { Article as ArticleInterface } from "../lib/db/models/Article";
 
-import { graphql } from "../utils/graphql";
-import gql from "graphql-tag";
-
 interface Props {
   data?: any;
   profileUser?: UserInterface;
   articles: ArticleInterface[];
   _error?: any;
-  getArticlesByUser?: any;
   router: SingletonRouter;
   user: UserInterface;
   signInModal: any;
@@ -45,28 +41,11 @@ interface State {
   user: UserInterface;
 }
 
-@graphql(
-  gql`
-    mutation getArticlesByUser($authorID: ID) {
-      getArticlesByUser(authorID: $authorID) {
-        id
-        title
-      }
-    }
-  `,
-  {
-    name: "getArticlesByUser"
-  }
-)
 @withRouter
 class Profile extends Component<Props, State> {
   state = { articles: [], user: null };
 
-  static async getInitialProps(
-    { query: { nametag } }: any,
-    apolloClient: any,
-    _user: any
-  ) {
+  static async getInitialProps({ query: { nametag } }: any, _, user: any) {
     if (nametag !== undefined) {
       return await UserModel.get({ nametag })
         .then(async (user: UserInterface) => {
@@ -74,7 +53,11 @@ class Profile extends Component<Props, State> {
             .then(articles => ({
               profileUser: {
                 ...user,
-                mains: user.mains ? user.mains.split(", ") : null
+                mains: user.mains
+                  ? typeof user.mains === "string"
+                    ? user.mains.split(", ")
+                    : user.mains
+                  : null
               },
               articles
             }))
@@ -86,56 +69,6 @@ class Profile extends Component<Props, State> {
           _error: err
         }));
     } else {
-      const user =
-        _user === undefined
-          ? await apolloClient
-              .query({
-                query: gql`
-                  {
-                    currentUser {
-                      user {
-                        id
-                        nametag
-                        email
-                        small_image
-                        image
-                        bio
-                        name
-                        mains
-                        reddit
-                        twitter
-                        editor
-                        is_team
-                      }
-                    }
-                  }
-                `
-              })
-              .then(res => {
-                if (
-                  !res.errors &&
-                  res.data.currentUser &&
-                  res.data.currentUser.user
-                ) {
-                  return {
-                    ...res.data.currentUser.user,
-                    mains: res.data.currentUser.user.mains
-                      ? typeof res.data.currentUser.user.mains === "string"
-                        ? res.data.currentUser.user.mains.split(", ")
-                        : typeof res.data.currentUser.user.mains === "object"
-                          ? res.data.currentUser.user.mains
-                          : null
-                      : null
-                  };
-                } else {
-                  return undefined;
-                }
-              })
-              .catch(() => {
-                return undefined;
-              })
-          : _user;
-
       if (user !== undefined) {
         return await ArticleModel.getAll({ authorID: user.id })
           .then(articles => ({
@@ -177,13 +110,9 @@ class Profile extends Component<Props, State> {
       !nextProps.user.loading &&
       !nextProps.router.query.nametag
     ) {
-      const articles = await this.props
-        .getArticlesByUser({
-          variables: { authorID: nextProps.user.id }
-        })
-        .then(
-          (getArticlesByUser: any) => getArticlesByUser.data.getArticlesByUser
-        );
+      const articles = await ArticleModel.getAll({
+        authorID: nextProps.user.id
+      }).then(getArticlesByUser => getArticlesByUser);
 
       this.setState(prevState => ({
         ...prevState,
