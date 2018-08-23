@@ -16,16 +16,14 @@ import Loading from "../components/Loading";
 
 import { AlgoliaBrand } from "../components/svgs";
 
-// GraphQL
-import gql from "graphql-tag";
-import graphql from "../utils/graphql";
-
 import withData from "../lib/withData";
+import { searchArticle } from "../lib/search";
+
+import { Article as ArticleInterface } from "../lib/db/models/Article";
 
 interface Props {
   searchTerm: any;
   articles: any;
-  searchArticle?: any;
   user: any;
   signInModal: any;
   error: any;
@@ -37,96 +35,28 @@ interface State {
   searchTerm: string;
 }
 
-@graphql(
-  gql`
-    mutation searchArticle($searchTerm: String!) {
-      searchArticle(searchTerm: $searchTerm) {
-        id
-        path
-        dominantColor
-        title
-        author {
-          id
-          is_team
-        }
-      }
-    }
-  `,
-  {
-    name: "searchArticle"
-  }
-)
 class Search extends Component<Props, State> {
-  static async getInitialProps(
-    { query: { q: searchTerm } }: any,
-    apolloCilent: any
-  ) {
-    return await apolloCilent
-      .mutate({
-        mutation: gql`
-          mutation searchArticle($searchTerm: String!) {
-            searchArticle(searchTerm: $searchTerm) {
-              id
-              path
-              dominantColor
-              title
-              author {
-                id
-                is_team
-              }
-            }
-          }
-        `,
-        variables: {
-          searchTerm
-        }
-      })
-      .then((res: any) => {
-        if (res.error) {
-          return {
-            searchTerm: decodeURI(searchTerm),
-            error: res.error
-          };
-        } else {
-          const articles = res.data.searchArticle;
-
-          return {
-            searchTerm,
-            articles
-          };
-        }
-      })
-      .catch((err: Error) => {
-        return {
-          searchTerm,
-          error: err
-        };
-      });
+  static async getInitialProps({ query: { q: searchTerm } }: any) {
+    return await searchArticle(decodeURI(searchTerm))
+      .then(articles => ({
+        searchTerm,
+        articles
+      }))
+      .catch(err => ({
+        searchTerm: decodeURI(searchTerm),
+        error: err
+      }));
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.searchTerm !== this.props.searchTerm) {
-      this.props
-        .searchArticle({
-          variables: {
-            searchTerm: nextProps.searchTerm
-          }
-        })
-        .then((res: any) => {
-          if (res.errors) {
-            res.errors.forEach((error: any) => {
-              console.error(error);
-            });
-          } else {
-            const articles = res.data.searchArticle;
-
-            this.setState(prevState => ({
-              ...prevState,
-              searchTerm: nextProps.searchTerm,
-              articles
-            }));
-          }
-        });
+      searchArticle(nextProps.searchTerm).then(articles => {
+        this.setState(prevState => ({
+          ...prevState,
+          searchTerm: nextProps.searchTerm,
+          articles
+        }));
+      });
     }
   }
 
@@ -158,27 +88,13 @@ class Search extends Component<Props, State> {
           loading: true
         }));
 
-        this.props
-          .searchArticle({
-            variables: {
-              searchTerm
-            }
-          })
-          .then((res: any) => {
-            if (res.errors) {
-              res.errors.forEach((error: any) => {
-                console.error(error);
-              });
-            } else {
-              const articles = res.data.searchArticle;
-
-              this.setState(prevState => ({
-                ...prevState,
-                articles,
-                loading: false
-              }));
-            }
-          });
+        searchArticle(searchTerm).then(articles => {
+          this.setState(prevState => ({
+            ...prevState,
+            articles,
+            loading: false
+          }));
+        });
       }
     }, 1500);
   };
@@ -221,7 +137,7 @@ class Search extends Component<Props, State> {
           articles !== undefined &&
           articles.length > 0 ? (
             <div className="articles">
-              {articles.map((elem: any, i: any) => {
+              {articles.map((elem: ArticleInterface, i: any) => {
                 return (
                   <Article
                     path={elem.path}

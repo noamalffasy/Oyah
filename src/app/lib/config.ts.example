@@ -4,6 +4,10 @@ export const databaseURL = YOUR_DATABASE_URL;
 export const projectId = YOUR_PROJECT_ID;
 export const storageBucket = YOUR_STORAGE_BUCKET;
 export const messagingSenderId = YOUR_MESSAGING_ID;
+export const algoliaKeys = {
+  ApplicationID: YOUR_ALGOLIA_APPLICATION_ID,
+  APIKey: YOUR_ALGOLIA_API_KEY
+};
 
 export default {
   apiKey,
@@ -11,5 +15,6 @@ export default {
   databaseURL,
   projectId,
   storageBucket,
-  messagingSenderId
+  messagingSenderId,
+  algoliaKeys
 };
