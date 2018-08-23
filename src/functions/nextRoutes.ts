@@ -8,12 +8,18 @@ import * as uuid from "uuid/v4";
 
 import * as admin from "firebase-admin";
 
+const serviceAccount = require("./serviceAccountKey.json");
+
 const rememberSession = (_, res, next) => {
   res.set("Cache-Control", "private");
   return next();
 };
 
 export default (app: express.Application, nextApp: next.Server, handle) => {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+
   nextApp.prepare().then(() => {
     // app.set("trust proxy", 1);
 
