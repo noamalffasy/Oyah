@@ -6,6 +6,8 @@ import * as cookieParser from "cookie-parser";
 import * as uuid from "uuid/v4";
 // import * as LRUCache from "lru-cache";
 
+import * as admin from "firebase-admin";
+
 const rememberSession = (_, res, next) => {
   res.set("Cache-Control", "private");
   return next();
@@ -45,8 +47,8 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
       return nextApp.render(req, res, "/theme", {
         ...req.query,
         title: req.params.title
-      })
-    })
+      });
+    });
 
     // app.get("/articles", (req, res) => {
     //   return nextApp.render(req, res, "/Articles", req.query);
@@ -77,14 +79,22 @@ export default (app: express.Application, nextApp: next.Server, handle) => {
     app.post("/login", (req, res) => {
       const expiresIn = 1000 * 60 * 60 * 24 * 5; // 5 Days
 
-      const options: express.CookieOptions = {
-        maxAge: expiresIn,
-        httpOnly: true,
-        // secure: false
-        secure: true
-      };
-
-      res.cookie("__session", req.body, options);
+      admin
+        .auth()
+        .createSessionCookie(req.body, { expiresIn })
+        .then(cookie => {
+          const options: express.CookieOptions = {
+            maxAge: expiresIn,
+            httpOnly: true,
+            // secure: false
+            secure: true
+          };
+          
+          res.cookie("__session", cookie, options);
+        })
+        .catch(err => {
+          throw err;
+        });
 
       res.send("Success");
     });

@@ -27,6 +27,15 @@ class UserModel extends Model {
         .catch(err => reject(err));
     });
   }
+
+  create(info: User) {
+    return new Promise<User>(async (resolve, reject) => {
+      await Model.prototype.create
+        .call(this, { ...info, reddit: null, twitter: null }, true)
+        .then((user: User) => resolve(user))
+        .catch(err => reject(err));
+    });
+  }
 }
 
 export default new UserModel(users);
