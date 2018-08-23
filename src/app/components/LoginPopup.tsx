@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Component } from "react";
 
+import jwtDecode from "jwt-decode";
+
 // import Router from "next/router";
 import Link from "next/link";
 
@@ -9,18 +11,14 @@ import firebase, { app } from "../lib/firebase";
 import LoginButton from "./LoginButton";
 import { GoogleLogo, TwitterLogo } from "./svgs";
 
-// GraphQL
-import graphql from "../utils/graphql";
-import gql from "graphql-tag";
+import { UserModel } from "../lib/db/models";
+import { User as UserInterface } from "../lib/db/models/User";
 
 interface Props {
   signInModal: any;
   closeSignInModal: any;
   login: any;
   user: any;
-  signinUser?: any;
-  createUser?: any;
-  forgetPassword?: any;
 }
 
 interface State {
@@ -35,75 +33,6 @@ interface State {
   errorHeight: number;
 }
 
-@graphql(
-  gql`
-    mutation signinUser($authInfo: AuthInfo) {
-      signinUser(authInfo: $authInfo) {
-        user {
-          id
-          name
-          nametag
-          email
-          image
-          small_image
-          bio
-          name
-          mains
-          reddit
-          twitter
-        }
-        cookie
-      }
-    }
-  `,
-  {
-    name: "signinUser"
-  }
-)
-@graphql(
-  gql`
-    mutation createUser(
-      $email: String
-      $name: String
-      $nametag: String
-      $image: String
-      $authInfo: AuthInfo
-    ) {
-      createUser(
-        email: $email
-        name: $name
-        nametag: $nametag
-        image: $image
-        authInfo: $authInfo
-      ) {
-        user {
-          id
-          name
-          nametag
-          email
-          image
-          small_image
-        }
-        cookie
-      }
-    }
-  `,
-  {
-    name: "createUser"
-  }
-)
-@graphql(
-  gql`
-    mutation forgetPassword($email: String) {
-      forgetPassword(email: $email) {
-        status
-      }
-    }
-  `,
-  {
-    name: "forgetPassword"
-  }
-)
 class LoginPopup extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -130,7 +59,6 @@ class LoginPopup extends Component<Props, State> {
   signin: Login = null;
   createAccount: CreateAccount = null;
 
-
   unregisterAuthObserver = () => {
     const that = this;
     return app.auth().onAuthStateChanged(async _user => {
@@ -141,14 +69,13 @@ class LoginPopup extends Component<Props, State> {
           nametag: /.+?(?=@)+/g.exec(_user.email)[0],
           name: _user.displayName,
           image: _user.photoURL,
-          uid: _user.uid
+          id: _user.uid,
+          providerId: _user.providerId
         };
 
         const idToken = await _user
           .getIdToken()
-          .then(idToken => {
-            return idToken;
-          })
+          .then(idToken => idToken)
           .catch(err => {
             console.error(err);
 
@@ -158,113 +85,101 @@ class LoginPopup extends Component<Props, State> {
             }));
           });
 
-        if (_user.metadata.creationTime === _user.metadata.lastSignInTime) {
-          that.props
-            .createUser({
-              variables: {
-                email: user.email,
-                nametag: user.nametag,
-                name: user.name,
-                image: user.image,
-                authInfo: {
+        if (idToken) {
+          if (_user.metadata.creationTime === _user.metadata.lastSignInTime) {
+            UserModel.create(user)
+              .then(async (_user: UserInterface) => {
+                const user = {
+                  ..._user,
+                  mains:
+                    typeof _user.mains === "string"
+                      ? _user.mains.split(", ")
+                      : typeof _user.mains === "object"
+                        ? _user.mains
+                        : null
+                };
+
+                await fetch(
+                  `${
+                    window.location.hostname !== "localhost"
+                      ? "https://oyah.xyz"
+                      : `http://${window.location.host}`
+                  }/login`,
+                  {
+                    body: idToken,
+                    credentials: "include",
+                    method: "POST"
+                  }
+                ).catch(err => {
+                  console.error(err);
+                });
+
+                that.props.login({
+                  ...user,
                   idToken
-                }
-              }
-            })
-            .then(async res => {
-              const user = {
-                ...res.data.createUser.user,
-                mains:
-                  typeof res.data.createUser.user.mains === "string"
-                    ? res.data.createUser.user.mains.split(", ")
-                    : typeof res.data.createUser.user.mains === "object"
-                      ? res.data.createUser.user.mains
-                      : null
-              };
+                });
+                that.closeDialog();
 
-              await fetch(
-                `${
-                  window.location.hostname !== "localhost"
-                    ? "https://oyah.xyz"
-                    : `http://${window.location.host}`
-                }/login`,
-                {
-                  body: res.data.createUser.cookie,
-                  credentials: "include",
-                  method: "POST"
-                }
-              ).catch(err => {
+                return false;
+              })
+              .catch(err => {
                 console.error(err);
+
+                that.setState(prevState => ({
+                  ...prevState,
+                  error: err.message
+                }));
               });
+          } else {
+            that.props.login({ startLoading: true });
 
-              that.props.login({
-                ...user,
-                idToken
-              });
-              that.closeDialog();
+            const decodedClaims: { user_id: string } = await jwtDecode(idToken);
+            const { user_id } = decodedClaims;
 
-              return false;
-            })
-            .catch(err => {
-              console.error(err);
+            UserModel.get({ id: user_id })
+              .then(async _user => {
+                const user = {
+                  ..._user,
+                  mains:
+                    typeof _user.mains === "string"
+                      ? _user.mains.split(", ")
+                      : typeof _user.mains === "object"
+                        ? _user.mains
+                        : null
+                };
 
-              that.setState(prevState => ({
-                ...prevState,
-                error: err.message
-              }));
-            });
-        } else {
-          that.props.login({ startLoading: true });
-          that.props
-            .signinUser({
-              variables: {
-                authInfo: {
+                await fetch(
+                  `${
+                    window.location.hostname !== "localhost"
+                      ? "https://oyah.xyz"
+                      : `http://${window.location.host}`
+                  }/login`,
+                  {
+                    body: idToken,
+                    credentials: "include",
+                    method: "POST"
+                  }
+                ).catch(err => {
+                  console.error(err);
+                });
+
+                that.props.login({
+                  ...user,
                   idToken
-                }
-              }
-            })
-            .then(async res => {
-              const user = {
-                ...res.data.signinUser.user,
-                mains:
-                  typeof res.data.signinUser.user.mains === "string"
-                    ? res.data.signinUser.user.mains.split(", ")
-                    : typeof res.data.signinUser.user.mains === "object"
-                      ? res.data.signinUser.user.mains
-                      : null
-              };
+                });
+                that.closeDialog();
 
-              await fetch(
-                `${
-                  window.location.hostname !== "localhost"
-                    ? "https://oyah.xyz"
-                    : `http://${window.location.host}`
-                }/login`,
-                {
-                  body: res.data.signinUser.cookie,
-                  credentials: "include",
-                  method: "POST"
-                }
-              ).catch(err => {
+                return false;
+              })
+              .catch(err => {
                 console.error(err);
+
+                that.setState(prevState => ({
+                  ...prevState,
+                  error: err.message
+                }));
               });
-
-              that.props.login({
-                ...user,
-                idToken
-              });
-              that.closeDialog();
-
-              return false;
-            })
-            .catch(err => {
-              console.error(err);
-
-              that.setState(prevState => ({
-                ...prevState,
-                error: err.message
-              }));
-            });
+          }
         }
       }
     });
@@ -616,10 +531,7 @@ class Login extends Component<LoginProps, LoginState> {
   }
 
   componentWillReceiveProps(nextProps: LoginProps) {
-    if (
-      !nextProps.user.loading &&
-      nextProps.user !== this.props.user
-    ) {
+    if (!nextProps.user.loading && nextProps.user !== this.props.user) {
       this.setState(prevState => ({
         ...prevState,
         loggingWith: null
@@ -769,10 +681,7 @@ class CreateAccount extends Component<CreateAccountProps, CreateAccountState> {
   }
 
   componentWillReceiveProps(nextProps: CreateAccountProps) {
-    if (
-      !nextProps.user.loading &&
-      nextProps.user !== this.props.user
-    ) {
+    if (!nextProps.user.loading && nextProps.user !== this.props.user) {
       this.setState(prevState => ({
         ...prevState,
         signingUpWith: null
