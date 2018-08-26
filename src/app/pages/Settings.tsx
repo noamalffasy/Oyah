@@ -16,85 +16,28 @@ import ActionButtons from "../components/ActionButtons";
 import Head from "next/head";
 import Router from "next/router";
 
-import { withApollo } from "react-apollo";
-import graphql from "../utils/graphql";
-import gql from "graphql-tag";
+import { UserModel } from "../lib/db/models";
+import { User as UserInterface } from "../lib/db/models/User";
+import { Article as ArticleInterface } from "../lib/db/models/Article";
 
 import withData from "../lib/withData";
+import { uploadFile } from "../lib/upload";
 
 interface Props {
-  client: any;
-  profile: any;
+  profile: UserInterface;
   error: any;
   _error: any;
-  user: any;
+  user: UserInterface;
   login?: any;
-  updateUser?: any;
-  updateUserPassword?: any;
-  uploadFile?: any;
   signInModal: any;
   dispatch: any;
 }
 
 interface State {
-  articles: any[];
+  articles: ArticleInterface[];
   userImg?: any;
 }
 
-@graphql(
-  gql`
-    mutation updateUser(
-      $nametag: String
-      $bio: String
-      $name: String
-      $image: String
-      $mains: [String]
-      $reddit: String
-      $twitter: String
-      $email: String
-      $authInfo: AuthInfo
-    ) {
-      updateUser(
-        nametag: $nametag
-        bio: $bio
-        name: $name
-        image: $image
-        mains: $mains
-        reddit: $reddit
-        twitter: $twitter
-        email: $email
-        authInfo: $authInfo
-      ) {
-        user {
-          id
-          nametag
-          email
-          bio
-          name
-          mains
-          reddit
-          twitter
-        }
-        token
-      }
-    }
-  `,
-  {
-    name: "updateUser"
-  }
-)
-@graphql(
-  gql`
-    mutation uploadFile($file: Upload, $where: String!) {
-      uploadFile(file: $file, where: $where) {
-        path
-      }
-    }
-  `,
-  {
-    name: "uploadFile"
-  }
-)
 class Settings extends Component<Props, State> {
   state = { articles: [], userImg: null };
 
@@ -171,7 +114,7 @@ class Settings extends Component<Props, State> {
     const imageDialog = this.imageDialog;
     const fr = new FileReader();
     fr.onload = () => {
-      this.setState((prevState: any) => ({
+      this.setState(prevState => ({
         ...prevState,
         userImg: fr.result
       }));
@@ -194,103 +137,68 @@ class Settings extends Component<Props, State> {
     if (image !== null) {
       triggerLoading();
 
-      await this.props
-        .uploadFile({
-          variables: {
-            file: image,
-            where: "user"
-          }
-        })
-        .then(async (res: any) => {
-          if (res.error) {
-            // console.error(res.error);
-            this.setError(res.error);
-          } else {
-            const data = res.data.uploadFile;
+      await uploadFile({
+        file: image,
+        where: "user",
+        user: this.props.user
+      })
+        .then(async file => {
+          this.login({ ...this.props.user, image: file.path });
 
-            this.login({ ...this.props.user, image: data.path });
-
-            await this.props
-              .updateUser({
-                variables: {
-                  nametag,
-                  email,
-                  bio,
-                  name,
-                  image: data.path,
-                  mains,
-                  reddit,
-                  twitter,
-                  authInfo: {
-                    idToken: this.props.user.idToken
-                  }
-                }
-              })
-              .then((res: any) => {
-                this.ActionButtons.reset();
-
-                if (res.error) {
-                  // console.error(res.error);
-                  this.setError(res.error);
-                } else {
-                  const data = res.data.updateUser;
-
-                  this.props.client.cache.reset().then(() => {
-                    this.login({
-                      ...data.user,
-                      mains:
-                        data.user.mains !== null
-                          ? data.user.mains.split(", ")
-                          : null
-                    });
-
-                    Router.push(
-                      `/Profile?nametag=${nametag}`,
-                      `/users/${nametag}`
-                    );
-                  });
-                }
-              });
-          }
-        });
-    } else {
-      triggerLoading();
-
-      await this.props
-        .updateUser({
-          variables: {
+          await UserModel.update({
             nametag,
             email,
             bio,
             name,
+            image: file.path,
             mains,
             reddit,
-            twitter,
-            authInfo: {
-              idToken: this.props.user.idToken
-            }
-          }
-        })
-        .then((res: any) => {
-          this.ActionButtons.reset();
+            twitter
+          }).then((user: UserInterface) => {
+            this.ActionButtons.reset();
 
-          if (res.error) {
-            // console.error(res.error);
-            this.setError(res.error);
-          } else {
-            const data = res.data.updateUser;
-
-            this.props.client.cache.reset().then(() => {
-              this.login({
-                ...data.user,
-                mains:
-                  data.user.mains !== null ? data.user.mains.split(", ") : null
-              });
-
-              Router.push(`/Profile?nametag=${nametag}`, `/users/${nametag}`);
+            this.login({
+              ...user,
+              mains: user.mains
+                ? typeof user.mains === "string"
+                  ? user.mains.split(", ")
+                  : user.mains
+                : null
             });
-          }
+
+            Router.push(`/Profile?nametag=${nametag}`, `/users/${nametag}`);
+          });
+        })
+        .catch((err: Error) => {
+          console.error(err);
+          
+          this.setError(err.message);
         });
+    } else {
+      triggerLoading();
+
+      await UserModel.update({
+        nametag,
+        email,
+        bio,
+        name,
+        mains,
+        reddit,
+        twitter
+      }).then((user: UserInterface) => {
+        this.ActionButtons.reset();
+
+        this.login({
+          ...user,
+          mains: user.mains
+            ? typeof user.mains === "string"
+              ? user.mains.split(", ")
+              : user.mains
+            : null
+        });
+
+        Router.push(`/Profile?nametag=${nametag}`, `/users/${nametag}`);
+      });
     }
   }
 
@@ -509,6 +417,7 @@ class Settings extends Component<Props, State> {
 
             .Settings .user .info .image {
               position: relative;
+              border: 1px solid rgba(0, 0, 0, 0.05);
               border-radius: 50%;
               overflow: hidden;
               cursor: pointer;
@@ -757,5 +666,5 @@ export default withData(
   connect(
     mapStateToProps,
     null
-  )(withApollo(Settings))
+  )(Settings)
 );

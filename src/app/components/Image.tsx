@@ -65,6 +65,7 @@ class Image extends Component<Props, State> {
   _mounted: boolean = false;
   placeholder: HTMLDivElement = null;
   small: HTMLImageElement = null;
+  imgLarge: HTMLImageElement = null;
 
   async componentDidMount() {
     this._mounted = true;
@@ -139,16 +140,7 @@ class Image extends Component<Props, State> {
       };
     } else {
       const img = document.createElement("img");
-      img.src = props.smallSrc
-        ? props.smallSrc
-        : props.src.startsWith("http")
-          ? props.src
-          : (props.src.replace(/\.[^.]*$/, "").indexOf("/img") === -1
-              ? "/img"
-              : "") +
-            props.src.replace(/\.[^.]*$/, "") +
-            "_small" +
-            props.src.replace(/.*(?=\.)/, "");
+      img.src = props.smallSrc ? props.smallSrc : props.src;
       img.onload = () => {
         this.setState(prevState => ({
           ...prevState,
@@ -157,15 +149,8 @@ class Image extends Component<Props, State> {
       };
 
       const imgLarge = document.createElement("img");
-      if (!props.fixed) {
-        imgLarge.src = props.src;
-      } else {
-        imgLarge.src = props.src.startsWith("http")
-          ? props.src
-          : "/img" +
-            props.src.replace(/[^\/]*$/, "") +
-            encodeURIComponent(props.src.replace(/.*(?=\/)\//, ""));
-      }
+      imgLarge.src = props.src;
+
       const poll = setInterval(() => {
         if (imgLarge.naturalWidth) {
           clearInterval(poll);
@@ -189,7 +174,9 @@ class Image extends Component<Props, State> {
           }),
           () => {
             if (!props.fixed) {
-              this.placeholder.appendChild(imgLarge);
+              this.imgLarge ? this.imgLarge.remove() : null;
+              this.imgLarge = this.placeholder.appendChild(imgLarge);
+              this.src = props.src;
             } else {
               this.placeholder.style.backgroundImage = `url(${imgLarge.src})`;
             }
@@ -241,9 +228,7 @@ class Image extends Component<Props, State> {
                   ? this.state.smallImg
                   : this.props.smallSrc
                     ? this.props.smallSrc
-                    : this.props.src.replace(/\.[^.]*$/, "") +
-                      "_small" +
-                      this.props.src.replace(/.*(?=\.)/, "")
+                    : this.props.src
               }
               alt=""
               ref={img => (this.small = img)}
@@ -271,6 +256,7 @@ class Image extends Component<Props, State> {
               }
 
               .image.placeholder img.loaded {
+                background-color: #fff;
                 opacity: 1;
               }
 
@@ -297,6 +283,7 @@ class Image extends Component<Props, State> {
               }
 
               .image.placeholder img.loaded {
+                background-color: #fff;
                 opacity: 1;
               }
             `}</style>

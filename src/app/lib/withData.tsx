@@ -18,7 +18,7 @@ import { User as UserInterface } from "./db/models/User";
 async function getUser(req) {
   return new Promise<UserInterface>(async (resolve, reject) => {
     const token = req && req.cookies ? req.cookies["__session"] : null;
-    
+
     if (token) {
       const decodedClaims: { user_id?: string } = jwtDecode(token);
 
