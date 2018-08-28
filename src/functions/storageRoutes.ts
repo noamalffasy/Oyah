@@ -1,13 +1,25 @@
 import * as express from "express";
+import multer from "multer";
 
-import admin from "./utils/firebase";
+import { uploadFile } from "./utils/upload";
 
-import { bucketName } from "./config";
+const storage = multer.memoryStorage();
 
-const bucket = admin.storage().bucket(bucketName);
+const upload = multer({ storage });
 
 export default (app: express.Application) => {
-  app.post("/uploadFile", (req, res) => {
-      
+  app.post("/uploadFile", upload.single(), async (req, res) => {
+    const { dataURL, where, articleID, main } = req.body;
+
+    const file = await uploadFile({
+      file: req.file,
+      where,
+      articleID,
+      main,
+      dataURL,
+      sessionCookie: req.cookies["__session"]
+    });
+
+    res.send(() => file);
   });
 };

@@ -1,4 +1,6 @@
 import * as shortid from "shortid";
+import sharp from "sharp";
+import imagemin from "imagemin";
 
 import admin from "./firebase";
 
@@ -6,42 +8,66 @@ import { bucketName } from "../config";
 
 const bucket = admin.storage().bucket(bucketName);
 
-async function writeFile(filename: string, dataURL: string, file: File) {
-  return new Promise(async (resolve, reject) => {
+function getBuffer(dataURL: string, file: Express.Multer.File) {
+  return file
+    ? file.buffer
+    : Buffer.from(dataURL.replace(/data:image\/(.*?);base64,/, ""), "base64");
+}
+
+async function writeFile(filename: string, data: Buffer) {
+  return new Promise(async (_, reject) => {
     const imageFile = bucket.file(filename);
+    const minifiedBuffer = await imagemin.buffer(data).then(buffer => buffer);
 
-    dataURL
-      ? await imageFile
-          .putString(dataURL, "data_url")
-          .then(file => resolve(file))
-          .catch(err => reject(err))
-      : await imageFile
-          .put(file)
-          .then(file => resolve(file))
-          .catch(err => reject(err));
-    // await file.makePublic();
+    await imageFile.save(minifiedBuffer).catch(err => reject(err));
+    await imageFile.makePublic();
   });
 }
 
-async function getDataURL(file) {
-  return new Promise<string>((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => resolve(fr.result);
-    fr.onerror = () => reject(new Error("File is not valid"));
-    fr.readAsDataURL(file);
+function saveResizedImages(data: any, _filename: any) {
+  const filename = _filename.replace(".jpeg", "");
+
+  const file = bucket.file(`${filename}_small.jpeg`);
+  const stream = file.createWriteStream({
+    metadata: { contentType: "image/jpeg" }
   });
+
+  sharp(data)
+    .resize(40, undefined)
+    .max()
+    .pipe(stream);
+
+  stream
+    .on("finish", () => {
+      file.makePublic();
+      return data;
+    })
+    .on("error", err => err);
 }
 
-async function isValid({ file, dataURL }) {
+async function isValid(buffer) {
   return new Promise<boolean>(async (resolve, reject) => {
-    const fileURL = await getDataURL(file)
-      .then(url => url)
-      .catch(err => reject(err));
+    const magic = buffer.toString("hex", 0, 4);
 
-    const image = new Image();
-    image.onload = () => resolve(true);
-    image.onerror = () => resolve(false);
-    image.src = dataURL ? dataURL : fileURL;
+    const MAGIC_NUMBERS = {
+      jpg: "ffd8ffe0",
+      jpg1: "ffd8ffe1",
+      jpeg: "ffd8ffdb",
+      png: "89504e47",
+      gif: "47494638"
+    };
+
+    if (
+      magic === MAGIC_NUMBERS.jpg ||
+      magic === MAGIC_NUMBERS.jpg1 ||
+      magic === MAGIC_NUMBERS.jpeg ||
+      magic === MAGIC_NUMBERS.png ||
+      magic === MAGIC_NUMBERS.gif
+    ) {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
   });
 }
 
@@ -51,38 +77,45 @@ export async function uploadFile({
   articleID = null,
   main = true,
   dataURL = null,
-  user
+  sessionCookie
 }) {
-  return new Promise<{ path: string }>(async (resolve, reject) => {
-    const filename =
-      where === "user"
-        ? "user-#" + user.id + ".jpeg"
-        : articleID + (main ? "/main" : "/" + shortid.generate()) + ".jpeg";
-    if (await isValid({ file, dataURL })) {
-      await writeFile(
-        where === "user" ? `users/${filename}` : `articles/${filename}`,
-        dataURL,
-        file
-      )
-        .then(async () => {
-          if (where === "user") {
-            await UserModel.update({ id: user.id, image: filename }).catch(
-              (err: any) => {
-                reject(err);
-              }
-            );
-          }
+  return new Promise<{ path: string; filename: string }>(
+    async (resolve, reject) => {
+      const buffer = getBuffer(dataURL, file);
+      const userID = admin
+        .auth()
+        .verifySessionCookie(sessionCookie)
+        .then(({ uid }) => uid)
+        .catch(() => reject(new Error("Not logged in")));
 
-          resolve({
-            path:
-              where === "user"
-                ? `https://storage.googleapis.com/oyah.xyz/users/${filename}`
-                : `https://storage.googleapis.com/oyah.xyz/articles/${filename}`
-          });
-        })
-        .catch((err: Error) => reject(err));
-    } else {
-      reject(new Error("File is not valid"));
+      const filename =
+        where === "user"
+          ? "user-#" + userID + ".jpeg"
+          : articleID + (main ? "/main" : "/" + shortid.generate()) + ".jpeg";
+
+      if (await isValid(buffer)) {
+        await writeFile(
+          where === "user" ? `users/${filename}` : `articles/${filename}`,
+          buffer
+        )
+          .then(async () => {
+            saveResizedImages(
+              buffer,
+              where === "user" ? `users/${filename}` : `articles/${filename}`
+            );
+
+            resolve({
+              path:
+                where === "user"
+                  ? `https://storage.googleapis.com/oyah.xyz/users/${filename}`
+                  : `https://storage.googleapis.com/oyah.xyz/articles/${filename}`,
+              filename
+            });
+          })
+          .catch((err: Error) => reject(err));
+      } else {
+        reject(new Error("File is not valid"));
+      }
     }
-  });
+  );
 }

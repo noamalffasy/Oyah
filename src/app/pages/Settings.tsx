@@ -139,8 +139,7 @@ class Settings extends Component<Props, State> {
 
       await uploadFile({
         file: image,
-        where: "user",
-        user: this.props.user
+        where: "user"
       })
         .then(async file => {
           this.login({ ...this.props.user, image: file.path });

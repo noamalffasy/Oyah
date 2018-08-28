@@ -2,6 +2,7 @@ import * as express from "express";
 import * as next from "next";
 
 import nextRoutes from "./nextRoutes";
+import storageRoutes from "./storageRoutes";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next(
@@ -11,5 +12,6 @@ const handle = app.getRequestHandler();
 
 const nextServer = express();
 nextRoutes(nextServer, app, handle);
+storageRoutes(nextServer);
 
 nextServer.listen(8080, () => console.log("Oyah is listening on port 8080"))
