@@ -1,6 +1,6 @@
 import * as shortid from "shortid";
-import sharp from "sharp";
-import imagemin from "imagemin";
+import * as sharp from "sharp";
+import * as imagemin from "imagemin";
 
 import admin from "./firebase";
 
@@ -15,16 +15,19 @@ function getBuffer(dataURL: string, file: Express.Multer.File) {
 }
 
 async function writeFile(filename: string, data: Buffer) {
-  return new Promise(async (_, reject) => {
+  return new Promise(async (resolve, reject) => {
     const imageFile = bucket.file(filename);
     const minifiedBuffer = await imagemin.buffer(data).then(buffer => buffer);
 
-    await imageFile.save(minifiedBuffer).catch(err => reject(err));
+    await imageFile
+      .save(minifiedBuffer)
+      .then(() => resolve(minifiedBuffer))
+      .catch(err => reject(err));
     await imageFile.makePublic();
   });
 }
 
-function saveResizedImages(data: any, _filename: any) {
+async function saveResizedImages(data: any, _filename: any) {
   const filename = _filename.replace(".jpeg", "");
 
   const file = bucket.file(`${filename}_small.jpeg`);
@@ -32,7 +35,7 @@ function saveResizedImages(data: any, _filename: any) {
     metadata: { contentType: "image/jpeg" }
   });
 
-  sharp(data)
+  await sharp(data)
     .resize(40, undefined)
     .max()
     .pipe(stream);
@@ -82,7 +85,7 @@ export async function uploadFile({
   return new Promise<{ path: string; filename: string }>(
     async (resolve, reject) => {
       const buffer = getBuffer(dataURL, file);
-      const userID = admin
+      const userID = await admin
         .auth()
         .verifySessionCookie(sessionCookie)
         .then(({ uid }) => uid)

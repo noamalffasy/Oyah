@@ -7,9 +7,7 @@ import * as cookieParser from "cookie-parser";
 import * as uuid from "uuid/v4";
 // import * as LRUCache from "lru-cache";
 
-import * as admin from "firebase-admin";
-
-const serviceAccount = require("./serviceAccountKey.json");
+import admin from "./utils/firebase";
 
 const rememberSession = (_, res, next) => {
   res.set("Cache-Control", "private");
@@ -17,10 +15,6 @@ const rememberSession = (_, res, next) => {
 };
 
 export default (app: express.Application, nextApp: next.Server, handle) => {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-
   nextApp.prepare().then(() => {
     // app.set("trust proxy", 1);
 
