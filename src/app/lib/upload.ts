@@ -13,7 +13,7 @@ export async function uploadFile({
     data.append("where", where);
     data.append("articleID", articleID);
     data.append("main", `${main}`);
-
+    
     await fetch(
       `${
         window.location.hostname !== "localhost"
@@ -22,16 +22,13 @@ export async function uploadFile({
       }/uploadFile`,
       {
         body: data,
-        headers: {
-          "Content-Type": "multipart-form-data"
-        },
         credentials: "include",
         method: "POST"
       }
     )
       .then(async res => {
         const { path } = await res.json();
-
+        
         resolve({ path });
       })
       .catch((err: Error) => reject(err));
