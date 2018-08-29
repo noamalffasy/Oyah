@@ -142,14 +142,18 @@ class Settings extends Component<Props, State> {
         where: "user"
       })
         .then(async file => {
-          this.login({ ...this.props.user, image: file.path });
+          this.login({
+            ...this.props.user,
+            image: `${file.path[0]}?${Date.now()}`
+          });
 
           await UserModel.update({
+            id: this.props.user.id,
             nametag,
             email,
             bio,
             name,
-            image: file.path,
+            image: `${file.path[0]}?${Date.now()}`,
             mains,
             reddit,
             twitter
@@ -170,13 +174,14 @@ class Settings extends Component<Props, State> {
         })
         .catch((err: Error) => {
           console.error(err);
-          
+
           this.setError(err.message);
         });
     } else {
       triggerLoading();
 
       await UserModel.update({
+        id: this.props.user.id,
         nametag,
         email,
         bio,

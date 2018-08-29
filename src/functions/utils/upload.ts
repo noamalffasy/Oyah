@@ -1,6 +1,5 @@
 import * as shortid from "shortid";
 import * as sharp from "sharp";
-import * as imagemin from "imagemin";
 
 import admin from "./firebase";
 
@@ -14,38 +13,92 @@ function getBuffer(dataURL: string, file: Express.Multer.File) {
     : Buffer.from(dataURL.replace(/data:image\/(.*?);base64,/, ""), "base64");
 }
 
-async function writeFile(filename: string, data: Buffer) {
-  return new Promise(async (resolve, reject) => {
-    const imageFile = bucket.file(filename);
-    const minifiedBuffer = await imagemin.buffer(data).then(buffer => buffer);
+async function writeFile(data: Buffer, filename: string) {
+  return new Promise<Buffer>(async (resolve, reject) => {
+    const file = bucket.file(filename);
 
-    await imageFile
-      .save(minifiedBuffer)
-      .then(() => resolve(minifiedBuffer))
-      .catch(err => reject(err));
-    await imageFile.makePublic();
+    await file
+      .save(data)
+      .then(async () => {
+        await file.makePublic();
+        resolve(data);
+      })
+      .catch(err => {
+        reject(err);
+      });
   });
 }
 
-async function saveResizedImages(data: any, _filename: any) {
-  const filename = _filename.replace(".jpeg", "");
-
-  const file = bucket.file(`${filename}_small.jpeg`);
-  const stream = file.createWriteStream({
-    metadata: { contentType: "image/jpeg" }
+async function resizeImage(data: Buffer, size: number) {
+  return new Promise<Buffer>(async (resolve, reject) => {
+    await sharp(data)
+      .resize(size)
+      .toBuffer()
+      .then(resizedBuffer => resolve(resizedBuffer))
+      .catch(err => {
+        reject(err);
+      });
   });
+}
 
-  await sharp(data)
-    .resize(40, undefined)
-    .max()
-    .pipe(stream);
+async function saveResizedImages(data: Buffer, filename: string, size) {
+  return new Promise<Buffer>(async (resolve, reject) => {
+    await resizeImage(data, size)
+      .then(async smallBuffer => {
+        await writeFile(smallBuffer, filename)
+          .then(async () => {
+            resolve(smallBuffer);
+          })
+          .catch(err => {
+            reject(err);
+          });
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
 
-  stream
-    .on("finish", () => {
-      file.makePublic();
-      return data;
-    })
-    .on("error", err => err);
+async function saveImage(buffer: Buffer, filename: string, size: number) {
+  return new Promise<string>(async (resolve, reject) => {
+    await saveResizedImages(buffer, filename, size)
+      .then(async resizedBuffer => {
+        const filenameNoExt = filename.replace(".jpeg", "");
+        const smallFilename = `${filenameNoExt}_small.jpeg`;
+
+        await saveResizedImages(resizedBuffer, smallFilename, 40)
+          .then(() => resolve(filename))
+          .catch(err => {
+            reject(err);
+          });
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
+async function makeResponsive(buffer: Buffer, _filename: string) {
+  return new Promise<string[]>(async (resolve, reject) => {
+    const sizes = [1920, 1600, 1366, 1024, 768, 640];
+
+    const paths = await Promise.all(
+      sizes.map(async size => {
+        return new Promise<string>(async (resolve, reject) => {
+          const filenameNoExt = _filename.replace(".jpeg", "");
+          const filename = `${filenameNoExt}/${size}px.jpeg`;
+
+          await saveImage(buffer, filename, size)
+            .then(async filename => resolve(filename))
+            .catch(err => {
+              reject(err);
+            });
+        });
+      })
+    ).then(paths => paths);
+
+    resolve(paths);
+  });
 }
 
 async function isValid(buffer) {
@@ -82,7 +135,7 @@ export async function uploadFile({
   dataURL = null,
   sessionCookie
 }) {
-  return new Promise<{ path: string; filename: string }>(
+  return new Promise<{ path: string[]; filename?: string[] }>(
     async (resolve, reject) => {
       const buffer = getBuffer(dataURL, file);
       const userID = await admin
@@ -93,29 +146,30 @@ export async function uploadFile({
 
       const filename =
         where === "user"
-          ? "user-#" + userID + ".jpeg"
+          ? `${userID}.jpeg`
           : articleID + (main ? "/main" : "/" + shortid.generate()) + ".jpeg";
 
       if (await isValid(buffer)) {
-        await writeFile(
-          where === "user" ? `users/${filename}` : `articles/${filename}`,
-          buffer
-        )
-          .then(async () => {
-            saveResizedImages(
-              buffer,
-              where === "user" ? `users/${filename}` : `articles/${filename}`
-            );
-
-            resolve({
-              path:
-                where === "user"
-                  ? `https://storage.googleapis.com/oyah.xyz/users/${filename}`
-                  : `https://storage.googleapis.com/oyah.xyz/articles/${filename}`,
-              filename
-            });
-          })
-          .catch((err: Error) => reject(err));
+        if (where === "article") {
+          await makeResponsive(buffer, `articles/${filename}`)
+            .then(paths => {
+              const urls = paths.map(
+                path => `https://storage.googleapis.com/oyah.xyz/${path}`
+              );
+              resolve({
+                path: urls
+              });
+            })
+            .catch(err => reject(err));
+        } else {
+          await saveImage(buffer, `users/${filename}`, null)
+            .then(path => {
+              resolve({
+                path: [`https://storage.googleapis.com/oyah.xyz/${path}`]
+              });
+            })
+            .catch(err => reject(err));
+        }
       } else {
         reject(new Error("File is not valid"));
       }
