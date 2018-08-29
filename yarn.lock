@@ -1016,12 +1016,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/imagemin@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@types/imagemin/-/imagemin-6.0.0.tgz#c7b72bb08657396884acfac735c204379b0fe0a4"
-  dependencies:
-    "@types/node" "*"
-
 "@types/jsonwebtoken@^7.2.6":
   version "7.2.8"
   resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-7.2.8.tgz#8d199dab4ddb5bba3234f8311b804d2027af2b3a"
@@ -3822,10 +3816,6 @@ file-loader@^1.1.11:
     loader-utils "^1.0.2"
     schema-utils "^0.4.5"
 
-file-type@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-8.1.0.tgz#244f3b7ef641bbe0cca196c7276e4b332399f68c"
-
 filename-regex@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/filename-regex/-/filename-regex-2.0.1.tgz#c1c4b9bee3e09725ddb106b75c1e301fe2f18b26"
@@ -4750,17 +4740,6 @@ imageinliner@^0.2.4:
     mime "~1.2.9"
     mkdirp "~0.3.5"
     optimist "~0.6.0"
-
-imagemin@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/imagemin/-/imagemin-6.0.0.tgz#1ae68c6b867863651a454f882054d9abf7d13b78"
-  dependencies:
-    file-type "^8.1.0"
-    globby "^8.0.1"
-    make-dir "^1.0.0"
-    p-pipe "^1.1.0"
-    pify "^3.0.0"
-    replace-ext "^1.0.0"
 
 immutable@~3.7.4:
   version "3.7.6"
@@ -6493,10 +6472,6 @@ p-locate@^2.0.0:
 p-map@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/p-map/-/p-map-1.2.0.tgz#e4e94f311eabbc8633a1e79908165fca26241b6b"
-
-p-pipe@^1.1.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/p-pipe/-/p-pipe-1.2.0.tgz#4b1a11399a11520a67790ee5a0c1d5881d6befe9"
 
 p-try@^1.0.0:
   version "1.0.0"
