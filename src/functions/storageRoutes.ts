@@ -11,11 +11,11 @@ const upload = multer({ storage });
 export default (app: express.Application) => {
   app.use(cookieParser());
 
-  app.post("/uploadFile", upload.single("file"), async (req, res, next) => {
+  app.post("/uploadFile", upload.any(), async (req, res) => {
     const { dataURL, where, articleID, main } = req.body;
-
+    
     await uploadFile({
-      file: req.file,
+      file: req.files ? req.files[0]: null,
       where,
       articleID,
       main,
