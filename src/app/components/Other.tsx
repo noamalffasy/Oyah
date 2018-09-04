@@ -1,10 +1,12 @@
 import * as React from "react";
 import { Component } from "react";
 
-import Article from "./ArticleBlock";
+import ArticleBlock from "./ArticleBlock";
+
+import { Article as ArticleInterface } from "lib/db/models/Article";
 
 interface Props {
-  articles: any;
+  articles: ArticleInterface[];
 }
 
 class Other extends Component<Props> {
@@ -12,9 +14,9 @@ class Other extends Component<Props> {
     return (
       <div className="Other">
         {this.props.articles.slice(3, 19) &&
-          this.props.articles.slice(3, 19).map((elem: any, i: any) => {
+          this.props.articles.slice(3, 19).map((elem, i) => {
             return (
-              <Article
+              <ArticleBlock
                 path={elem.path}
                 dominantColor={elem.dominantColor}
                 title={elem.title}

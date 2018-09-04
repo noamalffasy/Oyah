@@ -1,17 +1,19 @@
 import * as React from "react";
 import { Component } from "react";
 
-import Article from "./ArticleBlock";
+import ArticleBlock from "./ArticleBlock";
+
+import { Article as ArticleInterface } from "../lib/db/models/Article";
 
 interface Props {
-  articles: any;
+  articles: ArticleInterface[];
 }
 
 class Highlights extends Component<Props> {
   render() {
     return (
       <div className="Highlights">
-        <Article
+        <ArticleBlock
           path={this.props.articles[0].path}
           dominantColor={this.props.articles[0].dominantColor}
           title={this.props.articles[0].title}
@@ -21,9 +23,9 @@ class Highlights extends Component<Props> {
           loading={false}
         />
         <div className="other">
-          {this.props.articles.slice(1, 3).map((elem: any, i: number) => {
+          {this.props.articles.slice(1, 3).map((elem, i) => {
             return (
-              <Article
+              <ArticleBlock
                 path={elem.path}
                 dominantColor={elem.dominantColor}
                 title={elem.title}

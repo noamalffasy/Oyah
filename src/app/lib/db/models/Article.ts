@@ -21,6 +21,7 @@ export interface Article {
   likes?: Likes;
   comments?: CommentInterface[];
   dominantColor: string;
+  alt?: string;
   createdAt?: string;
   isTimeBased?: boolean;
 }
