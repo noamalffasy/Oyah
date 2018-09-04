@@ -36,6 +36,7 @@ interface Props extends React.Props<Image> {
   alt: string;
   className?: string;
   fixed?: boolean;
+  responsive?: boolean;
   user?: any;
   style?: any;
   customPlaceholder?: JSX.Element;
@@ -78,7 +79,7 @@ class Image extends Component<Props, State> {
     }
   }
 
-  loadImages = props => {
+  loadImages = (props: Props) => {
     if (props.user && Object.keys(props.user).length !== 0) {
       this.setState(prevState => ({
         ...prevState,
@@ -140,7 +141,17 @@ class Image extends Component<Props, State> {
       };
     } else {
       const img = document.createElement("img");
-      img.src = props.smallSrc ? props.smallSrc : props.src;
+
+      if (props.responsive) {
+        const smallSrc = props.smallSrc
+          ? props.smallSrc.replace("_small.jpeg", "")
+          : props.src.replace(".jpeg", "");
+
+        img.srcset = `${smallSrc}/1920px_small.jpeg 1920w, ${smallSrc}/1600px_small.jpeg 1600w, ${smallSrc}/1366px_small.jpeg 1366w, ${smallSrc}/1024px_small.jpeg 1024w, ${smallSrc}/768px_small.jpeg 768w, ${smallSrc}/640px_small.jpeg 640w`;
+      } else {
+        img.src = props.smallSrc ? props.smallSrc : props.src;
+      }
+
       img.onload = () => {
         this.setState(prevState => ({
           ...prevState,
@@ -149,7 +160,13 @@ class Image extends Component<Props, State> {
       };
 
       const imgLarge = document.createElement("img");
-      imgLarge.src = props.src;
+
+      if (props.responsive) {
+        const largeSrc = props.src.replace(".jpeg", "");
+        imgLarge.srcset = `${largeSrc}/1920px.jpeg 1920w, ${largeSrc}/1600px.jpeg 1600w, ${largeSrc}/1366px.jpeg 1366w, ${largeSrc}/1024px.jpeg 1024w, ${largeSrc}/768px.jpeg 768w, ${largeSrc}/640px.jpeg 640w`;
+      } else {
+        imgLarge.src = props.src;
+      }
 
       const poll = setInterval(() => {
         if (imgLarge.naturalWidth) {
@@ -176,7 +193,9 @@ class Image extends Component<Props, State> {
             if (!props.fixed) {
               this.imgLarge ? this.imgLarge.remove() : null;
               this.imgLarge = this.placeholder.appendChild(imgLarge);
-              this.src = props.src;
+              this.src = props.responsive
+                ? props.src.replace(".jpeg", "")
+                : props.src;
             } else {
               this.placeholder.style.backgroundImage = `url(${imgLarge.src})`;
             }
@@ -187,6 +206,9 @@ class Image extends Component<Props, State> {
   };
 
   src = this.props.src;
+  smallSrc = this.props.smallSrc
+    ? this.props.smallSrc
+    : this.props.src.replace(".jpeg", "_small.jpeg");
 
   render() {
     if (!this.props.fixed) {
@@ -207,7 +229,7 @@ class Image extends Component<Props, State> {
           <div
             className={
               "image placeholder" +
-              (this.state.smallLoaded ? " loading" : "") +
+              (!this.state.largeLoaded ? " loading" : "") +
               (this.props.className ? " " + this.props.className : "")
             }
             data-large={
@@ -221,14 +243,16 @@ class Image extends Component<Props, State> {
           >
             <img
               className={
-                "img-small" + (this.state.smallLoaded ? " loaded" : "")
+                "img-small" + (!this.state.largeLoaded ? " loaded" : "")
               }
               src={
                 this.props.user && Object.keys(this.props.user).length !== 0
                   ? this.state.smallImg
-                  : this.props.smallSrc
-                    ? this.props.smallSrc
-                    : this.props.src
+                  : this.smallSrc
+                    ? this.smallSrc
+                    : this.props.smallSrc
+                      ? this.props.smallSrc
+                      : this.props.src
               }
               alt=""
               ref={img => (this.small = img)}
@@ -262,7 +286,7 @@ class Image extends Component<Props, State> {
 
               .image.placeholder .img-small {
                 filter: blur(10px);
-                transform: scale(1);
+                transform: scale(1.1);
               }
 
               .image.placeholder .scale-ratio {
