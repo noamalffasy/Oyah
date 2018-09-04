@@ -28,13 +28,13 @@ class Placeholder extends Component<any, any> {
 }
 
 interface Props {
-  id: any;
-  path: any;
+  id: string;
+  path: string;
   dominantColor: any;
-  title: any;
-  alt: any;
+  title: string;
+  alt: string;
   official: boolean;
-  loading: any;
+  loading: boolean;
   main?: boolean;
 }
 
@@ -79,6 +79,7 @@ class ArticleBlock extends Component<Props> {
             <div className="article-inner">
               <canvas ref={canvas => (this.backgroundBlur = canvas)} />
               <Image
+                responsive
                 src={this.props.path}
                 alt={this.props.alt || ""}
                 onError={(e: any) => {
