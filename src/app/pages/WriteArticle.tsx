@@ -26,16 +26,19 @@ import Router, { withRouter, SingletonRouter } from "next/router";
 
 import App from "../components/App";
 
+import { uploadFile } from "../lib/upload";
+
 // GraphQL
 import graphql from "../utils/graphql";
 import gql from "graphql-tag";
 
 import withData from "../lib/withData";
+
+// Types
 import { ArticleModel } from "../lib/db/models";
 import { User as UserInterface } from "lib/db/models/User";
 
 interface Props {
-  uploadFile?: any;
   createArticle?: any;
   updateArticle?: any;
   newArticle: any;
@@ -63,30 +66,6 @@ interface State {
   value?: any;
 }
 
-@graphql(
-  gql`
-    mutation uploadFile(
-      $file: Upload
-      $where: String!
-      $articleID: String
-      $main: Boolean
-      $image: String
-    ) {
-      uploadFile(
-        file: $file
-        where: $where
-        articleID: $articleID
-        main: $main
-        image: $image
-      ) {
-        path
-      }
-    }
-  `,
-  {
-    name: "uploadFile"
-  }
-)
 @graphql(
   gql`
     mutation createArticle(
@@ -557,185 +536,167 @@ class WriteArticle extends Component<Props, State> {
       !image.startsWith("http://") &&
       !image.startsWith("/img/articles")
     ) {
-      this.props
-        .uploadFile({
-          variables: {
-            where: "article",
-            articleID: this.props.newArticle.id,
-            main: true,
-            image
-          }
-        })
-        .then((res: any) => {
-          if (res.error) {
-            this.ActionButtons.reset();
+      uploadFile({
+        where: "article",
+        articleID: this.props.newArticle.id,
+        main: true,
+        dataURL: image
+      })
+        .then(path => {
+          if (!this.state.edit) {
+            this.props
+              .createArticle({
+                variables: {
+                  id: this.props.newArticle.id,
+                  title,
+                  path,
+                  content,
+                  authorID: this.props.user.id,
+                  theme: this.state.theme,
+                  isTimeBased: this.state.isTimeBased
+                }
+              })
+              .then((res: any) => {
+                this.ActionButtons.reset();
 
-            this.setError(res.error.graphQLErrors[0].message);
+                if (res.errors) {
+                  this.setError(
+                    res.errors
+                      .map((error: any) => {
+                        return error.graphQLErrors[0].message;
+                      })
+                      .join("\n")
+                  );
+                } else {
+                  Router.push("/articles/" + res.data.createArticle.id);
+                }
+              })
+              .catch((err: any) => {
+                this.ActionButtons.reset();
+
+                this.setError(err.graphQLErrors[0].message);
+              });
           } else {
-            if (!this.state.edit) {
-              this.props
-                .createArticle({
-                  variables: {
-                    id: this.props.newArticle.id,
-                    title,
-                    path: res.data.uploadFile.path,
-                    content,
-                    authorID: this.props.user.id,
-                    theme: this.state.theme,
-                    isTimeBased: this.state.isTimeBased
-                  }
-                })
-                .then((res: any) => {
-                  this.ActionButtons.reset();
+            this.props
+              .updateArticle({
+                variables: {
+                  id: this.props.newArticle.id,
+                  title,
+                  path,
+                  content,
+                  theme: this.state.theme,
+                  isTimeBased: this.state.isTimeBased
+                }
+              })
+              .then((res: any) => {
+                this.ActionButtons.reset();
 
-                  if (res.errors) {
-                    this.setError(
-                      res.errors
-                        .map((error: any) => {
-                          return error.graphQLErrors[0].message;
-                        })
-                        .join("\n")
-                    );
-                  } else {
-                    Router.push("/articles/" + res.data.createArticle.id);
-                  }
-                })
-                .catch((err: any) => {
-                  this.ActionButtons.reset();
+                if (res.errors) {
+                  this.setError(
+                    res.errors
+                      .map((error: any) => {
+                        return error.graphQLErrors[0].message;
+                      })
+                      .join("\n")
+                  );
+                } else {
+                  Router.push("/articles/" + res.data.updateArticle.id);
+                }
+              })
+              .catch((err: any) => {
+                this.ActionButtons.reset();
 
-                  this.setError(err.graphQLErrors[0].message);
-                });
-            } else {
-              this.props
-                .updateArticle({
-                  variables: {
-                    id: this.props.newArticle.id,
-                    title,
-                    path: res.data.uploadFile.path,
-                    content,
-                    theme: this.state.theme,
-                    isTimeBased: this.state.isTimeBased
-                  }
-                })
-                .then((res: any) => {
-                  this.ActionButtons.reset();
-
-                  if (res.errors) {
-                    this.setError(
-                      res.errors
-                        .map((error: any) => {
-                          return error.graphQLErrors[0].message;
-                        })
-                        .join("\n")
-                    );
-                  } else {
-                    Router.push("/articles/" + res.data.updateArticle.id);
-                  }
-                })
-                .catch((err: any) => {
-                  this.ActionButtons.reset();
-
-                  this.setError(err.graphQLErrors[0].message);
-                });
-            }
+                this.setError(err.graphQLErrors[0].message);
+              });
           }
         })
         .catch((err: any) => {
           this.ActionButtons.reset();
 
-          this.setError(err.graphQLErrors[0].message);
+          this.setError(err.message);
         });
     } else if (
       typeof image === "object" &&
       image !== null &&
       this.imageDialog.validity.valid
     ) {
-      this.props
-        .uploadFile({
-          variables: {
-            // file: image,
-            where: "article",
-            articleID: this.props.newArticle.id,
-            main: true,
-            image: this.state.image
-          }
-        })
-        .then((res: any) => {
-          if (res.error) {
-            this.ActionButtons.reset();
+      uploadFile({
+        // file: image,
+        where: "article",
+        articleID: this.props.newArticle.id,
+        main: true,
+        dataURL: this.state.image
+      })
+        .then(path => {
+          if (!this.state.edit) {
+            this.props
+              .createArticle({
+                variables: {
+                  id: this.props.newArticle.id,
+                  title,
+                  path,
+                  content,
+                  authorID: this.props.user.id,
+                  theme: this.state.theme,
+                  isTimeBased: this.state.isTimeBased
+                }
+              })
+              .then((res: any) => {
+                if (res.errors) {
+                  this.setError(
+                    res.errors
+                      .map((error: any) => {
+                        return error.graphQLErrors[0].message;
+                      })
+                      .join("\n")
+                  );
+                } else {
+                  Router.push("/articles/" + res.data.createArticle.id);
+                }
+              })
+              .catch((err: any) => {
+                this.ActionButtons.reset();
 
-            this.setError(res.error.graphQLErrors[0].message);
+                this.setError(err.graphQLErrors[0].message);
+              });
           } else {
-            if (!this.state.edit) {
-              this.props
-                .createArticle({
-                  variables: {
-                    id: this.props.newArticle.id,
-                    title,
-                    path: res.data.uploadFile.path,
-                    content,
-                    authorID: this.props.user.id,
-                    theme: this.state.theme,
-                    isTimeBased: this.state.isTimeBased
-                  }
-                })
-                .then((res: any) => {
-                  if (res.errors) {
-                    this.setError(
-                      res.errors
-                        .map((error: any) => {
-                          return error.graphQLErrors[0].message;
-                        })
-                        .join("\n")
-                    );
-                  } else {
-                    Router.push("/articles/" + res.data.createArticle.id);
-                  }
-                })
-                .catch((err: any) => {
-                  this.ActionButtons.reset();
+            this.props
+              .updateArticle({
+                variables: {
+                  id: this.props.newArticle.id,
+                  title,
+                  path,
+                  content,
+                  theme: this.state.theme,
+                  isTimeBased: this.state.isTimeBased
+                }
+              })
+              .then((res: any) => {
+                this.ActionButtons.reset();
 
-                  this.setError(err.graphQLErrors[0].message);
-                });
-            } else {
-              this.props
-                .updateArticle({
-                  variables: {
-                    id: this.props.newArticle.id,
-                    title,
-                    path: res.data.uploadFile.path,
-                    content,
-                    theme: this.state.theme,
-                    isTimeBased: this.state.isTimeBased
-                  }
-                })
-                .then((res: any) => {
-                  this.ActionButtons.reset();
+                if (res.errors) {
+                  this.setError(
+                    res.errors
+                      .map((error: any) => {
+                        return error.graphQLErrors[0].message;
+                      })
+                      .join("\n")
+                  );
+                } else {
+                  Router.push("/articles/" + res.data.updateArticle.id);
+                }
+              })
+              .catch((err: any) => {
+                this.ActionButtons.reset();
 
-                  if (res.errors) {
-                    this.setError(
-                      res.errors
-                        .map((error: any) => {
-                          return error.graphQLErrors[0].message;
-                        })
-                        .join("\n")
-                    );
-                  } else {
-                    Router.push("/articles/" + res.data.updateArticle.id);
-                  }
-                })
-                .catch((err: any) => {
-                  this.ActionButtons.reset();
-
-                  this.setError(err.graphQLErrors[0].message);
-                });
-            }
+                this.setError(err.graphQLErrors[0].message);
+              });
           }
         })
         .catch((err: any) => {
           this.ActionButtons.reset();
 
-          this.setError(err.graphQLErrors[0].message);
+          this.setError(err.message);
         });
     } else {
       if (!this.state.edit) {
