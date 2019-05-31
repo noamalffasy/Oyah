@@ -73,7 +73,7 @@
     "react": "16.4.0",
     "react-apollo": "^2.1.2",
     "react-custom-scrollbars": "^4.2.1",
-    "react-dom": "16.4.0",
+    "react-dom": "16.4.2",
     "react-markdown": "^3.3.2",
     "react-placeholder": "^3.0.1",
     "react-redux": "^5.0.7",
