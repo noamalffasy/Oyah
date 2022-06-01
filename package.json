@@ -85,7 +85,7 @@
     "reactstrap": "^6.2.0",
     "redux": "^4.0.0",
     "remark-shortcodes": "^0.2.1",
-    "sharp": "^0.20.5",
+    "sharp": "^0.30.5",
     "shortid": "^2.2.8",
     "stackblur-canvas": "^1.4.1",
     "stream-to-array": "^2.3.0",
